@@ -7,6 +7,12 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'logistics_project.settings')
+    
+    # Add the project root directory to Python path This allows Django to find the 'apps' module
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+    
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
