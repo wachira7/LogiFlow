@@ -1,61 +1,76 @@
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from django.db import transaction
+from .permissions import IsSameCompany, IsCompanyMember
 import uuid
-from django.db import models
-from django.utils import timezone
 
+class UUIDMixin:
+    """Mixin to handle UUID conversion in views."""
+    
+    def get_object(self):
+        """Override to handle UUID lookup."""
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup_value = self.kwargs[lookup_url_kwarg]
+        
+        # Convert string to UUID if needed
+        if isinstance(lookup_value, str):
+            try:
+                lookup_value = uuid.UUID(lookup_value)
+            except ValueError:
+                pass
+        
+        filter_kwargs = {self.lookup_field: lookup_value}
+        obj = queryset.get(**filter_kwargs)
+        
+        # May raise a permission denied
+        self.check_object_permissions(self.request, obj)
+        return obj
 
-class UUIDMixin(models.Model):
+class TenantQuerysetMixin:
     """
-    Abstract base class that provides UUID primary key.
+    Mixin to filter queryset by user's company automatically.
     """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if hasattr(self.request.user, 'company') and self.request.user.company:
+            if hasattr(queryset.model, 'company'):
+                return queryset.filter(company=self.request.user.company)
+        return queryset
 
-    class Meta:
-        abstract = True
-
-
-class TimeStampedModel(UUIDMixin):
+class TenantViewSetMixin(TenantQuerysetMixin, UUIDMixin):
     """
-    Abstract base class that provides UUID primary key and timestamps.
+    Complete mixin for tenant-aware ViewSets.
     """
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    permission_classes = [IsCompanyMember, IsSameCompany]
+    
+    def perform_create(self, serializer):
+        """Automatically set company when creating objects."""
+        if hasattr(serializer.Meta.model, 'company'):
+            serializer.save(company=self.request.user.company)
+        else:
+            serializer.save()
 
-    class Meta:
-        abstract = True
-
-
-class SoftDeleteMixin(models.Model):
+class BulkActionMixin:
     """
-    Abstract base class that provides soft delete functionality.
+    Mixin to add bulk operations to ViewSets.
     """
-    is_deleted = models.BooleanField(default=False)
-    deleted_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        abstract = True
-
-    def soft_delete(self):
-        """Mark the object as deleted without actually deleting it."""
-        self.is_deleted = True
-        self.deleted_at = timezone.now()
-        self.save()
-
-    def restore(self):
-        """Restore a soft-deleted object."""
-        self.is_deleted = False
-        self.deleted_at = None
-        self.save()
-
-
-class TenantMixin(models.Model):
-    """
-    Abstract base class that provides tenant association.
-    """
-    tenant = models.ForeignKey(
-        'tenants.Company',
-        on_delete=models.CASCADE,
-        related_name='%(class)s_set'
-    )
-
-    class Meta:
-        abstract = True
+    def bulk_delete(self, request):
+        """Bulk delete objects by IDs."""
+        ids = request.data.get('ids', [])
+        if not ids:
+            return Response(
+                {'error': 'No IDs provided'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        queryset = self.get_queryset().filter(id__in=ids)
+        count = queryset.count()
+        
+        with transaction.atomic():
+            queryset.delete()
+        
+        return Response({
+            'message': f'Successfully deleted {count} items',
+            'deleted_count': count
+        })

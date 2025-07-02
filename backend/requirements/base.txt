@@ -1,16 +1,22 @@
+#requirements/base.txt
 # Core Django and web framework
 Django>=4.2,<5.0
 djangorestframework>=3.14.0
 django-cors-headers>=4.0.0
 
-# API documentation
-drf-yasg>=1.21.0
+# JWT Authentication 
+djangorestframework-simplejwt>=5.3.0
+
+# API documentation - UPDATED
+drf-spectacular>=0.27.0
+
 
 # Database
 psycopg2-binary>=2.9.0
 
-# Filtering and pagination
-django-filter>=23.0
+# Filtering and pagination 
+django-filter>=23.3
+django-extensions>=3.2.3
 
 # Redis and caching
 django-redis>=5.2.0
@@ -28,6 +34,9 @@ Pillow>=10.0.0
 
 # Task queue
 celery>=5.3.0
+
+# System monitoring 
+psutil>=5.9.0
 
 # Utilities
 python-dateutil>=2.8.0
