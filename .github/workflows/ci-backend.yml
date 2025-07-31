@@ -1,0 +1,81 @@
+# .github/workflows/ci-backend.yml
+name: Backend CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/ci-backend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_logiflow
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements/base.txt') }}
+      
+      - name: Install dependencies
+        run: |
+          cd backend
+          pip install -r requirements/base.txt
+      
+      - name: Run Django checks
+        run: |
+          cd backend
+          python manage.py check
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_logiflow
+          REDIS_URL: redis://localhost:6379/0
+      
+      - name: Run migrations
+        run: |
+          cd backend
+          python manage.py migrate
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_logiflow
+          REDIS_URL: redis://localhost:6379/0
+      
+      - name: Run tests
+        run: |
+          cd backend
+          python manage.py test
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_logiflow
+          REDIS_URL: redis://localhost:6379/0
