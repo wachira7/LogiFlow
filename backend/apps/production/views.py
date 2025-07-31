@@ -176,7 +176,7 @@ class ProductionOrderViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.Model
                     }
                 
                 material_summary[key]['required_quantity'] += material.quantity
-                shortage = max(0, material_summary[key]['required_quantity'] - F('available_stock'))
+                shortage = max(0, material_summary[key]['required_quantity'] - material_summary[key].get('available_stock'))
                 material_summary[key]['shortage'] = shortage
         
         return Response({

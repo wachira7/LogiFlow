@@ -1,3 +1,4 @@
+# backend/utils/mixins.py
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.db import transaction, models
@@ -58,7 +59,18 @@ class TenantViewSetMixin(TenantQuerysetMixin, UUIDMixin):
     def perform_create(self, serializer):
         """Automatically set company when creating objects."""
         if hasattr(serializer.Meta.model, 'company'):
-            serializer.save(company=self.request.user.company)
+            save_kwargs = {}
+            
+            # Only add company if not already in validated_data
+            if 'company' not in serializer.validated_data:
+                save_kwargs['company'] = self.request.user.company
+            
+            # Only add created_by if field exists and not already set
+            if (hasattr(serializer.Meta.model, 'created_by') and 
+                'created_by' not in serializer.validated_data):
+                save_kwargs['created_by'] = self.request.user
+            
+            serializer.save(**save_kwargs)
         else:
             serializer.save()
 

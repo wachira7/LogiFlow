@@ -2,7 +2,7 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db import transaction
+from django.db import transaction, models
 from django.db.models import Q, Sum, Count, Avg , Max
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters

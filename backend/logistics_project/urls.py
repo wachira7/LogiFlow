@@ -1,3 +1,4 @@
+#logistics_project/urls.py
 """
 URL configuration for logistics_project project.
 """
@@ -17,13 +18,13 @@ urlpatterns = [
     
     # API Routes
     path('api/v1/auth/', include('apps.users.urls')),
-    # path('api/v1/tenants/', include('apps.tenants.urls')),
-    # path('api/v1/inventory/', include('apps.inventory.urls')),
-    # path('api/v1/production/', include('apps.production.urls')),
-    # path('api/v1/distribution/', include('apps.distribution.urls')),
-    # path('api/v1/warehousing/', include('apps.warehousing.urls')),
-    # path('api/v1/payments/', include('apps.payments.urls')),
-    # path('api/v1/platform/', include('apps.platform_admin.urls')),
+    path('api/v1/tenants/', include('apps.tenants.urls')),
+    path('api/v1/inventory/', include('apps.inventory.urls')),
+    path('api/v1/production/', include('apps.production.urls')),
+    path('api/v1/distribution/', include('apps.distribution.urls')),
+    path('api/v1/warehousing/', include('apps.warehousing.urls')),
+    path('api/v1/payments/', include('apps.payments.urls')),
+    path('api/v1/platform-admin/', include('apps.platform_admin.urls')),
 ]
 
 # Serve media files in development

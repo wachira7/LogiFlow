@@ -82,6 +82,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         # Create user with company reference
         user = User.objects.create_user(
+            username=validated_data['email'], # Use email as username
             company=company,
             is_company_owner=True,  # First user is company owner
             **validated_data
@@ -172,20 +173,89 @@ class InviteUserSerializer(serializers.ModelSerializer):
         model = CompanyInvitation
         fields = ['id', 'email', 'role']
 
-    def create(self, validated_data):
-        """Create company invitation with UUID."""
-        company = self.context['request'].user.company
-        invited_by = self.context['request'].user
+    # Replace the TODO in InviteUserSerializer.create() method
+
+def create(self, validated_data):
+    """Create company invitation with UUID."""
+    company = self.context['request'].user.company
+    invited_by = self.context['request'].user
+    
+    # Generate unique token
+    invitation_token = str(uuid.uuid4())
+    
+    invitation = CompanyInvitation.objects.create(
+        company=company,
+        invited_by=invited_by,
+        token=invitation_token,
+        **validated_data
+    )
+    
+    # Send invitation email
+    self._send_invitation_email(invitation)
+    return invitation
+
+def _send_invitation_email(self, invitation):
+    """Send invitation email to the invitee."""
+    from django.core.mail import send_mail
+    from django.conf import settings
+    from django.template.loader import render_to_string
+    
+    try:
+        # Create invitation URL
+        invitation_url = f"{settings.FRONTEND_URL}/invitations/accept/{invitation.token}/"
         
-        # Generate unique token
-        invitation_token = str(uuid.uuid4())
+        # Email context
+        context = {
+            'invitation': invitation,
+            'company_name': invitation.company.name,
+            'invited_by_name': invitation.invited_by.get_full_name(),
+            'invitation_url': invitation_url,
+            'role': invitation.role
+        }
         
-        invitation = CompanyInvitation.objects.create(
-            company=company,
-            invited_by=invited_by,
-            token=invitation_token,
-            **validated_data
+        # Email content
+        subject = f"You're invited to join {invitation.company.name} on LogiFlow"
+        
+        # HTML email template (you'd create this template file)
+        html_message = render_to_string('emails/invitation.html', context)
+        
+        # Plain text fallback
+        plain_message = f"""
+        Hi there!
+        
+        {invitation.invited_by.get_full_name()} has invited you to join {invitation.company.name} on LogiFlow.
+        
+        Role: {invitation.role}
+        
+        To accept this invitation, click here: {invitation_url}
+        
+        This invitation will expire in 7 days.
+        
+        Best regards,
+        The LogiFlow Team
+        """
+        
+        # Send email
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[invitation.email],
+            html_message=html_message,
+            fail_silently=False,
         )
         
-        # TODO: Send invitation email
-        return invitation
+        # Log successful email
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"Invitation email sent to {invitation.email} for company {invitation.company.name}")
+        
+    except Exception as e:
+        # Log email failure but don't break the invitation creation
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send invitation email to {invitation.email}: {str(e)}")
+        
+        # You might want to set a flag on the invitation model
+        # invitation.email_sent = False
+        # invitation.save()

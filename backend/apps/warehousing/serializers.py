@@ -33,7 +33,8 @@ class TransferItemSerializer(serializers.ModelSerializer):
         """Validate that product belongs to the same company."""
         company = self.context['request'].user.company
         try:
-            return Product.objects.get(id=value, company=company)
+            Product.objects.get(id=value, company=company)
+            return value
         except Product.DoesNotExist:
             raise serializers.ValidationError("Product not found.")
 
@@ -175,14 +176,18 @@ class CreateWarehouseTransferSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             # Create warehouse transfer
             transfer = WarehouseTransfer.objects.create(
-                company=self.context['request'].user.company,
-                initiated_by=self.context['request'].user,
                 **validated_data
             )
             
             # Create transfer items
             for item_data in items_data:
                 item_data.pop('id', None)  # Remove id if present
+
+                product = item_data.pop('product', None)
+                if product:
+                    item_data['product'] = product
+                
+
                 TransferItem.objects.create(
                     transfer=transfer,
                     **item_data

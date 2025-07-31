@@ -1,0 +1,1956 @@
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 32110
+Internal Server Error: /api/v1/auth/register/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/generics.py", line 194, in post
+    return self.create(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/users/views.py", line 32, in create
+    user = serializer.save()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/backend/apps/users/serializers.py", line 84, in create
+    user = User.objects.create_user(
+TypeError: create_user() missing 1 required positional argument: 'username'
+"POST /api/v1/auth/register/ HTTP/1.1" 500 22751
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Not Found: /
+"GET / HTTP/1.1" 404 2813
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 2864
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 32110
+"POST /api/v1/auth/register/ HTTP/1.1" 201 1167
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1185
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 555
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 555
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 74982
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 74982
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1185
+Unauthorized: /api/v1/auth/profile/
+"PUT /api/v1/auth/profile/ HTTP/1.1" 401 107
+Unauthorized: /api/v1/tenants/company/
+"GET /api/v1/tenants/company/ HTTP/1.1" 401 107
+Unauthorized: /api/v1/tenants/company/
+"GET /api/v1/tenants/company/ HTTP/1.1" 401 107
+Unauthorized: /api/v1/tenants/company/
+"GET /api/v1/tenants/company/ HTTP/1.1" 401 107
+Unauthorized: /api/v1/tenants/company/
+"GET /api/v1/tenants/company/ HTTP/1.1" 401 107
+"GET /api/v1/tenants/company/ HTTP/1.1" 200 452
+Bad Request: /api/v1/tenants/company/
+"PUT /api/v1/tenants/company/ HTTP/1.1" 400 34
+Bad Request: /api/v1/tenants/company/
+"PUT /api/v1/tenants/company/ HTTP/1.1" 400 34
+"POST /api/v1/tenants/settings/ HTTP/1.1" 201 203
+"GET /api/v1/tenants/settings/ HTTP/1.1" 200 255
+"GET /api/v1/tenants/settings/?search=1 HTTP/1.1" 200 255
+"GET /api/v1/tenants/settings/?search=10 HTTP/1.1" 200 255
+"POST /api/v1/tenants/invitations/ HTTP/1.1" 201 324
+"GET /api/v1/tenants/invitations/ HTTP/1.1" 200 376
+Not Found: /api/v1/tenants/invitations/8f0f1e84-fb73-43aa-90f2-527d30780337/revoke/
+"DELETE /api/v1/tenants/invitations/8f0f1e84-fb73-43aa-90f2-527d30780337/revoke/ HTTP/1.1" 404 32
+Not Found: /api/v1/tenants/invitations/8f0f1e84-fb73-43aa-90f2-527d30780337/revoke/
+"DELETE /api/v1/tenants/invitations/8f0f1e84-fb73-43aa-90f2-527d30780337/revoke/ HTTP/1.1" 404 32
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 158111
+Unauthorized: /api/v1/auth/login/
+"POST /api/v1/auth/login/ HTTP/1.1" 401 183
+Unauthorized: /api/v1/auth/profile/
+"GET /api/v1/auth/profile/ HTTP/1.1" 401 183
+Unauthorized: /api/v1/auth/profile/
+"PUT /api/v1/auth/profile/ HTTP/1.1" 401 58
+"POST /api/v1/auth/register/ HTTP/1.1" 201 1149
+Bad Request: /api/v1/auth/login/
+"POST /api/v1/auth/login/ HTTP/1.1" 400 51
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+"GET /api/v1/tenants/company/ HTTP/1.1" 200 399
+"GET /api/v1/tenants/invitations/?ordering=1&page=1&search=phone HTTP/1.1" 200 52
+Internal Server Error: /api/v1/inventory/categories/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 61, in perform_create
+    serializer.save(company=self.request.user.company)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 989, in create
+    instance = ModelClass._default_manager.create(**validated_data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.IntegrityError: FOREIGN KEY constraint failed
+"POST /api/v1/inventory/categories/ HTTP/1.1" 500 26372
+Internal Server Error: /api/v1/inventory/categories/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 61, in perform_create
+    serializer.save(company=self.request.user.company)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 989, in create
+    instance = ModelClass._default_manager.create(**validated_data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.IntegrityError: FOREIGN KEY constraint failed
+"POST /api/v1/inventory/categories/ HTTP/1.1" 500 26372
+Internal Server Error: /api/v1/inventory/categories/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 61, in perform_create
+    serializer.save(company=self.request.user.company)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 989, in create
+    instance = ModelClass._default_manager.create(**validated_data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.IntegrityError: FOREIGN KEY constraint failed
+"POST /api/v1/inventory/categories/ HTTP/1.1" 500 26372
+"POST /api/v1/inventory/categories/ HTTP/1.1" 201 336
+"GET /api/v1/inventory/categories/ HTTP/1.1" 200 388
+Internal Server Error: /api/v1/inventory/categories/"3fa85f64-5717-4562-b3fc-2c963f66afa6"/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2688, in to_python
+    return uuid.UUID(**{input_form: value})
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/uuid.py", line 171, in __init__
+    raise ValueError('badly formed hexadecimal UUID string')
+ValueError: badly formed hexadecimal UUID string
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 54, in retrieve
+    instance = self.get_object()
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 35, in get_object
+    obj = queryset.get(**filter_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 623, in get
+    clone = self._chain() if self.query.combinator else self.filter(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1436, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1454, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1461, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1546, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1577, in _add_q
+    child_clause, needed_inner = self.build_filter(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1492, in build_filter
+    condition = self.build_lookup(lookups, col, value)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1319, in build_lookup
+    lookup = lookup_class(lhs, rhs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/lookups.py", line 27, in __init__
+    self.rhs = self.get_prep_lookup()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/lookups.py", line 341, in get_prep_lookup
+    return super().get_prep_lookup()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/lookups.py", line 85, in get_prep_lookup
+    return self.lhs.output_field.get_prep_value(self.rhs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2672, in get_prep_value
+    return self.to_python(value)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2690, in to_python
+    raise exceptions.ValidationError(
+django.core.exceptions.ValidationError: ['“"3fa85f64-5717-4562-b3fc-2c963f66afa6"” is not a valid UUID.']
+"GET /api/v1/inventory/categories/%223fa85f64-5717-4562-b3fc-2c963f66afa6%22/ HTTP/1.1" 500 25736
+Internal Server Error: /api/v1/inventory/categories/3fa85f64-5717-4562-b3fc-2c963f66afa6/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 54, in retrieve
+    instance = self.get_object()
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 35, in get_object
+    obj = queryset.get(**filter_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 637, in get
+    raise self.model.DoesNotExist(
+apps.inventory.models.Category.DoesNotExist: Category matching query does not exist.
+"GET /api/v1/inventory/categories/3fa85f64-5717-4562-b3fc-2c963f66afa6/ HTTP/1.1" 500 22994
+"GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+"GET /api/v1/inventory/categories/1ed237d6-ab2c-4345-830f-27eae26732d2/ HTTP/1.1" 200 336
+Internal Server Error: /api/v1/inventory/warehouses/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.IntegrityError: FOREIGN KEY constraint failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 61, in perform_create
+    serializer.save(company=self.request.user.company)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 989, in create
+    instance = ModelClass._default_manager.create(**validated_data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.IntegrityError: FOREIGN KEY constraint failed
+"POST /api/v1/inventory/warehouses/ HTTP/1.1" 500 26373
+"POST /api/v1/inventory/warehouses/ HTTP/1.1" 201 358
+"GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 410
+Unauthorized: /api/v1/inventory/products/
+"POST /api/v1/inventory/products/ HTTP/1.1" 401 183
+Unauthorized: /api/v1/inventory/products/
+"POST /api/v1/inventory/products/ HTTP/1.1" 401 183
+"POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 582
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"POST /api/v1/inventory/products/ HTTP/1.1" 201 363
+"GET /api/v1/inventory/products/ HTTP/1.1" 200 415
+Bad Request: /api/v1/inventory/inventory-items/adjust_stock/
+"POST /api/v1/inventory/inventory-items/adjust_stock/ HTTP/1.1" 400 81
+Bad Request: /api/v1/inventory/inventory-items/adjust_stock/
+"POST /api/v1/inventory/inventory-items/adjust_stock/ HTTP/1.1" 400 42
+"POST /api/v1/inventory/inventory-items/adjust_stock/ HTTP/1.1" 200 94
+"GET /api/v1/inventory/inventory-items/ HTTP/1.1" 200 573
+"GET /api/v1/inventory/products/low_stock/ HTTP/1.1" 200 2
+"GET /api/v1/inventory/products/stock_report/ HTTP/1.1" 200 113
+Watching for file changes with StatReloader
+Not Found: /
+"GET / HTTP/1.1" 404 3163
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 3214
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 245996
+"GET /api/docs HTTP/1.1" 301 0
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 245996
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/inventory/inventory-items/ HTTP/1.1" 200 573
+Bad Request: /api/v1/production/orders/
+"POST /api/v1/production/orders/ HTTP/1.1" 400 195
+Internal Server Error: /api/v1/production/orders/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 61, in perform_create
+    serializer.save(company=self.request.user.company)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/serializers.py", line 180, in create
+    production_order = ProductionOrder.objects.create(
+TypeError: create() got multiple values for keyword argument 'company'
+"POST /api/v1/production/orders/ HTTP/1.1" 500 23164
+Bad Request: /api/v1/production/orders/
+"POST /api/v1/production/orders/ HTTP/1.1" 400 40
+"GET /api/v1/inventory/inventory-items/ HTTP/1.1" 200 573
+Internal Server Error: /api/v1/production/orders/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 61, in perform_create
+    serializer.save(company=self.request.user.company)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/serializers.py", line 180, in create
+    production_order = ProductionOrder.objects.create(
+TypeError: create() got multiple values for keyword argument 'company'
+"POST /api/v1/production/orders/ HTTP/1.1" 500 23164
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 245996
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 245996
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/inventory/categories/ HTTP/1.1" 200 388
+"GET /api/v1/inventory/inventory-items/ HTTP/1.1" 200 573
+Internal Server Error: /api/v1/production/orders/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 73, in perform_create
+    serializer.save(**save_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/serializers.py", line 180, in create
+    production_order = ProductionOrder.objects.create(
+TypeError: create() got multiple values for keyword argument 'company'
+"POST /api/v1/production/orders/ HTTP/1.1" 500 23144
+Internal Server Error: /api/v1/production/orders/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 73, in perform_create
+    serializer.save(**save_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/serializers.py", line 180, in create
+    production_order = ProductionOrder.objects.create(
+TypeError: create() got multiple values for keyword argument 'company'
+"POST /api/v1/production/orders/ HTTP/1.1" 500 23144
+/home/wachira/Development/LogiFlow/backend/apps/production/serializers.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 245996
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/inventory/inventory-items/ HTTP/1.1" 200 573
+"GET /api/v1/production/orders/ HTTP/1.1" 200 52
+Bad Request: /api/v1/production/orders/
+"POST /api/v1/production/orders/ HTTP/1.1" 400 40
+Internal Server Error: /api/v1/production/orders/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2688, in to_python
+    return uuid.UUID(**{input_form: value})
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/uuid.py", line 168, in __init__
+    hex = hex.replace('urn:', '').replace('uuid:', '')
+AttributeError: 'Product' object has no attribute 'replace'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 73, in perform_create
+    serializer.save(**save_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/serializers.py", line 180, in create
+    production_order = ProductionOrder.objects.create(**validated_data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1821, in execute_sql
+    for sql, params in self.as_sql():
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1745, in as_sql
+    value_rows = [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1746, in <listcomp>
+    [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1747, in <listcomp>
+    self.prepare_value(field, self.pre_save_val(field, obj))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1686, in prepare_value
+    return field.get_db_prep_save(value, connection=self.connection)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/related.py", line 1129, in get_db_prep_save
+    return self.target_field.get_db_prep_save(value, connection=connection)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 954, in get_db_prep_save
+    return self.get_db_prep_value(value, connection=connection, prepared=False)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2678, in get_db_prep_value
+    value = self.to_python(value)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2690, in to_python
+    raise exceptions.ValidationError(
+django.core.exceptions.ValidationError: ['“Premium Smartphone X1 (PHONE-X1-001)” is not a valid UUID.']
+"POST /api/v1/production/orders/ HTTP/1.1" 500 26682
+Internal Server Error: /api/v1/production/orders/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2688, in to_python
+    return uuid.UUID(**{input_form: value})
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/uuid.py", line 168, in __init__
+    hex = hex.replace('urn:', '').replace('uuid:', '')
+AttributeError: 'Product' object has no attribute 'replace'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 73, in perform_create
+    serializer.save(**save_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/serializers.py", line 180, in create
+    production_order = ProductionOrder.objects.create(**validated_data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1821, in execute_sql
+    for sql, params in self.as_sql():
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1745, in as_sql
+    value_rows = [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1746, in <listcomp>
+    [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1747, in <listcomp>
+    self.prepare_value(field, self.pre_save_val(field, obj))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1686, in prepare_value
+    return field.get_db_prep_save(value, connection=self.connection)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/related.py", line 1129, in get_db_prep_save
+    return self.target_field.get_db_prep_save(value, connection=connection)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 954, in get_db_prep_save
+    return self.get_db_prep_value(value, connection=connection, prepared=False)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2678, in get_db_prep_value
+    value = self.to_python(value)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2690, in to_python
+    raise exceptions.ValidationError(
+django.core.exceptions.ValidationError: ['“Premium Smartphone X1 (PHONE-X1-001)” is not a valid UUID.']
+"POST /api/v1/production/orders/ HTTP/1.1" 500 26682
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 245996
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/inventory/inventory-items/ HTTP/1.1" 200 573
+"POST /api/v1/production/orders/ HTTP/1.1" 201 289
+"GET /api/v1/production/orders/ HTTP/1.1" 200 570
+"POST /api/v1/production/orders/03da3548-fa35-4ffb-aec9-350b943d4e84/start_production/ HTTP/1.1" 200 111
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 433048
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+"GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 416
+/home/wachira/Development/LogiFlow/backend/apps/distribution/views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 433048
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/inventory/warehouses/?is_active=false HTTP/1.1" 200 52
+"GET /api/v1/inventory/warehouses/?is_active=true HTTP/1.1" 200 416
+"POST /api/v1/production/orders/ HTTP/1.1" 201 3003
+"POST /api/v1/production/orders/3ccbe78f-13e8-46d2-b725-137d6af2d88a/start_production/ HTTP/1.1" 200 111
+"GET /api/v1/production/orders/dashboard/ HTTP/1.1" 200 143
+Internal Server Error: /api/v1/production/orders/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 43, in list
+    return self.get_paginated_response(serializer.data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 795, in data
+    ret = super().data
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 249, in data
+    self._data = self.to_representation(self.instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 713, in to_representation
+    return [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 714, in <listcomp>
+    self.child.to_representation(item) for item in iterable
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 525, in to_representation
+    attribute = field.get_attribute(instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/fields.py", line 437, in get_attribute
+    return get_attribute(instance, self.source_attrs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/fields.py", line 104, in get_attribute
+    instance = getattr(instance, attr)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/models.py", line 65, in estimated_completion
+    return self.start_date + timedelta(hours=total_remaining_hours)
+TypeError: unsupported type for timedelta hours component: decimal.Decimal
+"GET /api/v1/production/orders/ HTTP/1.1" 500 24007
+Internal Server Error: /api/v1/production/orders/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 43, in list
+    return self.get_paginated_response(serializer.data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 795, in data
+    ret = super().data
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 249, in data
+    self._data = self.to_representation(self.instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 713, in to_representation
+    return [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 714, in <listcomp>
+    self.child.to_representation(item) for item in iterable
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 525, in to_representation
+    attribute = field.get_attribute(instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/fields.py", line 437, in get_attribute
+    return get_attribute(instance, self.source_attrs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/fields.py", line 104, in get_attribute
+    instance = getattr(instance, attr)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/models.py", line 65, in estimated_completion
+    return self.start_date + timedelta(hours=total_remaining_hours)
+TypeError: unsupported type for timedelta hours component: decimal.Decimal
+"GET /api/v1/production/orders/?status=IN_PROGRESS HTTP/1.1" 500 24055
+Internal Server Error: /api/v1/production/orders/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 43, in list
+    return self.get_paginated_response(serializer.data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 795, in data
+    ret = super().data
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 249, in data
+    self._data = self.to_representation(self.instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 713, in to_representation
+    return [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 714, in <listcomp>
+    self.child.to_representation(item) for item in iterable
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 525, in to_representation
+    attribute = field.get_attribute(instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/fields.py", line 437, in get_attribute
+    return get_attribute(instance, self.source_attrs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/fields.py", line 104, in get_attribute
+    instance = getattr(instance, attr)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/models.py", line 65, in estimated_completion
+    return self.start_date + timedelta(hours=total_remaining_hours)
+TypeError: unsupported type for timedelta hours component: decimal.Decimal
+"GET /api/v1/production/orders/?status=IN_PROGRESS HTTP/1.1" 500 24055
+Internal Server Error: /api/v1/production/materials/insufficient_stock/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/views.py", line 293, in insufficient_stock
+    insufficient_materials = materials.filter(Q(quantity__gt=F('available_stock'))).count()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1436, in filter
+    return self._filter_or_exclude(False, args, kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1454, in _filter_or_exclude
+    clone._filter_or_exclude_inplace(negate, args, kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1461, in _filter_or_exclude_inplace
+    self._query.add_q(Q(*args, **kwargs))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1546, in add_q
+    clause, _ = self._add_q(q_object, self.used_aliases)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1577, in _add_q
+    child_clause, needed_inner = self.build_filter(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1405, in build_filter
+    return self._add_q(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1577, in _add_q
+    child_clause, needed_inner = self.build_filter(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1436, in build_filter
+    value = self.resolve_lookup_value(value, can_reuse, allow_joins, summarize)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1204, in resolve_lookup_value
+    value = value.resolve_expression(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/expressions.py", line 829, in resolve_expression
+    return query.resolve_ref(self.name, allow_joins, reuse, summarize)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1977, in resolve_ref
+    join_info = self.setup_joins(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1824, in setup_joins
+    path, final_field, targets, rest = self.names_to_path(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 1725, in names_to_path
+    raise FieldError(
+django.core.exceptions.FieldError: Cannot resolve keyword 'available_stock' into field. Choices are: created_at, id, product, product_id, production_order, production_order_id, quantity, updated_at, warehouse, warehouse_id
+"GET /api/v1/production/materials/insufficient_stock/ HTTP/1.1" 500 25380
+"GET /api/v1/production/materials/ HTTP/1.1" 200 569
+Internal Server Error: /api/v1/production/orders/material_requirements/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/views.py", line 179, in material_requirements
+    shortage = max(0, material_summary[key]['required_quantity'] - F('available_stock'))
+TypeError: '>' not supported between instances of 'CombinedExpression' and 'int'
+"GET /api/v1/production/orders/material_requirements/ HTTP/1.1" 500 22741
+"GET /api/v1/production/steps/ HTTP/1.1" 200 2261
+"GET /api/v1/production/steps/?status=PENDING HTTP/1.1" 200 1781
+"GET /api/v1/production/steps/?status=IN_PROGRESS HTTP/1.1" 200 531
+"GET /api/v1/production/steps/?status=COMPLETED HTTP/1.1" 200 52
+"GET /api/v1/production/steps/?status=SKIPPED HTTP/1.1" 200 52
+"GET /api/v1/production/steps/ HTTP/1.1" 200 2261
+Internal Server Error: /api/v1/production/orders/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 43, in list
+    return self.get_paginated_response(serializer.data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 795, in data
+    ret = super().data
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 249, in data
+    self._data = self.to_representation(self.instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 713, in to_representation
+    return [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 714, in <listcomp>
+    self.child.to_representation(item) for item in iterable
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 525, in to_representation
+    attribute = field.get_attribute(instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/fields.py", line 437, in get_attribute
+    return get_attribute(instance, self.source_attrs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/fields.py", line 104, in get_attribute
+    instance = getattr(instance, attr)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/models.py", line 65, in estimated_completion
+    return self.start_date + timedelta(hours=total_remaining_hours)
+TypeError: unsupported type for timedelta hours component: decimal.Decimal
+"GET /api/v1/production/orders/ HTTP/1.1" 500 24007
+Internal Server Error: /api/v1/production/orders/3ccbe78f-13e8-46d2-b725-137d6af2d88a/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 56, in retrieve
+    return Response(serializer.data)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 571, in data
+    ret = super().data
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 249, in data
+    self._data = self.to_representation(self.instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 525, in to_representation
+    attribute = field.get_attribute(instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/fields.py", line 437, in get_attribute
+    return get_attribute(instance, self.source_attrs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/fields.py", line 104, in get_attribute
+    instance = getattr(instance, attr)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/models.py", line 65, in estimated_completion
+    return self.start_date + timedelta(hours=total_remaining_hours)
+TypeError: unsupported type for timedelta hours component: decimal.Decimal
+"GET /api/v1/production/orders/3ccbe78f-13e8-46d2-b725-137d6af2d88a/ HTTP/1.1" 500 23796
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 433048
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 433048
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/production/orders/ HTTP/1.1" 200 1183
+Forbidden: /api/v1/production/steps/23783280-a549-4960-93f0-12dfaaa8c766/complete_step/
+"POST /api/v1/production/steps/23783280-a549-4960-93f0-12dfaaa8c766/complete_step/ HTTP/1.1" 403 63
+"GET /api/v1/production/steps/ HTTP/1.1" 200 2260
+Forbidden: /api/v1/production/steps/23783280-a549-4960-93f0-12dfaaa8c766/complete_step/
+"POST /api/v1/production/steps/23783280-a549-4960-93f0-12dfaaa8c766/complete_step/ HTTP/1.1" 403 63
+Forbidden: /api/v1/production/steps/23783280-a549-4960-93f0-12dfaaa8c766/complete_step/
+"POST /api/v1/production/steps/23783280-a549-4960-93f0-12dfaaa8c766/complete_step/ HTTP/1.1" 403 63
+Forbidden: /api/v1/production/steps/23783280-a549-4960-93f0-12dfaaa8c766/start_step/
+"POST /api/v1/production/steps/23783280-a549-4960-93f0-12dfaaa8c766/start_step/ HTTP/1.1" 403 63
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+Internal Server Error: /api/v1/production/orders/material_requirements/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/production/views.py", line 179, in material_requirements
+    shortage = max(0, material_summary[key]['required_quantity'] - F('available_stock'))
+TypeError: '>' not supported between instances of 'CombinedExpression' and 'int'
+"GET /api/v1/production/orders/material_requirements/ HTTP/1.1" 500 22741
+/home/wachira/Development/LogiFlow/backend/apps/production/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/production/views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 433048
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 433048
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/production/steps/ HTTP/1.1" 200 2260
+"GET /api/v1/production/orders/material_requirements/ HTTP/1.1" 200 258
+"POST /api/v1/inventory/warehouses/ HTTP/1.1" 201 356
+"GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 773
+Internal Server Error: /api/v1/warehousing/transfers/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 73, in perform_create
+    serializer.save(**save_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/backend/apps/warehousing/serializers.py", line 177, in create
+    transfer = WarehouseTransfer.objects.create(
+TypeError: create() got multiple values for keyword argument 'company'
+"POST /api/v1/warehousing/transfers/ HTTP/1.1" 500 23158
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 433048
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+Internal Server Error: /api/v1/warehousing/transfers/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2688, in to_python
+    return uuid.UUID(**{input_form: value})
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/uuid.py", line 168, in __init__
+    hex = hex.replace('urn:', '').replace('uuid:', '')
+AttributeError: 'Product' object has no attribute 'replace'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 73, in perform_create
+    serializer.save(**save_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/backend/apps/warehousing/serializers.py", line 189, in create
+    TransferItem.objects.create(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1821, in execute_sql
+    for sql, params in self.as_sql():
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1745, in as_sql
+    value_rows = [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1746, in <listcomp>
+    [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1747, in <listcomp>
+    self.prepare_value(field, self.pre_save_val(field, obj))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1686, in prepare_value
+    return field.get_db_prep_save(value, connection=self.connection)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/related.py", line 1129, in get_db_prep_save
+    return self.target_field.get_db_prep_save(value, connection=connection)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 954, in get_db_prep_save
+    return self.get_db_prep_value(value, connection=connection, prepared=False)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2678, in get_db_prep_value
+    value = self.to_python(value)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2690, in to_python
+    raise exceptions.ValidationError(
+django.core.exceptions.ValidationError: ['“Premium Smartphone X1 (PHONE-X1-001)” is not a valid UUID.']
+"POST /api/v1/warehousing/transfers/ HTTP/1.1" 500 26663
+/home/wachira/Development/LogiFlow/backend/apps/warehousing/serializers.py changed, reloading.
+Watching for file changes with StatReloader
+Internal Server Error: /api/v1/warehousing/transfers/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2688, in to_python
+    return uuid.UUID(**{input_form: value})
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/uuid.py", line 168, in __init__
+    hex = hex.replace('urn:', '').replace('uuid:', '')
+AttributeError: 'Product' object has no attribute 'replace'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 19, in create
+    self.perform_create(serializer)
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 73, in perform_create
+    serializer.save(**save_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/serializers.py", line 208, in save
+    self.instance = self.create(validated_data)
+  File "/home/wachira/Development/LogiFlow/backend/apps/warehousing/serializers.py", line 188, in create
+    TransferItem.objects.create(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1821, in execute_sql
+    for sql, params in self.as_sql():
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1745, in as_sql
+    value_rows = [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1746, in <listcomp>
+    [
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1747, in <listcomp>
+    self.prepare_value(field, self.pre_save_val(field, obj))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1686, in prepare_value
+    return field.get_db_prep_save(value, connection=self.connection)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/related.py", line 1129, in get_db_prep_save
+    return self.target_field.get_db_prep_save(value, connection=connection)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 954, in get_db_prep_save
+    return self.get_db_prep_value(value, connection=connection, prepared=False)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2678, in get_db_prep_value
+    value = self.to_python(value)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/fields/__init__.py", line 2690, in to_python
+    raise exceptions.ValidationError(
+django.core.exceptions.ValidationError: ['“Premium Smartphone X1 (PHONE-X1-001)” is not a valid UUID.']
+"POST /api/v1/warehousing/transfers/ HTTP/1.1" 500 26663
+/home/wachira/Development/LogiFlow/backend/apps/warehousing/serializers.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 433048
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/warehousing/transfers/ HTTP/1.1" 200 52
+"POST /api/v1/warehousing/transfers/ HTTP/1.1" 201 804
+"GET /api/v1/warehousing/transfers/ HTTP/1.1" 200 666
+"POST /api/v1/warehousing/transfers/df04a42a-890f-4a60-9ab7-844e95ffc3a4/approve_transfer/ HTTP/1.1" 200 105
+"POST /api/v1/warehousing/transfers/df04a42a-890f-4a60-9ab7-844e95ffc3a4/complete_transfer/ HTTP/1.1" 200 129
+"GET /api/v1/warehousing/transfers/stock_movements/ HTTP/1.1" 200 207
+"GET /api/v1/warehousing/transfers/dashboard/ HTTP/1.1" 200 209
+"GET /api/v1/warehousing/transfer-items/insufficient_stock_report/ HTTP/1.1" 200 86
+"POST /api/v1/distribution/orders/ HTTP/1.1" 201 824
+Internal Server Error: /api/v1/distribution/orders/a2148edd-8eba-4ce2-964e-f1a068e8a842/ship_order/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/distribution/views.py", line 66, in ship_order
+    order = self.get_object()
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 36, in get_object
+    obj = queryset.get(**filter_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 637, in get
+    raise self.model.DoesNotExist(
+apps.distribution.models.CustomerOrder.DoesNotExist: CustomerOrder matching query does not exist.
+"POST /api/v1/distribution/orders/a2148edd-8eba-4ce2-964e-f1a068e8a842/ship_order/ HTTP/1.1" 500 23040
+Bad Request: /api/v1/distribution/orders/ec501321-f6c6-416d-8307-3347c09fb03a/ship_order/
+"POST /api/v1/distribution/orders/ec501321-f6c6-416d-8307-3347c09fb03a/ship_order/ HTTP/1.1" 400 54
+"POST /api/v1/distribution/orders/ec501321-f6c6-416d-8307-3347c09fb03a/process_order/ HTTP/1.1" 200 61
+"POST /api/v1/distribution/orders/ec501321-f6c6-416d-8307-3347c09fb03a/ship_order/ HTTP/1.1" 200 134
+Unauthorized: /api/v1/distribution/shipments/ec501321-f6c6-416d-8307-3347c09fb03a/deliver_shipment/
+"POST /api/v1/distribution/shipments/ec501321-f6c6-416d-8307-3347c09fb03a/deliver_shipment/ HTTP/1.1" 401 183
+Unauthorized: /api/v1/distribution/shipments/
+"GET /api/v1/distribution/shipments/ HTTP/1.1" 401 183
+Unauthorized: /api/v1/auth/profile/
+"GET /api/v1/auth/profile/ HTTP/1.1" 401 183
+Unauthorized: /api/v1/auth/login/
+"POST /api/v1/auth/login/ HTTP/1.1" 401 183
+"POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 582
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+"GET /api/v1/distribution/orders/ HTTP/1.1" 200 412
+"GET /api/v1/distribution/orders/dashboard/ HTTP/1.1" 200 185
+Internal Server Error: /api/v1/distribution/shipments/ec501321-f6c6-416d-8307-3347c09fb03a/deliver_shipment/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/distribution/views.py", line 262, in deliver_shipment
+    shipment = self.get_object()
+  File "/home/wachira/Development/LogiFlow/backend/utils/mixins.py", line 36, in get_object
+    obj = queryset.get(**filter_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 637, in get
+    raise self.model.DoesNotExist(
+apps.distribution.models.Shipment.DoesNotExist: Shipment matching query does not exist.
+"POST /api/v1/distribution/shipments/ec501321-f6c6-416d-8307-3347c09fb03a/deliver_shipment/ HTTP/1.1" 500 23071
+"GET /api/v1/distribution/shipments/ HTTP/1.1" 200 590
+"GET /api/v1/distribution/routes/ HTTP/1.1" 200 52
+Bad Request: /api/v1/distribution/shipments/80d96901-7eb3-4125-a2c0-80498b67a9a4/deliver_shipment/
+"POST /api/v1/distribution/shipments/80d96901-7eb3-4125-a2c0-80498b67a9a4/deliver_shipment/ HTTP/1.1" 400 52
+Bad Request: /api/v1/distribution/shipments/80d96901-7eb3-4125-a2c0-80498b67a9a4/ship_shipment/
+"POST /api/v1/distribution/shipments/80d96901-7eb3-4125-a2c0-80498b67a9a4/ship_shipment/ HTTP/1.1" 400 51
+Bad Request: /api/v1/distribution/shipments/80d96901-7eb3-4125-a2c0-80498b67a9a4/pack_shipment/
+"POST /api/v1/distribution/shipments/80d96901-7eb3-4125-a2c0-80498b67a9a4/pack_shipment/ HTTP/1.1" 400 50
+"POST /api/v1/distribution/shipments/80d96901-7eb3-4125-a2c0-80498b67a9a4/pick_shipment/ HTTP/1.1" 200 57
+"POST /api/v1/distribution/shipments/80d96901-7eb3-4125-a2c0-80498b67a9a4/pack_shipment/ HTTP/1.1" 200 57
+"POST /api/v1/distribution/shipments/80d96901-7eb3-4125-a2c0-80498b67a9a4/ship_shipment/ HTTP/1.1" 200 89
+"POST /api/v1/distribution/shipments/80d96901-7eb3-4125-a2c0-80498b67a9a4/deliver_shipment/ HTTP/1.1" 200 112
+"GET /api/v1/distribution/shipments/tracking_report/ HTTP/1.1" 200 161
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/logistics_project/urls.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 502912
+Bad Request: /api/v1/auth/login/
+"POST /api/v1/auth/login/ HTTP/1.1" 400 51
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/payments/plans/ HTTP/1.1" 200 52
+"GET /api/v1/payments/subscriptions/dashboard/ HTTP/1.1" 200 191
+"GET /api/v1/payments/transactions/ HTTP/1.1" 200 52
+"GET /api/v1/payments/transactions/revenue_report/ HTTP/1.1" 200 306
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 551597
+"GET /admin/users/user/ HTTP/1.1" 302 0
+"GET /admin/login/?next=/admin/users/user/ HTTP/1.1" 200 3732
+"GET /static/admin/css/dark_mode.css HTTP/1.1" 200 2929
+"GET /static/admin/css/nav_sidebar.css HTTP/1.1" 200 2694
+"GET /static/admin/css/login.css HTTP/1.1" 200 958
+"GET /static/admin/css/base.css HTTP/1.1" 200 21310
+"GET /static/admin/css/responsive.css HTTP/1.1" 200 18559
+"GET /static/admin/js/theme.js HTTP/1.1" 200 1943
+"GET /static/admin/js/nav_sidebar.js HTTP/1.1" 200 3063
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 3685
+"GET /admin/ HTTP/1.1" 302 0
+"GET /admin/login/?next=/admin/ HTTP/1.1" 200 3710
+"POST /admin/login/?next=/admin/ HTTP/1.1" 200 3880
+"POST /admin/login/?next=/admin/ HTTP/1.1" 200 3880
+"POST /admin/login/?next=/admin/ HTTP/1.1" 200 3884
+"POST /admin/login/?next=/admin/ HTTP/1.1" 200 3884
+"POST /admin/login/?next=/admin/ HTTP/1.1" 200 3880
+"POST /admin/login/?next=/admin/ HTTP/1.1" 200 3880
+Watching for file changes with StatReloader
+"POST /admin/login/?next=/admin/ HTTP/1.1" 200 3880
+"POST /admin/login/?next=/admin/ HTTP/1.1" 302 0
+"GET /admin/ HTTP/1.1" 200 21046
+"GET /static/admin/css/dashboard.css HTTP/1.1" 200 441
+"GET /static/admin/img/icon-viewlink.svg HTTP/1.1" 200 581
+"GET /static/admin/img/icon-changelink.svg HTTP/1.1" 200 380
+"GET /static/admin/img/icon-addlink.svg HTTP/1.1" 200 331
+"GET /admin/auth/group/add/ HTTP/1.1" 200 30364
+"GET /static/admin/js/core.js HTTP/1.1" 200 5682
+"GET /static/admin/js/jquery.init.js HTTP/1.1" 200 347
+"GET /static/admin/css/forms.css HTTP/1.1" 200 9090
+"GET /static/admin/js/vendor/xregexp/xregexp.js HTTP/1.1" 200 232381
+"GET /static/admin/js/vendor/jquery/jquery.js HTTP/1.1" 200 292458
+"GET /static/admin/js/admin/RelatedObjectLookups.js HTTP/1.1" 200 8943
+"GET /static/admin/js/SelectFilter2.js HTTP/1.1" 200 15292
+"GET /static/admin/js/actions.js HTTP/1.1" 200 7872
+"GET /static/admin/js/SelectBox.js HTTP/1.1" 200 4530
+"GET /static/admin/js/urlify.js HTTP/1.1" 200 7887
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /static/admin/js/prepopulate.js HTTP/1.1" 200 1531
+"GET /static/admin/js/prepopulate_init.js HTTP/1.1" 200 586
+"GET /static/admin/css/widgets.css HTTP/1.1" 200 11921
+"GET /static/admin/js/change_form.js HTTP/1.1" 200 606
+"GET /static/admin/img/search.svg HTTP/1.1" 200 458
+"GET /static/admin/img/icon-unknown.svg HTTP/1.1" 200 655
+"GET /static/admin/img/icon-unknown-alt.svg HTTP/1.1" 200 655
+"GET /static/admin/img/selector-icons.svg HTTP/1.1" 200 3291
+"GET /admin/auth/group/ HTTP/1.1" 200 18643
+"GET /static/admin/css/changelists.css HTTP/1.1" 200 6566
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /static/admin/js/filters.js HTTP/1.1" 200 978
+"GET /static/admin/img/tooltag-add.svg HTTP/1.1" 200 331
+"GET /admin/auth/group/?q=jack HTTP/1.1" 200 18682
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /admin/users/user/add/ HTTP/1.1" 200 26488
+"GET /static/admin/img/icon-deletelink.svg HTTP/1.1" 200 392
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 551597
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1104
+Forbidden: /api/v1/platform/analytics/company_overview/
+"GET /api/v1/platform/analytics/company_overview/ HTTP/1.1" 403 63
+Forbidden: /api/v1/platform/analytics/company_overview/
+"GET /api/v1/platform/analytics/company_overview/ HTTP/1.1" 403 63
+Forbidden: /api/v1/platform/analytics/overview/
+"GET /api/v1/platform/analytics/overview/ HTTP/1.1" 403 63
+Forbidden (CSRF token from POST incorrect.): /admin/users/user/add/
+"POST /admin/users/user/add/ HTTP/1.1" 403 2518
+Forbidden (CSRF token from POST incorrect.): /admin/users/user/add/
+"POST /admin/users/user/add/ HTTP/1.1" 403 2518
+"GET /admin/users/user/add/ HTTP/1.1" 200 26488
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"POST /admin/users/user/add/ HTTP/1.1" 200 26862
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"POST /admin/users/user/add/ HTTP/1.1" 200 26729
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /admin/users/user/add/ HTTP/1.1" 200 26488
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /admin/users/user/ HTTP/1.1" 200 26504
+"GET /static/admin/img/icon-yes.svg HTTP/1.1" 200 436
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /static/admin/img/icon-no.svg HTTP/1.1" 200 560
+"GET /static/admin/img/sorting-icons.svg HTTP/1.1" 200 1097
+"GET /admin/users/user/?is_platform_admin__exact=1 HTTP/1.1" 200 26395
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /admin/users/user/? HTTP/1.1" 200 26504
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /admin/users/user/80009d6d-d83f-4e09-87d0-5c2df4e32a52/change/ HTTP/1.1" 200 48717
+"GET /static/admin/js/calendar.js HTTP/1.1" 200 8466
+"GET /static/admin/js/admin/DateTimeShortcuts.js HTTP/1.1" 200 19319
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /static/admin/js/collapse.js HTTP/1.1" 200 1803
+"GET /static/admin/img/icon-calendar.svg HTTP/1.1" 200 1086
+"GET /static/admin/img/icon-clock.svg HTTP/1.1" 200 677
+"GET /admin/users/user/ HTTP/1.1" 200 26504
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+Forbidden: /api/v1/platform/analytics/overview/
+"GET /api/v1/platform/analytics/overview/ HTTP/1.1" 403 63
+Forbidden: /api/v1/auth/login/
+"POST /api/v1/auth/login/ HTTP/1.1" 403 82
+Unauthorized: /api/v1/auth/profile/
+"GET /api/v1/auth/profile/ HTTP/1.1" 401 183
+"POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 582
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+Internal Server Error: /api/v1/platform/analytics/overview/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such table: system_health
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/platform_admin/views.py", line 232, in overview
+    critical_health = SystemHealth.objects.filter(status='CRITICAL').exists()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1241, in exists
+    return self.query.has_results(using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 598, in has_results
+    return compiler.has_results()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1530, in has_results
+    return bool(self.execute_sql(SINGLE))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such table: system_health
+"GET /api/v1/platform/analytics/overview/ HTTP/1.1" 500 166803
+Internal Server Error: /api/v1/platform/analytics/overview/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such table: system_health
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/platform_admin/views.py", line 232, in overview
+    critical_health = SystemHealth.objects.filter(status='CRITICAL').exists()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1241, in exists
+    return self.query.has_results(using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 598, in has_results
+    return compiler.has_results()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1530, in has_results
+    return bool(self.execute_sql(SINGLE))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such table: system_health
+"GET /api/v1/platform/analytics/overview/ HTTP/1.1" 500 166803
+Internal Server Error: /api/v1/platform/analytics/overview/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such table: system_health
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/platform_admin/views.py", line 232, in overview
+    critical_health = SystemHealth.objects.filter(status='CRITICAL').exists()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1241, in exists
+    return self.query.has_results(using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 598, in has_results
+    return compiler.has_results()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1530, in has_results
+    return bool(self.execute_sql(SINGLE))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such table: system_health
+"GET /api/v1/platform/analytics/overview/ HTTP/1.1" 500 166803
+Internal Server Error: /api/v1/platform/settings/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such table: platform_settings
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 40, in list
+    page = self.paginate_queryset(queryset)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/generics.py", line 175, in paginate_queryset
+    return self.paginator.paginate_queryset(queryset, self.request, view=self)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/pagination.py", line 211, in paginate_queryset
+    self.page = paginator.page(page_number)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/paginator.py", line 72, in page
+    number = self.validate_number(number)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/paginator.py", line 53, in validate_number
+    if number > self.num_pages:
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/paginator.py", line 99, in num_pages
+    if self.count == 0 and not self.allow_empty_first_page:
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/paginator.py", line 93, in count
+    return c()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 608, in count
+    return self.query.get_count(using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 568, in get_count
+    return obj.get_aggregation(using, {"__count": Count("*")})["__count"]
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 554, in get_aggregation
+    result = compiler.execute_sql(SINGLE)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such table: platform_settings
+"GET /api/v1/platform/settings/ HTTP/1.1" 500 26409
+/home/wachira/Development/LogiFlow/backend/logistics_project/urls.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /admin/users/user/ HTTP/1.1" 200 26504
+"GET /admin/jsi18n/ HTTP/1.1" 200 3343
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 551909
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+Internal Server Error: /api/v1/platform-admin/analytics/overview/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such table: system_health
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/platform_admin/views.py", line 232, in overview
+    critical_health = SystemHealth.objects.filter(status='CRITICAL').exists()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1241, in exists
+    return self.query.has_results(using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 598, in has_results
+    return compiler.has_results()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1530, in has_results
+    return bool(self.execute_sql(SINGLE))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such table: system_health
+"GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 500 166899
+/home/wachira/Development/LogiFlow/backend/logistics_project/urls.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 551909
+Unauthorized: /api/v1/auth/profile/
+"GET /api/v1/auth/profile/ HTTP/1.1" 401 176
+Unauthorized: /api/v1/auth/login/
+"POST /api/v1/auth/login/ HTTP/1.1" 401 176
+"POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 582
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+Internal Server Error: /api/v1/platform_admin/analytics/overview/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.OperationalError: no such table: system_health
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/platform_admin/views.py", line 232, in overview
+    critical_health = SystemHealth.objects.filter(status='CRITICAL').exists()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1241, in exists
+    return self.query.has_results(using=self.db)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/query.py", line 598, in has_results
+    return compiler.has_results()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1530, in has_results
+    return bool(self.execute_sql(SINGLE))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.OperationalError: no such table: system_health
+"GET /api/v1/platform_admin/analytics/overview/ HTTP/1.1" 500 166899
+Watching for file changes with StatReloader
+Forbidden (Permission denied): /admin/users/user/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/contrib/admin/options.py", line 688, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/contrib/admin/sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/contrib/admin/options.py", line 1923, in changelist_view
+    raise PermissionDenied
+django.core.exceptions.PermissionDenied
+"GET /admin/users/user/ HTTP/1.1" 403 135
+Forbidden (Permission denied): /admin/users/user/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/contrib/admin/options.py", line 688, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/contrib/admin/sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/contrib/admin/options.py", line 1923, in changelist_view
+    raise PermissionDenied
+django.core.exceptions.PermissionDenied
+"GET /admin/users/user/? HTTP/1.1" 403 135
+Forbidden (Permission denied): /admin/users/user/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/contrib/admin/options.py", line 688, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/contrib/admin/sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/utils/decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/contrib/admin/options.py", line 1923, in changelist_view
+    raise PermissionDenied
+django.core.exceptions.PermissionDenied
+"GET /admin/users/user/?is_platform_admin__exact=1 HTTP/1.1" 403 135
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 551909
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 200 652
+Internal Server Error: /api/v1/platform-admin/system-health/dashboard/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/platform_admin/views.py", line 116, in dashboard
+    for metric in queryset.distinct('metric_name').order_by('metric_name', '-created_at'):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 398, in __iter__
+    self._fetch_all()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1549, in execute_sql
+    sql, params = self.as_sql()
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 785, in as_sql
+    distinct_result, distinct_params = self.connection.ops.distinct_sql(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/base/operations.py", line 202, in distinct_sql
+    raise NotSupportedError(
+django.db.utils.NotSupportedError: DISTINCT ON fields is not supported by this database backend
+"GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 500 23807
+"GET /api/v1/platform-admin/system-health/ HTTP/1.1" 200 52
+/home/wachira/Development/LogiFlow/backend/apps/platform_admin/views.py changed, reloading.
+Watching for file changes with StatReloader

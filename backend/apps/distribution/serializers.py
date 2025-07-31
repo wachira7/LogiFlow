@@ -26,7 +26,8 @@ class OrderItemSerializer(serializers.ModelSerializer):
         """Validate that product belongs to the same company."""
         company = self.context['request'].user.company
         try:
-            return Product.objects.get(id=value, company=company)
+            Product.objects.get(id=value, company=company)
+            return value
         except Product.DoesNotExist:
             raise serializers.ValidationError("Product not found.")
 
@@ -94,7 +95,6 @@ class CreateCustomerOrderSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             # Create customer order
             order = CustomerOrder.objects.create(
-                company=self.context['request'].user.company,
                 **validated_data
             )
             

@@ -1,3 +1,5 @@
+#backend/logistics_project/settings.py
+
 """
 Django settings for logistics_project project.
 """
@@ -203,3 +205,17 @@ LOGGING = {
         },
     },
 }
+
+
+
+ #  Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # or your email provider
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@gmail.com'  # Replace with your email
+EMAIL_HOST_PASSWORD = 'your-app-password'  # Replace with app password
+DEFAULT_FROM_EMAIL = 'LogiFlow <noreply@logiflow.com>'
+
+# Frontend URL for invitation links
+FRONTEND_URL = 'http://localhost:3000'  # Your Next.js frontend URL

@@ -59,7 +59,7 @@ class ProductionOrder(TimeStampedModel):
         if not remaining_steps.exists():
             return self.end_date
         
-        total_remaining_hours = sum(step.duration_hours or 0 for step in remaining_steps)
+        total_remaining_hours = sum(float(step.duration_hours or 0) for step in remaining_steps)
         if total_remaining_hours > 0 and self.start_date:
             from datetime import timedelta
             return self.start_date + timedelta(hours=total_remaining_hours)

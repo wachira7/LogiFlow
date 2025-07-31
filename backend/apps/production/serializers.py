@@ -159,10 +159,11 @@ class CreateProductionOrderSerializer(serializers.ModelSerializer):
         """Validate that product belongs to the same company."""
         company = self.context['request'].user.company
         try:
-            return Product.objects.get(id=value, company=company)
+            # Validate the product exists but return the original UUID value
+            Product.objects.get(id=value, company=company)
+            return value  # Return the UUID, not the Product object
         except Product.DoesNotExist:
             raise serializers.ValidationError("Product not found.")
-
     def validate_order_number(self, value):
         """Validate that order number is unique within the company."""
         company = self.context['request'].user.company
@@ -176,12 +177,8 @@ class CreateProductionOrderSerializer(serializers.ModelSerializer):
         materials_data = validated_data.pop('production_materials', [])
         
         with transaction.atomic():
-            # Create production order
-            production_order = ProductionOrder.objects.create(
-                company=self.context['request'].user.company,
-                created_by=self.context['request'].user,
-                **validated_data
-            )
+            # Create production order - company and created_by will be set by TenantViewSetMixin
+            production_order = ProductionOrder.objects.create(**validated_data)
             
             # Create production steps
             for step_data in steps_data:
@@ -194,8 +191,14 @@ class CreateProductionOrderSerializer(serializers.ModelSerializer):
             # Create production materials
             for material_data in materials_data:
                 material_data.pop('id', None)  # Remove id if present
+                # Handle the product and warehouse validation from validate method
+                product = material_data.pop('product', None)
+                warehouse = material_data.pop('warehouse', None)
+                
                 ProductionMaterial.objects.create(
                     production_order=production_order,
+                    product=product,
+                    warehouse=warehouse,
                     **material_data
                 )
         
