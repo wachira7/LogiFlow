@@ -1954,3 +1954,57 @@ django.db.utils.NotSupportedError: DISTINCT ON fields is not supported by this d
 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 200 52
 /home/wachira/Development/LogiFlow/backend/apps/platform_admin/views.py changed, reloading.
 Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/views.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 552575
+Created Stripe customer cus_Sot6tApOCHpbpm for user jackdan@gmail.com
+"GET /api/v1/payments/test-stripe/ HTTP/1.1" 200 109
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+Watching for file changes with StatReloader
+Not Found: /
+"GET / HTTP/1.1" 404 3653
+Not Found: /favicon.ico
+"GET /favicon.ico HTTP/1.1" 404 3704
+Not Found: /
+"GET / HTTP/1.1" 404 3653
+Watching for file changes with StatReloader
+Processing subscription created: sub_test123
+UserSubscription not found for Stripe subscription sub_test123
+Processing subscription created: sub_different123
+UserSubscription not found for Stripe subscription sub_different123
+Processing subscription created: sub_test123
+Updated subscription aad64d53-f08d-4df5-82e5-265bb2bac954 status to ACTIVE
+Processing payment intent succeeded: pi_test123
+Error processing payment intent pi_test123: ['“1” is not a valid UUID.']
+Processing invoice payment succeeded: in_test123
+Created payment transaction 40ea4a37-f24b-4981-9538-a30a789d0d87 for $29.99
+Processing payment intent succeeded: pi_test123
+Created one-time payment transaction for payment intent pi_test123

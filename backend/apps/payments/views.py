@@ -1,7 +1,10 @@
 # apps/payments/views.py
 from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes as api_permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework import status
+from .providers.stripe import StripeService
 from django.db import transaction
 from django.db.models import Q, Sum, Count
 from django_filters.rest_framework import DjangoFilterBackend
@@ -293,3 +296,34 @@ class PaymentMethodViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
             'message': 'Payment method set as default',
             'is_default': payment_method.is_default
         })
+    
+@api_view(['GET'])
+@api_permission_classes([IsAuthenticated])
+def test_stripe_connection(request):
+        """Test Stripe API connection."""
+        try:
+            from .providers.stripe import StripeService
+            
+            stripe_service = StripeService()
+            
+            # Test creating a customer
+            test_customer = stripe_service.create_customer(
+                user=request.user,
+                company=request.user.company
+            )
+            
+            # Clean up test customer immediately
+            import stripe
+            stripe.Customer.delete(test_customer.id)
+            
+            return Response({
+                'message': 'Stripe connection successful!',
+                'stripe_customer_created': test_customer.id,
+                'test_passed': True
+            })
+            
+        except Exception as e:
+            return Response({
+                'error': f'Stripe connection failed: {str(e)}',
+                'test_passed': False
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)  

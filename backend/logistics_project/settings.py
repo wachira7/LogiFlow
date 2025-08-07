@@ -219,3 +219,17 @@ DEFAULT_FROM_EMAIL = 'LogiFlow <noreply@logiflow.com>'
 
 # Frontend URL for invitation links
 FRONTEND_URL = 'http://localhost:3000'  # Your Next.js frontend URL
+
+
+# Stripe Configuration
+STRIPE_PUBLISHABLE_KEY = "pk_test_51RsETiCPP9aVNHNKmpePvf4ycBYX2foNBdxy5yBudo1WWPHqYCSaZK2ii9cqsFDulYJroAbmZiDHEqQuYBb9PuSH00jtR4hNaf" 
+STRIPE_SECRET_KEY = "sk_test_51RsETiCPP9aVNHNKuSQ3HcprZcqSlxNEapAP5XNaaLIiixygI8PQEUVgLQYsCVNPUKwJXdO24lL7K0PkuE21vOge008UA258Gn"       
+STRIPE_WEBHOOK_SECRET = "whsec_2EgHOHl1aGJ4zCsTvBQKPynK2rGV7Fm0"    
+
+# For production, use environment variables:
+# STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY')
+# STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY')
+# STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET')
+
+# Stripe API Version
+STRIPE_API_VERSION = "2023-10-16"
