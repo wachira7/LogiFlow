@@ -41,3 +41,6 @@ psutil>=5.9.0
 # Utilities
 python-dateutil>=2.8.0
 stripe==7.12.0
+phonenumbers==8.13.11
+
+

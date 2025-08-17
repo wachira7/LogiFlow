@@ -1,7 +1,7 @@
 # apps/payments/views.py
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes as api_permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from .providers.stripe import StripeService
@@ -10,6 +10,15 @@ from django.db.models import Q, Sum, Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.http import HttpResponse, JsonResponse
+from drf_spectacular.utils import extend_schema
+from .serializers import MPesaPaymentSerializer, MPesaStatusCheckSerializer, CryptoPaymentSerializer, CryptoStatusCheckSerializer
+import json
+import logging
 from .models import SubscriptionPlan, UserSubscription, PaymentTransaction, PaymentMethod
 from .serializers import (
     SubscriptionPlanSerializer, UserSubscriptionListSerializer, 
@@ -18,6 +27,10 @@ from .serializers import (
 )
 from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
+from .providers.mpesa import MPesaService
+from .providers.crypto import CryptoService 
+
+logger = logging.getLogger(__name__)
 
 class SubscriptionPlanViewSet(viewsets.ReadOnlyModelViewSet):
     """ViewSet for SubscriptionPlan - read-only for customers."""
@@ -327,3 +340,457 @@ def test_stripe_connection(request):
                 'error': f'Stripe connection failed: {str(e)}',
                 'test_passed': False
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)  
+        
+
+@api_view(['GET'])
+@api_permission_classes([IsAuthenticated])
+def test_mpesa_connection(request):
+    """Test M-Pesa API connection."""
+    try:
+        mpesa_service = MPesaService()
+        
+        # Test getting access token
+        access_token = mpesa_service.get_access_token()
+        
+        return Response({
+            'message': 'M-Pesa connection successful!',
+            'access_token_received': bool(access_token),
+            'test_passed': True,
+            'environment': mpesa_service.environment,
+            'shortcode': mpesa_service.shortcode
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': f'M-Pesa connection failed: {str(e)}',
+            'test_passed': False
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@extend_schema(
+    request=MPesaPaymentSerializer,
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "message": {"type": "string"},
+                "checkout_request_id": {"type": "string"},
+                "merchant_request_id": {"type": "string"},
+                "customer_message": {"type": "string"},
+                "response_description": {"type": "string"},
+                "phone_number": {"type": "string"},
+                "amount": {"type": "number"}
+            }
+        },
+        400: {
+            "type": "object", 
+            "properties": {
+                "error": {"type": "string"}
+            }
+        }
+    },
+    description="Initiate M-Pesa STK Push payment"
+)
+@api_view(['POST'])
+@api_permission_classes([IsAuthenticated])
+def initiate_mpesa_payment(request):
+    """Initiate M-Pesa STK Push payment."""
+    try:
+        # Validate request data using serializer
+        serializer = MPesaPaymentSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'error': 'Invalid request data',
+                'details': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        validated_data = serializer.validated_data
+        
+        # Get payment data from validated serializer
+        phone_number = validated_data['phone_number']
+        amount = validated_data['amount']
+        account_reference = validated_data.get('account_reference', f'LogiFlow-{request.user.id}')
+        transaction_desc = validated_data.get('description', 'LogiFlow Payment')
+        
+        # Initiate STK Push
+        mpesa_service = MPesaService()
+        response = mpesa_service.initiate_stk_push(
+            phone_number=phone_number,
+            amount=float(amount),
+            account_reference=account_reference,
+            transaction_desc=transaction_desc,
+            user=request.user,
+            company=request.user.company
+        )
+        
+        return Response({
+            'message': 'STK Push initiated successfully',
+            'checkout_request_id': response.get('CheckoutRequestID'),
+            'merchant_request_id': response.get('MerchantRequestID'),
+            'customer_message': response.get('CustomerMessage'),
+            'response_description': response.get('ResponseDescription'),
+            'phone_number': phone_number,
+            'amount': float(amount)
+        })
+        
+    except Exception as e:
+        logger.error(f"STK Push initiation failed: {str(e)}")
+        return Response({
+            'error': f'Failed to initiate payment: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@extend_schema(
+    request=MPesaStatusCheckSerializer,
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "transaction_status": {"type": "object"},
+                "checkout_request_id": {"type": "string"}
+            }
+        }
+    },
+    description="Check M-Pesa transaction status"
+)
+@api_view(['POST'])
+@api_permission_classes([IsAuthenticated])
+def check_mpesa_status(request):
+    """Check M-Pesa transaction status."""
+    try:
+        # Validate request data
+        serializer = MPesaStatusCheckSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'error': 'Invalid request data',
+                'details': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        checkout_request_id = serializer.validated_data['checkout_request_id']
+        
+        mpesa_service = MPesaService()
+        response = mpesa_service.check_transaction_status(checkout_request_id)
+        
+        return Response({
+            'transaction_status': response,
+            'checkout_request_id': checkout_request_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Transaction status check failed: {str(e)}")
+        return Response({
+            'error': f'Failed to check transaction status: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+@method_decorator(csrf_exempt, name='dispatch')
+class MPesaCallbackView(View):
+    """Handle M-Pesa payment callbacks."""
+    
+    def post(self, request):
+        """Handle M-Pesa STK Push callback."""
+        try:
+            # Parse JSON data
+            callback_data = json.loads(request.body)
+            
+            logger.info(f"Received M-Pesa callback: {callback_data}")
+            
+            # Process the callback
+            mpesa_service = MPesaService()
+            success = mpesa_service.handle_callback(callback_data)
+            
+            if success:
+                logger.info("M-Pesa callback processed successfully")
+                return JsonResponse({
+                    'ResultCode': 0,
+                    'ResultDesc': 'Callback processed successfully'
+                })
+            else:
+                logger.warning("M-Pesa callback processing failed")
+                return JsonResponse({
+                    'ResultCode': 1,
+                    'ResultDesc': 'Callback processing failed'
+                })
+                
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON in M-Pesa callback")
+            return JsonResponse({
+                'ResultCode': 1,
+                'ResultDesc': 'Invalid JSON data'
+            }, status=400)
+        except Exception as e:
+            logger.error(f"Error processing M-Pesa callback: {str(e)}")
+            return JsonResponse({
+                'ResultCode': 1,
+                'ResultDesc': f'Error: {str(e)}'
+            }, status=500)
+    
+    def get(self, request):
+        """Handle GET request (for testing)."""
+        return JsonResponse({
+            'message': 'M-Pesa callback endpoint is active',
+            'endpoint': 'POST to this URL for callbacks'
+        })
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MPesaResultView(View):
+    """Handle M-Pesa result callbacks (for account balance, etc.)."""
+    
+    def post(self, request):
+        """Handle M-Pesa result callback."""
+        try:
+            result_data = json.loads(request.body)
+            logger.info(f"Received M-Pesa result: {result_data}")
+            
+            # Process result (account balance, etc.)
+            # You can extend this based on your needs
+            
+            return JsonResponse({
+                'ResultCode': 0,
+                'ResultDesc': 'Result received successfully'
+            })
+            
+        except Exception as e:
+            logger.error(f"Error processing M-Pesa result: {str(e)}")
+            return JsonResponse({
+                'ResultCode': 1,
+                'ResultDesc': f'Error: {str(e)}'
+            }, status=500)
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MPesaTimeoutView(View):
+    """Handle M-Pesa timeout callbacks."""
+    
+    def post(self, request):
+        """Handle M-Pesa timeout callback."""
+        try:
+            timeout_data = json.loads(request.body)
+            logger.info(f"Received M-Pesa timeout: {timeout_data}")
+            
+            # Handle timeout scenarios
+            # You can update transaction status to timeout/failed
+            
+            return JsonResponse({
+                'ResultCode': 0,
+                'ResultDesc': 'Timeout handled successfully'
+            })
+            
+        except Exception as e:
+            logger.error(f"Error processing M-Pesa timeout: {str(e)}")
+            return JsonResponse({
+                'ResultCode': 1,
+                'ResultDesc': f'Error: {str(e)}'
+            }, status=500)        
+        
+# 1. Update test_crypto_connection view:
+@api_view(['GET'])
+@api_permission_classes([IsAuthenticated])
+def test_crypto_connection(request):
+    """Test Crypto API connection."""
+    try:
+        crypto_service = CryptoService()
+        
+        # Test connection to NOWPayments
+        connection_test = crypto_service.test_connection()
+        
+        return Response({
+            'message': 'Crypto connection successful!',
+            'connection_test_passed': connection_test,
+            'test_passed': True,
+            'supported_currencies': crypto_service.get_supported_currencies(),
+            'provider': 'NOWPayments'  # ← Changed from 'Coinbase Commerce'
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': f'Crypto connection failed: {str(e)}',
+            'test_passed': False
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# 2. Update create_crypto_payment view response:
+@extend_schema(
+    request=CryptoPaymentSerializer,
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "message": {"type": "string"},
+                "payment_id": {"type": "string"},
+                "payment_url": {"type": "string"},
+                "payment_address": {"type": "string"},
+                "pay_currency": {"type": "string"},
+                "pay_amount": {"type": "string"},
+                "amount": {"type": "number"},
+                "currency": {"type": "string"}
+            }
+        }
+    },
+    description="Create crypto payment"
+)
+@api_view(['POST'])
+@api_permission_classes([IsAuthenticated])
+def create_crypto_payment(request):
+    """Create a crypto payment."""
+    try:
+        # Validate request data using serializer
+        serializer = CryptoPaymentSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'error': 'Invalid request data',
+                'details': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        validated_data = serializer.validated_data
+        
+        # Get payment data from validated serializer
+        amount = validated_data['amount']
+        currency = validated_data.get('currency', 'USD')
+        pay_currency = validated_data.get('pay_currency')
+        order_description = validated_data.get('order_description', 'LogiFlow crypto payment')
+        
+        # Create crypto payment with NOWPayments
+        crypto_service = CryptoService()
+        payment = crypto_service.create_payment(
+            amount=float(amount),
+            currency=currency,
+            pay_currency=pay_currency,
+            order_id=f"LogiFlow-{request.user.id}-{int(timezone.now().timestamp())}",
+            order_description=order_description,
+            user=request.user,
+            company=request.user.company
+        )
+        
+        logger.info(f"NOWPayments response: {payment}")
+        
+        return Response({
+            'message': 'Crypto payment created successfully',
+            'payment_id': payment.get('payment_id') or payment.get('id'),  # Try both fields
+            'payment_url': payment.get('payment_url') or payment.get('invoice_url'),  # Try both fields
+            'payment_address': payment.get('pay_address') or payment.get('payment_address'),
+            'pay_currency': payment.get('pay_currency'),
+            'pay_amount': payment.get('pay_amount'),
+            'amount': float(amount),
+            'currency': currency,
+            'expires_at': payment.get('expires_at') or payment.get('expiration_estimate_date'),
+            'status': payment.get('payment_status', 'waiting')
+        })
+        
+    except Exception as e:
+        logger.error(f"Crypto payment creation failed: {str(e)}")
+        return Response({
+            'error': f'Failed to create crypto payment: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+       
+# 3. Update check_crypto_status view:
+@extend_schema(
+    request=CryptoStatusCheckSerializer,
+    responses={
+        200: {
+            "type": "object",
+            "properties": {
+                "payment_status": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "status": {"type": "string"},
+                        "pay_currency": {"type": "string"},
+                        "pay_amount": {"type": "number"},
+                        "amount": {"type": "number"},
+                        "currency": {"type": "string"},
+                        "created_at": {"type": "string"},
+                        "updated_at": {"type": "string"}
+                    }
+                },
+                "payment_id": {"type": "string"}
+            }
+        },
+        400: {
+            "type": "object",
+            "properties": {
+                "error": {"type": "string"}
+            }
+        }
+    },
+    description="Check crypto payment status"
+)
+@api_view(['POST'])
+@api_permission_classes([IsAuthenticated])
+def check_crypto_status(request):
+    """Check crypto payment status."""
+    try:
+        # Validate request data using serializer
+        serializer = CryptoStatusCheckSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'error': 'Invalid request data',
+                'details': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        payment_id = serializer.validated_data['payment_id']
+        
+        crypto_service = CryptoService()
+        payment = crypto_service.get_payment_status(payment_id)
+        
+        return Response({
+            'payment_status': {
+                'id': payment.get('id'),
+                'status': payment.get('payment_status'),
+                'pay_currency': payment.get('pay_currency'),
+                'pay_amount': payment.get('pay_amount'),
+                'amount': payment.get('price_amount'),
+                'currency': payment.get('price_currency'),
+                'created_at': payment.get('created_at'),
+                'updated_at': payment.get('updated_at')
+            },
+            'payment_id': payment_id
+        })
+        
+    except Exception as e:
+        logger.error(f"Crypto status check failed: {str(e)}")
+        return Response({
+            'error': f'Failed to check crypto status: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# 4. Update CryptoCallbackView:
+@method_decorator(csrf_exempt, name='dispatch')
+class CryptoCallbackView(View):
+    """Handle Crypto payment callbacks."""
+    
+    def post(self, request):
+        """Handle NOWPayments IPN webhook."""
+        try:
+            # Get signature from headers for NOWPayments
+            signature = request.META.get('HTTP_X_NOWPAYMENTS_SIG', '')
+            
+            # Get raw payload
+            payload = request.body
+            
+            logger.info(f"Received NOWPayments webhook with signature: {signature[:20] if signature else 'None'}...")
+            
+            # Process the callback
+            crypto_service = CryptoService()
+            success = crypto_service.handle_webhook(payload, signature)
+            
+            if success:
+                logger.info("NOWPayments callback processed successfully")
+                return JsonResponse({
+                    'status': 'success',
+                    'message': 'IPN processed successfully'
+                })
+            else:
+                logger.warning("NOWPayments callback processing failed")
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'IPN processing failed'
+                }, status=400)
+                
+        except Exception as e:
+            logger.error(f"Error processing NOWPayments callback: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Error: {str(e)}'
+            }, status=500)
+    
+    def get(self, request):
+        """Handle GET request (for testing)."""
+        return JsonResponse({
+            'message': 'Crypto callback endpoint is active',
+            'endpoint': 'POST to this URL for NOWPayments IPN',
+            'provider': 'NOWPayments'  # ← Updated provider name
+        })        

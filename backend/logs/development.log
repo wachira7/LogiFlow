@@ -2008,3 +2008,111 @@ Processing invoice payment succeeded: in_test123
 Created payment transaction 40ea4a37-f24b-4981-9538-a30a789d0d87 for $29.99
 Processing payment intent succeeded: pi_test123
 Created one-time payment transaction for payment intent pi_test123
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 524362
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+Successfully obtained M-Pesa access token
+"GET /api/v1/payments/test-mpesa/ HTTP/1.1" 200 136
+"GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 52
+Bad Request: /api/v1/payments/mpesa/pay/
+"POST /api/v1/payments/mpesa/pay/ HTTP/1.1" 400 48
+Bad Request: /api/v1/payments/mpesa/status/
+"POST /api/v1/payments/mpesa/status/ HTTP/1.1" 400 43
+Bad Request: /api/v1/payments/mpesa/pay/
+"POST /api/v1/payments/mpesa/pay/ HTTP/1.1" 400 48
+Bad Request: /api/v1/payments/mpesa/pay/
+"POST /api/v1/payments/mpesa/pay/ HTTP/1.1" 400 48
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 554578
+Bad Request: /api/v1/payments/mpesa/pay/
+"POST /api/v1/payments/mpesa/pay/ HTTP/1.1" 400 48
+/home/wachira/Development/LogiFlow/backend/apps/payments/serializers.py changed, reloading.
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 561083
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+Successfully obtained M-Pesa access token
+"GET /api/v1/payments/test-mpesa/ HTTP/1.1" 200 136
+Successfully obtained M-Pesa access token
+STK Push initiated: {'MerchantRequestID': 'd2fd-490e-9ab5-07f4d8c8b19d39541', 'CheckoutRequestID': 'ws_CO_100820250112312708374149', 'ResponseCode': '0', 'ResponseDescription': 'Success. Request accepted for processing', 'CustomerMessage': 'Success. Request accepted for processing'}
+Created pending M-Pesa transaction: d3f4cbc8-9a9d-451c-8bd5-f4731dba5f00
+"POST /api/v1/payments/mpesa/pay/ HTTP/1.1" 200 330
+Successfully obtained M-Pesa access token
+Transaction status check failed: 400 Client Error: Bad Request for url: https://sandbox.safaricom.co.ke/mpesa/transactionstatus/v1/query
+Transaction status check failed: 400 Client Error: Bad Request for url: https://sandbox.safaricom.co.ke/mpesa/transactionstatus/v1/query
+Internal Server Error: /api/v1/payments/mpesa/status/
+"POST /api/v1/payments/mpesa/status/ HTTP/1.1" 500 151
+/home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/providers/mpesa.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/providers/mpesa.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/providers/mpesa.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/providers/mpesa.py changed, reloading.
+Watching for file changes with StatReloader
+/home/wachira/Development/LogiFlow/backend/apps/payments/providers/mpesa.py changed, reloading.
+Watching for file changes with StatReloader
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 536787
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 536787
+Unauthorized: /api/v1/payments/test-crypto/
+"GET /api/v1/payments/test-crypto/ HTTP/1.1" 401 58
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+NOWPayments connection test successful
+Failed to get supported currencies: 403 Client Error: Forbidden for url: https://api-sandbox.nowpayments.io/v1/currencies
+"GET /api/v1/payments/test-crypto/ HTTP/1.1" 200 243
+NOWPayments payment creation failed: 403 Client Error: Forbidden for url: https://api-sandbox.nowpayments.io/v1/payment
+Crypto payment creation failed: 403 Client Error: Forbidden for url: https://api-sandbox.nowpayments.io/v1/payment
+Internal Server Error: /api/v1/payments/crypto/pay/
+"POST /api/v1/payments/crypto/pay/ HTTP/1.1" 500 127
+NOWPayments payment creation failed: 403 Client Error: Forbidden for url: https://api-sandbox.nowpayments.io/v1/payment
+Crypto payment creation failed: 403 Client Error: Forbidden for url: https://api-sandbox.nowpayments.io/v1/payment
+Internal Server Error: /api/v1/payments/crypto/pay/
+"POST /api/v1/payments/crypto/pay/ HTTP/1.1" 500 127
+NOWPayments payment creation failed: 403 Client Error: Forbidden for url: https://api-sandbox.nowpayments.io/v1/payment
+Crypto payment creation failed: 403 Client Error: Forbidden for url: https://api-sandbox.nowpayments.io/v1/payment
+Internal Server Error: /api/v1/payments/crypto/pay/
+"POST /api/v1/payments/crypto/pay/ HTTP/1.1" 500 127
+NOWPayments payment creation failed: 403 Client Error: Forbidden for url: https://api-sandbox.nowpayments.io/v1/payment
+Crypto payment creation failed: 403 Client Error: Forbidden for url: https://api-sandbox.nowpayments.io/v1/payment
+Internal Server Error: /api/v1/payments/crypto/pay/
+"POST /api/v1/payments/crypto/pay/ HTTP/1.1" 500 127
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 567003
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 567003
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+"GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+"GET /api/v1/distribution/shipments/tracking_report/ HTTP/1.1" 200 161
+NOWPayments connection test successful
+Failed to get supported currencies: 'str' object has no attribute 'get'
+"GET /api/v1/payments/test-crypto/ HTTP/1.1" 200 237
+"GET /api/v1/payments/transactions/revenue_report/ HTTP/1.1" 200 306
+Created NOWPayments payment: None
+Created pending crypto transaction: 7ee7106f-f900-4542-aeb0-bc7bd5ed844f
+"POST /api/v1/payments/crypto/pay/ HTTP/1.1" 200 223
+Bad Request: /api/v1/payments/crypto/status/
+"POST /api/v1/payments/crypto/status/ HTTP/1.1" 400 34
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 567003
+"POST /api/v1/auth/login/ HTTP/1.1" 200 1167
+Created NOWPayments payment: None
+Created pending crypto transaction: 9f140577-09be-4ff9-a1b4-7f7887a41f24
+NOWPayments response: {'payment_id': '5244184389', 'payment_status': 'waiting', 'pay_address': '36BuWiHiSnfWJcYLDqTPiUXTMeqBCUox2j', 'price_amount': 100, 'price_currency': 'usd', 'pay_amount': 0.00084861, 'amount_received': 98.140729, 'pay_currency': 'btc', 'order_id': 'LogiFlow-2b238ef0-1adb-41b1-bb6a-eff8c1dc1c18-1755464162', 'order_description': 'Test LogiFlow crypto payment', 'payin_extra_id': None, 'ipn_callback_url': 'https://0a4e14795lb1.ngrok-free.app/api/v1/payments/callbacks/crypto/', 'created_at': '2025-08-17T20:56:04.050Z', 'updated_at': '2025-08-17T20:56:04.050Z', 'purchase_id': '5235647268', 'smart_contract': None, 'network': 'btc', 'network_precision': None, 'time_limit': None, 'burning_percent': None, 'expiration_estimate_date': '2025-08-17T21:16:04.050Z', 'is_fixed_rate': False, 'is_fee_paid_by_user': False, 'valid_until': '2025-08-24T20:56:04.050Z', 'type': 'crypto2crypto', 'product': 'api', 'success': 'success'}
+"POST /api/v1/payments/crypto/pay/ HTTP/1.1" 200 285
+Bad Request: /api/v1/payments/crypto/status/
+"POST /api/v1/payments/crypto/status/ HTTP/1.1" 400 34
+Watching for file changes with StatReloader
+"GET /api/docs/ HTTP/1.1" 200 4645
+"GET /api/schema/ HTTP/1.1" 200 571287

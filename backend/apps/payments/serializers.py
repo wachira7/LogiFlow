@@ -111,6 +111,36 @@ class UserSubscriptionDetailSerializer(serializers.ModelSerializer):
         from django.utils import timezone
         return obj.end_date and obj.end_date < timezone.now()
 
+class MPesaPaymentSerializer(serializers.Serializer):
+        """Serializer for M-Pesa payment requests."""
+        phone_number = serializers.CharField(
+            max_length=15,
+            help_text="Phone number in format 254XXXXXXXX or 07XXXXXXXX"
+        )
+        amount = serializers.DecimalField(
+            max_digits=10, 
+            decimal_places=2,
+            min_value=1,
+            help_text="Payment amount in KES"
+        )
+        account_reference = serializers.CharField(
+            max_length=50,
+            required=False,
+            help_text="Account reference (optional)"
+        )
+        description = serializers.CharField(
+            max_length=200,
+            required=False,
+            default="LogiFlow Payment",
+            help_text="Payment description"
+        )
+
+class MPesaStatusCheckSerializer(serializers.Serializer):
+    """Serializer for M-Pesa status check requests."""
+    checkout_request_id = serializers.CharField(
+        max_length=100,
+        help_text="Checkout Request ID from STK Push response"
+    )
 class CreateSubscriptionSerializer(serializers.ModelSerializer):
     """Serializer for creating subscriptions."""
     plan_id = serializers.UUIDField()
@@ -195,3 +225,35 @@ class CreateSubscriptionSerializer(serializers.ModelSerializer):
                     logger.error(f"Failed to set up recurring billing for subscription {subscription.id}: {e}")
         
         return subscription
+    
+class CryptoPaymentSerializer(serializers.Serializer):
+    """Serializer for crypto payment requests."""
+    amount = serializers.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        min_value=1,
+        help_text="Payment amount in USD"
+    )
+    currency = serializers.CharField(
+        max_length=3,
+        default="USD",
+        help_text="Payment currency (USD, EUR, etc.)"
+    )
+    pay_currency = serializers.CharField(
+        max_length=10,
+        required=False,
+        help_text="Crypto currency to pay in (btc, eth, usdt, etc.) - optional"
+    )
+    order_description = serializers.CharField(
+        max_length=200,
+        required=False,
+        default="LogiFlow crypto payment",
+        help_text="Payment description"
+    )
+
+class CryptoStatusCheckSerializer(serializers.Serializer):
+    """Serializer for crypto status check requests."""
+    payment_id = serializers.CharField(  
+        max_length=100,
+        help_text="NOWPayments payment ID from payment creation response"
+    )
