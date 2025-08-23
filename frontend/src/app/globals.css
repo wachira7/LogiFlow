@@ -85,7 +85,9 @@
   /* Updated font variables for Work Sans and Open Sans */
   --font-sans: var(--font-open-sans);
   --font-serif: var(--font-work-sans);
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -131,16 +133,16 @@
   * {
     @apply border-border outline-ring/50;
   }
-  
+
   html {
     scroll-behavior: smooth;
   }
-  
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
     }
-    
+
     *,
     *::before,
     *::after {
@@ -149,39 +151,39 @@
       transition-duration: 0.01ms !important;
     }
   }
-  
+
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* Enhanced focus styles for accessibility */
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;
   }
-  
+
   /* Custom scrollbar for webkit browsers */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
-  
+
   ::-webkit-scrollbar-track {
     @apply bg-muted;
   }
-  
+
   ::-webkit-scrollbar-thumb {
     @apply bg-muted-foreground/20 rounded-full;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/40;
   }
-  
+
   /* Dark mode scrollbar adjustments */
   .dark ::-webkit-scrollbar-thumb {
     @apply bg-muted-foreground/30;
   }
-  
+
   .dark ::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/50;
   }
@@ -192,12 +194,12 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   /* Container fluid utility */
   .container-fluid {
     @apply w-full max-w-none px-4 sm:px-6 lg:px-8;
   }
-  
+
   /* Animation utilities for reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .animate-none-reduced {

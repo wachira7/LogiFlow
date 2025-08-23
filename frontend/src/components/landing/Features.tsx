@@ -1,10 +1,25 @@
 // frontend/src/components/landing/Features.tsx
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Warehouse, Truck, BarChart3, Shield, Clock, Globe, Zap, CheckCircle } from "lucide-react"
-import { useFadeInUp, useStaggerAnimation } from "@/hooks/useGsap"
-import Image from 'next/image';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Warehouse,
+  Truck,
+  BarChart3,
+  Shield,
+  Clock,
+  Globe,
+  Zap,
+  CheckCircle,
+} from "lucide-react";
+import { useFadeInUp, useStaggerAnimation } from "@/hooks/useGsap";
+import Image from "next/image";
 
 const features = [
   {
@@ -43,7 +58,7 @@ const features = [
     description:
       "Manage operations across multiple warehouses, distribution centers, and regions from a single platform.",
   },
-]
+];
 
 const benefits = [
   "Reduce operational costs by up to 30%",
@@ -52,13 +67,13 @@ const benefits = [
   "Enhance visibility across your supply chain",
   "Scale operations without complexity",
   "Integrate with existing business systems",
-]
+];
 
 export function Features() {
   // Use proper generic typing for the hooks
-  const headerRef = useFadeInUp<HTMLDivElement>()
-  const featuresGridRef = useStaggerAnimation<HTMLDivElement>()
-  const benefitsRef = useFadeInUp<HTMLDivElement>()
+  const headerRef = useFadeInUp<HTMLDivElement>();
+  const featuresGridRef = useStaggerAnimation<HTMLDivElement>();
+  const benefitsRef = useFadeInUp<HTMLDivElement>();
 
   return (
     <section id="features" className="py-24 bg-muted/30">
@@ -70,24 +85,34 @@ export function Features() {
             Powerful Features
           </div>
           <h2 className="font-serif font-bold text-3xl sm:text-4xl lg:text-5xl text-foreground mb-4">
-            Everything You Need to <span className="text-primary">Optimize Logistics</span>
+            Everything You Need to{" "}
+            <span className="text-primary">Optimize Logistics</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Comprehensive tools and features designed to streamline your logistics operations and drive business growth.
+            Comprehensive tools and features designed to streamline your
+            logistics operations and drive business growth.
           </p>
         </div>
 
         {/* Features Grid */}
-        <div ref={featuresGridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        <div
+          ref={featuresGridRef}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+        >
           {features.map((feature, index) => {
-            const Icon = feature.icon
+            const Icon = feature.icon;
             return (
-              <Card key={index} className="border-border hover:shadow-lg transition-all duration-300 hover:scale-105">
+              <Card
+                key={index}
+                className="border-border hover:shadow-lg transition-all duration-300 hover:scale-105"
+              >
                 <CardHeader>
                   <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg mb-4">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
-                  <CardTitle className="font-serif text-xl">{feature.title}</CardTitle>
+                  <CardTitle className="font-serif text-xl">
+                    {feature.title}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <CardDescription className="text-muted-foreground leading-relaxed">
@@ -95,15 +120,20 @@ export function Features() {
                   </CardDescription>
                 </CardContent>
               </Card>
-            )
+            );
           })}
         </div>
 
         {/* Benefits Section */}
-        <div ref={benefitsRef} className="bg-card rounded-2xl p-8 lg:p-12 border border-border">
+        <div
+          ref={benefitsRef}
+          className="bg-card rounded-2xl p-8 lg:p-12 border border-border"
+        >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h3 className="font-serif font-bold text-2xl lg:text-3xl text-foreground mb-6">Why Choose Logiflow?</h3>
+              <h3 className="font-serif font-bold text-2xl lg:text-3xl text-foreground mb-6">
+                Why Choose Logiflow?
+              </h3>
               <div className="space-y-4">
                 {benefits.map((benefit, index) => (
                   <div key={index} className="flex items-start space-x-3">
@@ -114,15 +144,17 @@ export function Features() {
               </div>
             </div>
             <div className="relative">
-              <Image src="/placeholder-fe0bo.png" 
-                width={500} height={500} 
-                alt="Logiflow Dashboard Interface" 
-                className="rounded-lg shadow-lg" 
-                />
+              <Image
+                src="/placeholder-fe0bo.png"
+                width={500}
+                height={500}
+                alt="Logiflow Dashboard Interface"
+                className="rounded-lg shadow-lg"
+              />
             </div>
           </div>
         </div>
       </div>
     </section>
-  )
+  );
 }

@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { ChevronDown } from "lucide-react"
-import { useGSAP } from "@/hooks/useGsap"
-import { gsap } from "gsap"
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
+import { useGSAP } from "@/hooks/useGsap";
+import { gsap } from "gsap";
 
 const faqs = [
   {
@@ -47,33 +47,35 @@ const faqs = [
     answer:
       "Our pricing is designed to grow with your business. You can easily upgrade plans, add users, or increase transaction limits. We also offer volume discounts for large enterprises and custom pricing for unique requirements.",
   },
-]
+];
 
 export function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null)
-  const containerRef = useGSAP<HTMLElement>() 
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const containerRef = useGSAP<HTMLElement>();
 
   // Use proper useEffect for additional animations instead of incorrect hook usage
   useEffect(() => {
     if (containerRef.current) {
       // Additional GSAP animations can be added here if needed
-      const faqItems = containerRef.current.querySelectorAll('.faq-item')
-      gsap.from(faqItems, { opacity: 0, duration: 1, stagger: 0.2 })
-      
+      const faqItems = containerRef.current.querySelectorAll(".faq-item");
+      gsap.from(faqItems, { opacity: 0, duration: 1, stagger: 0.2 });
     }
-  }, [containerRef])
+  }, [containerRef]);
 
   const toggleFAQ = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index)
-  }
+    setOpenIndex(openIndex === index ? null : index);
+  };
 
   return (
     <section className="py-24 bg-background" ref={containerRef}>
       <div className="container mx-auto px-4 faq-container">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-serif font-bold text-foreground mb-4">Frequently Asked Questions</h2>
+          <h2 className="text-4xl font-serif font-bold text-foreground mb-4">
+            Frequently Asked Questions
+          </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Get answers to common questions about implementing and using Logiflow for your logistics operations.
+            Get answers to common questions about implementing and using
+            Logiflow for your logistics operations.
           </p>
         </div>
 
@@ -90,7 +92,9 @@ export function FAQ() {
                 onClick={() => toggleFAQ(index)}
                 className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-muted/50 transition-colors"
               >
-                <h3 className="text-lg font-semibold text-foreground pr-4">{faq.question}</h3>
+                <h3 className="text-lg font-semibold text-foreground pr-4">
+                  {faq.question}
+                </h3>
                 <motion.div
                   animate={{ rotate: openIndex === index ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
@@ -109,7 +113,9 @@ export function FAQ() {
                     transition={{ duration: 0.3 }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-4 text-muted-foreground leading-relaxed">{faq.answer}</div>
+                    <div className="px-6 pb-4 text-muted-foreground leading-relaxed">
+                      {faq.answer}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -118,12 +124,14 @@ export function FAQ() {
         </div>
 
         <div className="text-center mt-12">
-          <p className="text-muted-foreground mb-4">Still have questions? Our team is here to help.</p>
+          <p className="text-muted-foreground mb-4">
+            Still have questions? Our team is here to help.
+          </p>
           <button
             onClick={() => {
               document.getElementById("contact")?.scrollIntoView({
                 behavior: "smooth",
-              })
+              });
             }}
             className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
           >
@@ -132,5 +140,5 @@ export function FAQ() {
         </div>
       </div>
     </section>
-  )
+  );
 }

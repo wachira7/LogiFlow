@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useEffect, useRef, useState } from "react" // ✅ Added useState
-import { gsap } from "gsap"
-import { Check, Star, Zap, Crown, ArrowRight, Loader2 } from "lucide-react" // ✅ Added Loader2
-import Link from "next/link"
-import { Button } from "@/components/ui/button" // ✅ Added Button import
-import { useToast } from "@/hooks/use-toast" // ✅ Added useToast import
+import { useEffect, useRef, useState } from "react"; // ✅ Added useState
+import { gsap } from "gsap";
+import { Check, Star, Zap, Crown, ArrowRight, Loader2 } from "lucide-react"; // ✅ Added Loader2
+import Link from "next/link";
+import { Button } from "@/components/ui/button"; // ✅ Added Button import
+import { useToast } from "@/hooks/use-toast"; // ✅ Added useToast import
 
 // Define proper interface for pricing plans
 interface PricingPlan {
@@ -26,7 +26,8 @@ const pricingPlans: PricingPlan[] = [
     name: "Starter",
     price: 69,
     period: "per/month",
-    description: "Perfect for small businesses starting their logistics journey",
+    description:
+      "Perfect for small businesses starting their logistics journey",
     icon: <Zap className="w-8 h-8" />,
     features: [
       "Up to 5 users",
@@ -93,12 +94,12 @@ const pricingPlans: PricingPlan[] = [
     popular: false,
     gradient: "from-orange-500 to-red-500",
   },
-]
+];
 
 export function Pricing() {
-  const pricingRef = useRef<HTMLDivElement>(null)
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null) // ✅ This was missing useState import
-  const { toast } = useToast() // ✅ This was missing useToast import
+  const pricingRef = useRef<HTMLDivElement>(null);
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null); // ✅ This was missing useState import
+  const { toast } = useToast(); // ✅ This was missing useToast import
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -113,22 +114,22 @@ export function Pricing() {
           trigger: ".pricing-section",
           start: "top 80%",
         },
-      })
+      });
 
       // Hover animations - Fix the type issue
       gsap.utils.toArray<HTMLElement>(".pricing-card").forEach((card) => {
-        const tl = gsap.timeline({ paused: true })
+        const tl = gsap.timeline({ paused: true });
 
         tl.to(card, {
           y: -10,
           scale: 1.02,
           duration: 0.3,
           ease: "power2.out",
-        })
+        });
 
-        card.addEventListener("mouseenter", () => tl.play())
-        card.addEventListener("mouseleave", () => tl.reverse())
-      })
+        card.addEventListener("mouseenter", () => tl.play());
+        card.addEventListener("mouseleave", () => tl.reverse());
+      });
 
       // Price number animations - Fix the type issue
       gsap.utils.toArray<HTMLElement>(".price-number").forEach((price) => {
@@ -141,112 +142,117 @@ export function Pricing() {
             trigger: price,
             start: "top 85%",
           },
-        })
-      })
-    }, pricingRef)
+        });
+      });
+    }, pricingRef);
 
-    return () => ctx.revert()
-  }, [])
+    return () => ctx.revert();
+  }, []);
 
   const handleSelect = async (plan: PricingPlan) => {
-    console.log('Selected plan:', plan)
-    
+    console.log("Selected plan:", plan);
+
     // Set loading state
-    setLoadingPlan(plan.name)
-    
+    setLoadingPlan(plan.name);
+
     try {
       // Track analytics
-      if (typeof window !== 'undefined' && 'gtag' in window) {
-      // @ts-expect-error gtag is not defined in the TypeScript type definitions for the window object
-        window.gtag('event', 'begin_checkout', {
-          event_category: 'Pricing',
+      if (typeof window !== "undefined" && "gtag" in window) {
+        // @ts-expect-error gtag is not defined in the TypeScript type definitions for the window object
+        window.gtag("event", "begin_checkout", {
+          event_category: "Pricing",
           event_label: plan.name,
           value: plan.price,
-          currency: 'USD'
-        })
+          currency: "USD",
+        });
       }
-      
+
       // Check authentication status
-      const authToken = localStorage.getItem('authToken')
-      
+      const authToken = localStorage.getItem("authToken");
+
       if (!authToken) {
         // Store plan selection and redirect to auth
-        sessionStorage.setItem('pendingPlan', JSON.stringify(plan))
-        
+        sessionStorage.setItem("pendingPlan", JSON.stringify(plan));
+
         // Show notification
         toast({
           title: "Sign up required",
           description: `Please create an account to subscribe to the ${plan.name} plan.`,
           action: (
-            <Button 
-              onClick={() => window.location.href = '/auth/register'}
+            <Button
+              onClick={() => (window.location.href = "/auth/register")}
               size="sm"
             >
               Sign Up
             </Button>
-          )
-        })
-        
-        return
+          ),
+        });
+
+        return;
       }
-      
+
       // User is authenticated, create subscription
       const subscriptionData = {
         plan_name: plan.name.toLowerCase(),
-        billing_cycle: plan.period.includes('month') ? 'monthly' : 'annual',
+        billing_cycle: plan.period.includes("month") ? "monthly" : "annual",
         features: plan.features,
-        price: plan.price
-      }
-      
-      const response = await fetch('/api/v1/payments/subscriptions/', {
-        method: 'POST',
+        price: plan.price,
+      };
+
+      const response = await fetch("/api/v1/payments/subscriptions/", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify(subscriptionData)
-      })
-      
+        body: JSON.stringify(subscriptionData),
+      });
+
       if (!response.ok) {
-        throw new Error('Failed to create subscription')
+        throw new Error("Failed to create subscription");
       }
-      
-      const subscription = await response.json()
-      
+
+      const subscription = await response.json();
+
       // Success! Redirect to payment or confirmation
       toast({
         title: "Plan Selected!",
         description: `Successfully selected the ${plan.name} plan. Redirecting to payment...`,
-      })
-      
+      });
+
       // Small delay for user to see the success message
       setTimeout(() => {
-        window.location.href = `/billing/subscriptions/${subscription.id}`
-      }, 1500)
-      
+        window.location.href = `/billing/subscriptions/${subscription.id}`;
+      }, 1500);
     } catch (error) {
-      console.error('Error selecting plan:', error)
-      
+      console.error("Error selecting plan:", error);
+
       toast({
         title: "Error",
         description: "Failed to select plan. Please try again.",
-        variant: "destructive"
-      })
+        variant: "destructive",
+      });
     } finally {
       // Clear loading state
-      setLoadingPlan(null)
+      setLoadingPlan(null);
     }
-  }
+  };
 
   return (
-    <div ref={pricingRef} className="pricing-section py-20 bg-gradient-to-br from-background to-muted/20">
+    <div
+      ref={pricingRef}
+      className="pricing-section py-20 bg-gradient-to-br from-background to-muted/20"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="font-serif text-4xl md:text-5xl font-bold text-foreground mb-4">Choose Your Growth Plan</h2>
+          <h2 className="font-serif text-4xl md:text-5xl font-bold text-foreground mb-4">
+            Choose Your Growth Plan
+          </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            From startup to enterprise, we have the perfect plan to scale your logistics operations. All plans include
-            our core platform with varying limits and support levels.
+            From startup to enterprise, we have the perfect plan to scale your
+            logistics operations. All plans include our core platform with
+            varying limits and support levels.
           </p>
 
           {/* Value Proposition */}
@@ -289,7 +295,9 @@ export function Pricing() {
               )}
 
               {/* Card Header */}
-              <div className={`bg-gradient-to-r ${plan.gradient} text-white p-8 text-center`}>
+              <div
+                className={`bg-gradient-to-r ${plan.gradient} text-white p-8 text-center`}
+              >
                 <div className="text-white/80 mb-4">{plan.icon}</div>
                 <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
                 <p className="text-white/90 text-sm mb-6">{plan.description}</p>
@@ -302,7 +310,9 @@ export function Pricing() {
                       {plan.price}
                     </span>
                   </span>
-                  <span className="text-white/80 text-lg ml-2">{plan.period}</span>
+                  <span className="text-white/80 text-lg ml-2">
+                    {plan.period}
+                  </span>
                 </div>
               </div>
 
@@ -319,9 +329,16 @@ export function Pricing() {
 
                   {/* Limitations */}
                   {plan.limitations.map((limitation, limitIndex) => (
-                    <li key={`limit-${limitIndex}`} className="flex items-start opacity-60">
-                      <span className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground">•</span>
-                      <span className="text-muted-foreground text-sm">{limitation}</span>
+                    <li
+                      key={`limit-${limitIndex}`}
+                      className="flex items-start opacity-60"
+                    >
+                      <span className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground">
+                        •
+                      </span>
+                      <span className="text-muted-foreground text-sm">
+                        {limitation}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -337,7 +354,7 @@ export function Pricing() {
                       <ArrowRight className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   ) : (
-                    <button 
+                    <button
                       onClick={() => handleSelect(plan)}
                       disabled={loadingPlan === plan.name} // ✅ Added disabled state
                       className="block w-full bg-cta hover:bg-cta/90 disabled:opacity-50 disabled:cursor-not-allowed text-cta-foreground py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transition-all duration-300 group"
@@ -359,7 +376,9 @@ export function Pricing() {
 
                 {/* Additional Info */}
                 <p className="text-center text-sm text-muted-foreground mt-4">
-                  {plan.name === "Enterprise" ? "Custom pricing available" : "Billed monthly or annually"}
+                  {plan.name === "Enterprise"
+                    ? "Custom pricing available"
+                    : "Billed monthly or annually"}
                 </p>
               </div>
             </div>
@@ -371,14 +390,23 @@ export function Pricing() {
           <div className="bg-gradient-to-r from-muted to-muted/50 border border-border text-foreground rounded-2xl p-8 max-w-4xl mx-auto">
             <h3 className="text-2xl font-bold mb-4">Enterprise Plus</h3>
             <p className="text-muted-foreground mb-6">
-              Need custom solutions for your industry? We offer tailored logistics platforms for Fortune 500 companies,
-              government agencies, and global logistics providers.
+              Need custom solutions for your industry? We offer tailored
+              logistics platforms for Fortune 500 companies, government
+              agencies, and global logistics providers.
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-sm mb-6">
-              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">Custom Development</span>
-              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">On-premise Deployment</span>
-              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">Dedicated Infrastructure</span>
-              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">24/7 Dedicated Support</span>
+              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">
+                Custom Development
+              </span>
+              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">
+                On-premise Deployment
+              </span>
+              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">
+                Dedicated Infrastructure
+              </span>
+              <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">
+                24/7 Dedicated Support
+              </span>
             </div>
             <button className="inline-flex items-center bg-cta hover:bg-cta/90 text-cta-foreground px-8 py-3 rounded-xl font-semibold transition-colors group">
               Contact Enterprise Sales
@@ -389,12 +417,17 @@ export function Pricing() {
 
         {/* FAQ Teaser */}
         <div className="mt-16 text-center">
-          <p className="text-muted-foreground mb-4">Have questions about our pricing?</p>
-          <Link href="/pricing" className="text-primary hover:text-primary/80 font-semibold">
+          <p className="text-muted-foreground mb-4">
+            Have questions about our pricing?
+          </p>
+          <Link
+            href="/pricing"
+            className="text-primary hover:text-primary/80 font-semibold"
+          >
             View detailed pricing FAQ →
           </Link>
         </div>
       </div>
     </div>
-  )
+  );
 }

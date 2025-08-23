@@ -1,37 +1,39 @@
 // frontend/src/hooks/useGsap.ts
-"use client"
+"use client";
 
-import { useEffect, useRef, RefObject } from "react"
-import { gsap } from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { useEffect, useRef, RefObject } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 // Register ScrollTrigger plugin
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger)
+  gsap.registerPlugin(ScrollTrigger);
 }
 
 export function useGSAP<T extends HTMLElement = HTMLElement>(): RefObject<T> {
-  const ref = useRef<T>(null)
+  const ref = useRef<T>(null);
 
   useEffect(() => {
-    const element = ref.current
-    if (!element) return
+    const element = ref.current;
+    if (!element) return;
 
     // Cleanup function
     return () => {
-      ScrollTrigger.getAll().forEach((trigger) => trigger.kill())
-    }
-  }, [])
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, []);
 
-  return ref
+  return ref;
 }
 
-export function useFadeInUp<T extends HTMLElement = HTMLElement>(delay = 0): RefObject<T> {
-  const ref = useRef<T>(null)
+export function useFadeInUp<T extends HTMLElement = HTMLElement>(
+  delay = 0,
+): RefObject<T> {
+  const ref = useRef<T>(null);
 
   useEffect(() => {
-    const element = ref.current
-    if (!element) return
+    const element = ref.current;
+    if (!element) return;
 
     gsap.fromTo(
       element,
@@ -51,20 +53,22 @@ export function useFadeInUp<T extends HTMLElement = HTMLElement>(delay = 0): Ref
           toggleActions: "play none none reverse",
         },
       },
-    )
-  }, [delay])
+    );
+  }, [delay]);
 
-  return ref
+  return ref;
 }
 
-export function useStaggerAnimation<T extends HTMLElement = HTMLElement>(): RefObject<T> {
-  const ref = useRef<T>(null)
+export function useStaggerAnimation<
+  T extends HTMLElement = HTMLElement,
+>(): RefObject<T> {
+  const ref = useRef<T>(null);
 
   useEffect(() => {
-    const element = ref.current
-    if (!element) return
+    const element = ref.current;
+    if (!element) return;
 
-    const children = element.children
+    const children = element.children;
 
     gsap.fromTo(
       children,
@@ -84,23 +88,23 @@ export function useStaggerAnimation<T extends HTMLElement = HTMLElement>(): RefO
           toggleActions: "play none none reverse",
         },
       },
-    )
-  }, [])
+    );
+  }, []);
 
-  return ref
+  return ref;
 }
 
 export function useCountUp<T extends HTMLElement = HTMLElement>(
-  endValue: number, 
-  duration = 2
+  endValue: number,
+  duration = 2,
 ): RefObject<T> {
-  const ref = useRef<T>(null)
+  const ref = useRef<T>(null);
 
   useEffect(() => {
-    const element = ref.current
-    if (!element) return
+    const element = ref.current;
+    if (!element) return;
 
-    const obj = { value: 0 }
+    const obj = { value: 0 };
 
     gsap.to(obj, {
       value: endValue,
@@ -108,7 +112,7 @@ export function useCountUp<T extends HTMLElement = HTMLElement>(
       ease: "power2.out",
       onUpdate: () => {
         if (element) {
-          element.textContent = Math.round(obj.value).toString()
+          element.textContent = Math.round(obj.value).toString();
         }
       },
       scrollTrigger: {
@@ -116,8 +120,8 @@ export function useCountUp<T extends HTMLElement = HTMLElement>(
         start: "top 80%",
         toggleActions: "play none none reverse",
       },
-    })
-  }, [endValue, duration])
+    });
+  }, [endValue, duration]);
 
-  return ref
+  return ref;
 }

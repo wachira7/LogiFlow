@@ -1,10 +1,17 @@
 // frontend/src/components/landing/Stats.tsx
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
-import { TrendingUp, Users, Package, Globe, Clock, DollarSign } from "lucide-react"
-import { gsap } from "gsap"
-import { useFadeInUp, useCountUp } from "@/hooks/useGsap"
+import { useEffect, useRef } from "react";
+import {
+  TrendingUp,
+  Users,
+  Package,
+  Globe,
+  Clock,
+  DollarSign,
+} from "lucide-react";
+import { gsap } from "gsap";
+import { useFadeInUp, useCountUp } from "@/hooks/useGsap";
 
 const stats = [
   {
@@ -49,16 +56,16 @@ const stats = [
     label: "Goods Managed",
     description: "Total value processed annually",
   },
-]
+];
 
 export function Stats() {
-  const headerRef = useFadeInUp<HTMLDivElement>()
-  const statsGridRef = useRef<HTMLDivElement>(null)
-  const ctaRef = useFadeInUp<HTMLDivElement>()
+  const headerRef = useFadeInUp<HTMLDivElement>();
+  const statsGridRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useFadeInUp<HTMLDivElement>();
 
   useEffect(() => {
     if (statsGridRef.current) {
-      const statElements = statsGridRef.current.children
+      const statElements = statsGridRef.current.children;
 
       gsap.fromTo(
         statElements,
@@ -80,25 +87,31 @@ export function Stats() {
             toggleActions: "play none none reverse",
           },
         },
-      )
+      );
     }
-  }, [])
+  }, []);
 
   return (
     <section className="py-24 bg-primary text-primary-foreground">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div ref={headerRef} className="text-center mb-16">
-          <h2 className="font-serif font-bold text-3xl sm:text-4xl lg:text-5xl mb-4">Trusted by Industry Leaders</h2>
+          <h2 className="font-serif font-bold text-3xl sm:text-4xl lg:text-5xl mb-4">
+            Trusted by Industry Leaders
+          </h2>
           <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
-            Join thousands of companies that have transformed their logistics operations with Logiflow.
+            Join thousands of companies that have transformed their logistics
+            operations with Logiflow.
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div ref={statsGridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div
+          ref={statsGridRef}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
           {stats.map((stat, index) => {
-            const Icon = stat.icon
+            const Icon = stat.icon;
             return (
               <div key={index} className="text-center group">
                 <div className="flex items-center justify-center w-16 h-16 bg-primary-foreground/10 rounded-2xl mx-auto mb-4 group-hover:bg-primary-foreground/20 transition-all duration-300 group-hover:scale-110">
@@ -108,15 +121,19 @@ export function Stats() {
                   <CountUpNumber value={stat.value} suffix={stat.suffix} />
                 </div>
                 <div className="font-medium text-lg mb-1">{stat.label}</div>
-                <div className="text-primary-foreground/70 text-sm">{stat.description}</div>
+                <div className="text-primary-foreground/70 text-sm">
+                  {stat.description}
+                </div>
               </div>
-            )
+            );
           })}
         </div>
 
         {/* Bottom CTA */}
         <div ref={ctaRef} className="text-center mt-16">
-          <p className="text-primary-foreground/80 text-lg mb-6">Ready to join the logistics revolution?</p>
+          <p className="text-primary-foreground/80 text-lg mb-6">
+            Ready to join the logistics revolution?
+          </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-primary-foreground text-primary px-8 py-3 rounded-lg font-medium hover:bg-primary-foreground/90 transition-all hover:scale-105">
               Start Free Trial
@@ -128,16 +145,16 @@ export function Stats() {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 function CountUpNumber({ value, suffix }: { value: number; suffix: string }) {
-  const ref = useCountUp<HTMLSpanElement>(value)
+  const ref = useCountUp<HTMLSpanElement>(value);
 
   return (
     <span>
       <span ref={ref}>0</span>
       {suffix}
     </span>
-  )
+  );
 }

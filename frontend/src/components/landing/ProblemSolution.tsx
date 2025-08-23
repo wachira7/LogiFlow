@@ -1,45 +1,53 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertTriangle, ArrowRight, CheckCircle2 } from "lucide-react";
 
 const problems = [
   {
     title: "Fragmented Systems",
-    description: "Multiple disconnected tools create data silos and operational inefficiencies.",
+    description:
+      "Multiple disconnected tools create data silos and operational inefficiencies.",
   },
   {
     title: "Poor Visibility",
-    description: "Lack of real-time insights leads to reactive decision-making and missed opportunities.",
+    description:
+      "Lack of real-time insights leads to reactive decision-making and missed opportunities.",
   },
   {
     title: "Manual Processes",
-    description: "Time-consuming manual tasks increase errors and reduce productivity.",
+    description:
+      "Time-consuming manual tasks increase errors and reduce productivity.",
   },
   {
     title: "Scaling Challenges",
-    description: "Growing operations become increasingly complex and difficult to manage.",
+    description:
+      "Growing operations become increasingly complex and difficult to manage.",
   },
-]
+];
 
 const solutions = [
   {
     title: "Unified Platform",
-    description: "All logistics operations managed from a single, integrated platform.",
+    description:
+      "All logistics operations managed from a single, integrated platform.",
   },
   {
     title: "Real-time Analytics",
-    description: "Complete visibility with live dashboards and predictive insights.",
+    description:
+      "Complete visibility with live dashboards and predictive insights.",
   },
   {
     title: "Automated Workflows",
-    description: "Streamlined processes that reduce manual work and eliminate errors.",
+    description:
+      "Streamlined processes that reduce manual work and eliminate errors.",
   },
   {
     title: "Scalable Architecture",
-    description: "Cloud-native solution that grows seamlessly with your business.",
+    description:
+      "Cloud-native solution that grows seamlessly with your business.",
   },
-]
+];
 
 export function ProblemSolution() {
   return (
@@ -52,7 +60,8 @@ export function ProblemSolution() {
             <span className="text-primary">Operational Excellence</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Transform your logistics challenges into competitive advantages with our comprehensive solution.
+            Transform your logistics challenges into competitive advantages with
+            our comprehensive solution.
           </p>
         </div>
 
@@ -64,10 +73,15 @@ export function ProblemSolution() {
                 <AlertTriangle className="w-4 h-4 mr-2" />
                 Common Problems
               </div>
-              <h3 className="font-serif font-bold text-2xl text-foreground mb-4">Logistics Challenges</h3>
+              <h3 className="font-serif font-bold text-2xl text-foreground mb-4">
+                Logistics Challenges
+              </h3>
             </div>
             {problems.map((problem, index) => (
-              <Card key={index} className="border-destructive/20 bg-destructive/5">
+              <Card
+                key={index}
+                className="border-destructive/20 bg-destructive/5"
+              >
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center">
                     <AlertTriangle className="w-5 h-5 text-destructive mr-2" />
@@ -75,7 +89,9 @@ export function ProblemSolution() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground text-sm">{problem.description}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {problem.description}
+                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -95,7 +111,9 @@ export function ProblemSolution() {
                 <CheckCircle2 className="w-4 h-4 mr-2" />
                 Our Solutions
               </div>
-              <h3 className="font-serif font-bold text-2xl text-foreground mb-4">Logiflow Advantages</h3>
+              <h3 className="font-serif font-bold text-2xl text-foreground mb-4">
+                Logiflow Advantages
+              </h3>
             </div>
             {solutions.map((solution, index) => (
               <Card key={index} className="border-primary/20 bg-primary/5">
@@ -106,7 +124,9 @@ export function ProblemSolution() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground text-sm">{solution.description}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {solution.description}
+                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -114,5 +134,5 @@ export function ProblemSolution() {
         </div>
       </div>
     </section>
-  )
+  );
 }

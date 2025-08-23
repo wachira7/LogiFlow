@@ -1,16 +1,15 @@
-import { Navbar } from "@/components/layout/Navbar"
-import { Hero } from "@/components/landing/Hero"
-import { ProblemSolution } from "@/components/landing/ProblemSolution"
-import { Features } from "@/components/landing/Features"
-import { Stats } from "@/components/landing/Stats"
-import { About } from "@/components/landing/about"
-import { Testimonials } from "@/components/landing/Testimonials"
-import { Pricing } from "@/components/landing/Pricing"
-import { FAQ } from "@/components/landing/faq"
-import { Contact } from "@/components/landing/contact"
-import { CTA } from "@/components/landing/CTA"
-import { Footer } from "@/components/landing/Footer"
-
+import { Navbar } from "@/components/layout/Navbar";
+import { Hero } from "@/components/landing/Hero";
+import { ProblemSolution } from "@/components/landing/ProblemSolution";
+import { Features } from "@/components/landing/Features";
+import { Stats } from "@/components/landing/Stats";
+import { About } from "@/components/landing/about";
+import { Testimonials } from "@/components/landing/Testimonials";
+import { Pricing } from "@/components/landing/Pricing";
+import { FAQ } from "@/components/landing/faq";
+import { Contact } from "@/components/landing/contact";
+import { CTA } from "@/components/landing/CTA";
+import { Footer } from "@/components/landing/Footer";
 
 export default function LandingPage() {
   return (
@@ -65,5 +64,5 @@ export default function LandingPage() {
       {/* Footer */}
       <Footer />
     </main>
-  )
+  );
 }

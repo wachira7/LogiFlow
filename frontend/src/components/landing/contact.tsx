@@ -1,16 +1,22 @@
 // components/landing/contact.tsx
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Mail, Phone, MapPin, Clock, Send, MessageSquare } from "lucide-react"
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Mail, Phone, MapPin, Clock, Send, MessageSquare } from "lucide-react";
 
 const contactInfo = [
   {
@@ -37,7 +43,7 @@ const contactInfo = [
     content: "Monday - Friday",
     description: "8:00 AM - 6:00 PM EAT",
   },
-]
+];
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -47,17 +53,17 @@ export function Contact() {
     phone: "",
     inquiryType: "",
     message: "",
-  })
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // Handle form submission here
-    console.log("Form submitted:", formData)
-  }
+    console.log("Form submitted:", formData);
+  };
 
   const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
     <section id="contact" className="py-24 bg-muted/30">
@@ -69,10 +75,12 @@ export function Contact() {
             Get in Touch
           </div>
           <h2 className="font-serif font-bold text-3xl sm:text-4xl lg:text-5xl text-foreground mb-4">
-            Ready to <span className="text-primary">Transform Your Logistics</span>?
+            Ready to{" "}
+            <span className="text-primary">Transform Your Logistics</span>?
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Let&apos;s discuss how Logiflow can streamline your operations and drive growth for your business.
+            Let&apos;s discuss how Logiflow can streamline your operations and
+            drive growth for your business.
           </p>
         </div>
 
@@ -81,26 +89,35 @@ export function Contact() {
           <div className="lg:col-span-1">
             <div className="space-y-6">
               <div>
-                <h3 className="font-serif font-bold text-2xl text-foreground mb-4">Contact Information</h3>
+                <h3 className="font-serif font-bold text-2xl text-foreground mb-4">
+                  Contact Information
+                </h3>
                 <p className="text-muted-foreground mb-8">
-                  Our team is here to help you get started with Logiflow. Reach out through any of these channels.
+                  Our team is here to help you get started with Logiflow. Reach
+                  out through any of these channels.
                 </p>
               </div>
 
               {contactInfo.map((info, index) => {
-                const Icon = info.icon
+                const Icon = info.icon;
                 return (
                   <div key={index} className="flex items-start space-x-4">
                     <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg flex-shrink-0">
                       <Icon className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-foreground mb-1">{info.title}</h4>
-                      <p className="text-foreground font-medium">{info.content}</p>
-                      <p className="text-muted-foreground text-sm">{info.description}</p>
+                      <h4 className="font-semibold text-foreground mb-1">
+                        {info.title}
+                      </h4>
+                      <p className="text-foreground font-medium">
+                        {info.content}
+                      </p>
+                      <p className="text-muted-foreground text-sm">
+                        {info.description}
+                      </p>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
 
@@ -121,7 +138,9 @@ export function Contact() {
           <div className="lg:col-span-2">
             <Card className="border-border shadow-lg">
               <CardHeader>
-                <CardTitle className="font-serif text-2xl">Send us a Message</CardTitle>
+                <CardTitle className="font-serif text-2xl">
+                  Send us a Message
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -155,7 +174,9 @@ export function Contact() {
                       <Input
                         id="company"
                         value={formData.company}
-                        onChange={(e) => handleChange("company", e.target.value)}
+                        onChange={(e) =>
+                          handleChange("company", e.target.value)
+                        }
                         placeholder="Your Company"
                       />
                     </div>
@@ -173,15 +194,25 @@ export function Contact() {
 
                   <div className="space-y-2">
                     <Label htmlFor="inquiryType">Inquiry Type</Label>
-                    <Select onValueChange={(value: string) => handleChange("inquiryType", value)}>
+                    <Select
+                      onValueChange={(value: string) =>
+                        handleChange("inquiryType", value)
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select inquiry type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="demo">Request Demo</SelectItem>
-                        <SelectItem value="pricing">Pricing Information</SelectItem>
-                        <SelectItem value="support">Technical Support</SelectItem>
-                        <SelectItem value="partnership">Partnership Opportunities</SelectItem>
+                        <SelectItem value="pricing">
+                          Pricing Information
+                        </SelectItem>
+                        <SelectItem value="support">
+                          Technical Support
+                        </SelectItem>
+                        <SelectItem value="partnership">
+                          Partnership Opportunities
+                        </SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -199,7 +230,10 @@ export function Contact() {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+                  <Button
+                    type="submit"
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                  >
                     <Send className="w-4 h-4 mr-2" />
                     Send Message
                   </Button>
@@ -210,5 +244,5 @@ export function Contact() {
         </div>
       </div>
     </section>
-  )
+  );
 }
