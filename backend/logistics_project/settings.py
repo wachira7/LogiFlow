@@ -56,17 +56,18 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'utils.throttling.RequestThrottleMiddleware',
     'utils.middleware.RateLimitMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'apps.tenants.middleware.CompanyTenantMiddleware',      # New
-    'apps.tenants.middleware.TenantValidationMiddleware',   # New
+    'apps.tenants.middleware.CompanyTenantMiddleware',      
+    'apps.tenants.middleware.TenantValidationMiddleware',   
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'utils.middleware.RequestLoggingMiddleware',
     'utils.middleware.PerformanceMonitoringMiddleware',
-    'apps.tenants.middleware.AuditLoggingMiddleware',       # New
+    'apps.tenants.middleware.AuditLoggingMiddleware',       
     'utils.middleware.HealthCheckMiddleware',
     'utils.middleware.MaintenanceModeMiddleware',
 ]

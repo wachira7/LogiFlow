@@ -1,0 +1,11 @@
+INFO 2025-08-23 16:40:30,049 middleware 199720 135598838900416 [fe641c6e] GET /api/docs/ - User: jackdan@gmail.com (ID: 2b238ef0-1adb-41b1-bb6a-eff8c1dc1c18)
+INFO 2025-08-23 16:40:30,395 middleware 199720 135598838900416 [fe641c6e] 200 GET /api/docs/ - 0.347s
+INFO 2025-08-23 16:40:32,361 middleware 199720 135598838900416 [9b4a1a26] GET /api/schema/ - User: jackdan@gmail.com (ID: 2b238ef0-1adb-41b1-bb6a-eff8c1dc1c18)
+WARNING 2025-08-23 16:40:36,345 middleware 199720 135598838900416 PERFORMANCE: GET /api/schema/ - Time: 3.984s, DB Queries: 0
+INFO 2025-08-23 16:40:36,347 middleware 199720 135598838900416 [9b4a1a26] 200 GET /api/schema/ - 3.986s
+WARNING 2025-08-23 16:40:36,347 middleware 199720 135598838900416 [9b4a1a26] SLOW REQUEST: GET /api/schema/ took 3.986s
+INFO 2025-08-23 16:40:44,134 middleware 199720 135598838900416 [c98cca9a] GET /api/docs/ - User: jackdan@gmail.com (ID: 2b238ef0-1adb-41b1-bb6a-eff8c1dc1c18)
+INFO 2025-08-23 16:40:44,137 middleware 199720 135598838900416 [c98cca9a] 200 GET /api/docs/ - 0.004s
+INFO 2025-08-23 16:40:44,528 middleware 199720 135598838900416 [d938a1f5] GET /api/schema/ - User: jackdan@gmail.com (ID: 2b238ef0-1adb-41b1-bb6a-eff8c1dc1c18)
+WARNING 2025-08-23 16:40:46,354 middleware 199720 135598838900416 PERFORMANCE: GET /api/schema/ - Time: 1.825s, DB Queries: 0
+INFO 2025-08-23 16:40:46,354 middleware 199720 135598838900416 [d938a1f5] 200 GET /api/schema/ - 1.826s

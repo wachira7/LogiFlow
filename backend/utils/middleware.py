@@ -107,10 +107,10 @@ class RateLimitMiddleware(MiddlewareMixin):
     
     # Rate limits: (requests, period_in_seconds)
     RATE_LIMITS = {
-        'anonymous': (100, 3600),      # 100 requests per hour
-        'authenticated': (1000, 3600), # 1000 requests per hour
-        'premium': (5000, 3600),       # 5000 requests per hour
-        'enterprise': (10000, 3600),   # 10000 requests per hour
+        'anonymous': (50, 3600),      # 50 requests per hour
+        'authenticated': (500, 3600), 
+        'premium': (2000, 3600),       
+        'enterprise': (5000, 3600),   
     }
     
     def process_request(self, request):
