@@ -1,7 +1,7 @@
-// frontend/src/components/layout/Navbar.tsx
+// components/layout/Navbar.tsx - with AuthContext integration and Sidebar support
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Menu,
@@ -25,85 +25,21 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuth, useAuthUtils } from "@/hooks/useAuth"; // Use your auth hooks
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  role: string;
+interface NavbarProps {
+  onMenuClick?: () => void;
+  sidebarCollapsed?: boolean;
 }
 
-interface Company {
-  id: string;
-  name: string;
-  logo?: string;
-}
-
-export function Navbar() {
+export function Navbar({ onMenuClick, sidebarCollapsed }: NavbarProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [currentCompany, setCurrentCompany] = useState<Company | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const getCurrentCompany = useCallback(async (token: string) => {
-    try {
-      const response = await fetch("/api/v1/tenants/company/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const companyData = await response.json();
-        setCurrentCompany(companyData);
-      }
-    } catch (error) {
-      console.error("Failed to get company data:", error);
-    }
-  }, []);
-
-  const checkAuthStatus = useCallback(async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      // Verify token and get user data
-      const response = await fetch("/api/v1/auth/profile/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-        setIsAuthenticated(true);
-
-        // Get current company info
-        await getCurrentCompany(token);
-      } else {
-        // Token is invalid, remove it
-        localStorage.removeItem("authToken");
-        setIsAuthenticated(false);
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-      setIsAuthenticated(false);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [getCurrentCompany]);
+  
+  // Use your AuthContext instead of local state
+  const { user, isAuthenticated, isLoading, company } = useAuth();
+  const { logoutWithConfirmation, getUserInitials } = useAuthUtils();
 
   useEffect(() => {
-    // Check authentication status on mount
-    checkAuthStatus();
-
     // Animate navigation on load
     gsap.fromTo(
       ".nav-container",
@@ -124,32 +60,10 @@ export function Navbar() {
         ease: "power2.out",
       },
     );
-  }, [checkAuthStatus]);
+  }, []);
 
-  const handleLogout = async () => {
-    try {
-      const token = localStorage.getItem("authToken");
-
-      // Call logout endpoint
-      await fetch("/api/v1/auth/logout/", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-      // Clear local storage and state regardless of API call result
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("tokenExpiry");
-      setIsAuthenticated(false);
-      setUser(null);
-      setCurrentCompany(null);
-
-      // Redirect to landing page
-      window.location.href = "/";
-    }
+  const handleLogout = () => {
+    logoutWithConfirmation();
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -160,7 +74,7 @@ export function Navbar() {
         block: "start",
       });
     }
-    setIsOpen(false); // Close mobile menu after clicking
+    setIsOpen(false);
   };
 
   // Different nav items based on auth state
@@ -181,14 +95,6 @@ export function Navbar() {
   ];
 
   const navItems = isAuthenticated ? authenticatedNavItems : publicNavItems;
-
-  const getUserInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase())
-      .slice(0, 2)
-      .join("");
-  };
 
   return (
     <nav className="nav-container sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
@@ -215,40 +121,51 @@ export function Navbar() {
             </Link>
 
             {/* Company indicator for authenticated users */}
-            {isAuthenticated && currentCompany && (
+            {isAuthenticated && company && (
               <div className="hidden md:flex items-center ml-4 pl-4 border-l border-border">
                 <Building className="w-4 h-4 text-muted-foreground mr-2" />
                 <span className="text-sm text-muted-foreground">
-                  {currentCompany.name}
+                  {company.name}
                 </span>
               </div>
             )}
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
-              {navItems.map((item, index) =>
-                item.href.startsWith("/") ? (
-                  <Link
-                    key={`${item.name}-${index}`}
-                    href={item.href}
-                    className="nav-item text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-all hover:scale-105"
-                  >
-                    {item.name}
-                  </Link>
-                ) : (
-                  <button
-                    key={`${item.name}-${index}`}
-                    onClick={() => scrollToSection(item.href)}
-                    className="nav-item text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-all hover:scale-105"
-                  >
-                    {item.name}
-                  </button>
-                ),
-              )}
+          {/* Desktop Navigation - Hide when authenticated (using sidebar instead) */}
+          {!isAuthenticated && (
+            <div className="hidden md:block">
+              <div className="ml-10 flex items-baseline space-x-8">
+                {navItems.map((item, index) =>
+                  item.href.startsWith("/") ? (
+                    <Link
+                      key={`${item.name}-${index}`}
+                      href={item.href}
+                      className="nav-item text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-all hover:scale-105"
+                    >
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <button
+                      key={`${item.name}-${index}`}
+                      onClick={() => scrollToSection(item.href)}
+                      className="nav-item text-muted-foreground hover:text-foreground px-3 py-2 text-sm font-medium transition-all hover:scale-105"
+                    >
+                      {item.name}
+                    </button>
+                  ),
+                )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Dashboard breadcrumb/title area when authenticated */}
+          {isAuthenticated && sidebarCollapsed !== undefined && (
+            <div className="hidden md:flex items-center ml-4">
+              <span className="text-sm text-muted-foreground">
+                {sidebarCollapsed ? "Dashboard" : ""}
+              </span>
+            </div>
+          )}
 
           {/* Desktop Right Side */}
           <div className="hidden md:flex items-center space-x-4">
@@ -263,13 +180,15 @@ export function Navbar() {
                   <Button variant="ghost" className="relative h-10 w-auto px-2">
                     <div className="flex items-center space-x-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar} alt={user.name} />
+                        <AvatarImage src={user.avatar} alt={user.name || user.first_name} />
                         <AvatarFallback className="text-xs">
-                          {getUserInitials(user.name)}
+                          {getUserInitials()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="hidden lg:flex flex-col items-start">
-                        <span className="text-sm font-medium">{user.name}</span>
+                        <span className="text-sm font-medium">
+                          {user.name || `${user.first_name} ${user.last_name}`}
+                        </span>
                         <span className="text-xs text-muted-foreground">
                           {user.role}
                         </span>
@@ -282,7 +201,7 @@ export function Navbar() {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">
-                        {user.name}
+                        {user.name || `${user.first_name} ${user.last_name}`}
                       </p>
                       <p className="text-xs leading-none text-muted-foreground">
                         {user.email}
@@ -334,37 +253,52 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile menu button - Updated for dashboard sidebar */}
           <div className="md:hidden flex items-center space-x-2">
             <ThemeToggle />
 
-            {/* Mobile user avatar or menu button */}
-            {isAuthenticated && user ? (
+            {/* Dashboard sidebar menu button - only show when authenticated and onMenuClick is provided */}
+            {isAuthenticated && onMenuClick && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMenuClick}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <Menu className="h-6 w-6" />
+              </Button>
+            )}
+
+            {/* Landing page mobile menu button - only show when NOT authenticated */}
+            {!isAuthenticated && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsOpen(!isOpen)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                {isOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </Button>
+            )}
+
+            {/* Mobile user avatar */}
+            {isAuthenticated && user && (
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={user.avatar} alt={user.name || user.first_name} />
                 <AvatarFallback className="text-xs">
-                  {getUserInitials(user.name)}
+                  {getUserInitials()}
                 </AvatarFallback>
               </Avatar>
-            ) : null}
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(!isOpen)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {isOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </Button>
+            )}
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isOpen && (
+        {/* Mobile Navigation - Only show for landing page when not authenticated */}
+        {isOpen && !isAuthenticated && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-card border-t border-border">
               {navItems.map((item) =>
@@ -388,71 +322,30 @@ export function Navbar() {
                 ),
               )}
 
-              {/* Mobile Auth Section */}
+              {/* Mobile Auth Section for landing page */}
               <div className="pt-4 border-t border-border">
-                {isAuthenticated && user ? (
-                  <div className="space-y-2">
-                    <div className="px-3 py-2">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage src={user.avatar} alt={user.name} />
-                          <AvatarFallback>
-                            {getUserInitials(user.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-sm font-medium">{user.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {user.email}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <Link
-                      href="/profile"
-                      onClick={() => setIsOpen(false)}
-                      className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground"
-                    >
-                      Profile
+                <div className="space-y-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    asChild
+                  >
+                    <Link href="/auth/login" onClick={() => setIsOpen(false)}>
+                      Sign In
                     </Link>
+                  </Button>
+                  <Button
+                    className="w-full bg-cta hover:bg-cta/90 text-cta-foreground"
+                    asChild
+                  >
                     <Link
-                      href="/company/settings"
+                      href="/auth/register"
                       onClick={() => setIsOpen(false)}
-                      className="block px-3 py-2 text-base font-medium text-muted-foreground hover:text-foreground"
                     >
-                      Company Settings
+                      Get Started
                     </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="block px-3 py-2 text-base font-medium text-destructive hover:text-destructive/90 w-full text-left"
-                    >
-                      Sign out
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start"
-                      asChild
-                    >
-                      <Link href="/auth/login" onClick={() => setIsOpen(false)}>
-                        Sign In
-                      </Link>
-                    </Button>
-                    <Button
-                      className="w-full bg-cta hover:bg-cta/90 text-cta-foreground"
-                      asChild
-                    >
-                      <Link
-                        href="/auth/register"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Get Started
-                      </Link>
-                    </Button>
-                  </div>
-                )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

@@ -1,3 +1,4 @@
+// frontend/src/components/landing/Pricing.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react"; // ✅ Added useState

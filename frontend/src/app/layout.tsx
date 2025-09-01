@@ -1,8 +1,11 @@
+// src/app/layout.tsx - Updated with AuthProvider
 import type React from "react";
 import type { Metadata, Viewport } from "next";
 import { Work_Sans, Open_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { AuthProvider } from "@/context/AuthContext"; // Add AuthProvider
+import { Toaster } from "@/components/ui/toaster"; // Add Toaster for notifications
 
 const workSans = Work_Sans({
   subsets: ["latin"],
@@ -47,7 +50,7 @@ export const metadata: Metadata = {
     telephone: false,
   },
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000",
   ),
   alternates: {
     canonical: "/",
@@ -172,25 +175,30 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {/* Skip to main content link for accessibility */}
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg"
-          >
-            Skip to main content
-          </a>
+          <AuthProvider>
+            {/* Skip to main content link for accessibility */}
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg"
+            >
+              Skip to main content
+            </a>
 
-          {/* Main content wrapper */}
-          <div id="main-content" className="relative">
-            {children}
-          </div>
+            {/* Main content wrapper */}
+            <div id="main-content" className="relative">
+              {children}
+            </div>
 
-          {/* Loading indicator for better UX */}
-          <div
-            id="loading-indicator"
-            className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-cta z-50 transform -translate-x-full transition-transform duration-300"
-            aria-hidden="true"
-          />
+            {/* Loading indicator for better UX */}
+            <div
+              id="loading-indicator"
+              className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-cta z-50 transform -translate-x-full transition-transform duration-300"
+              aria-hidden="true"
+            />
+
+            {/* Toast notifications */}
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
 
         {/* Analytics and Performance Scripts */}

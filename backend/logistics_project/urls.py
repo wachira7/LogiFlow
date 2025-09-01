@@ -7,6 +7,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
+from apps.users.views import SetAuthCookiesView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,6 +26,8 @@ urlpatterns = [
     path('api/v1/warehousing/', include('apps.warehousing.urls')),
     path('api/v1/payments/', include('apps.payments.urls')),
     path('api/v1/platform-admin/', include('apps.platform_admin.urls')),
+    path('api/v1/auth/set-cookies/', SetAuthCookiesView.as_view()),
+    
 ]
 
 # Serve media files in development

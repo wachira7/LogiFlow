@@ -2121,3 +2121,499 @@ INFO 2025-08-23 16:40:30,401 basehttp 199720 135598838900416 "GET /api/docs/ HTT
 INFO 2025-08-23 16:40:36,349 basehttp 199720 135598838900416 "GET /api/schema/ HTTP/1.1" 200 595441
 INFO 2025-08-23 16:40:44,139 basehttp 199720 135598838900416 "GET /api/docs/ HTTP/1.1" 200 4645
 INFO 2025-08-23 16:40:46,356 basehttp 199720 135598838900416 "GET /api/schema/ HTTP/1.1" 200 595441
+INFO 2025-08-25 18:22:56,215 autoreload 173669 129890378718080 Watching for file changes with StatReloader
+INFO 2025-08-25 20:23:49,901 autoreload 224094 127086721653632 Watching for file changes with StatReloader
+INFO 2025-08-25 20:26:45,212 autoreload 224094 127086721653632 /home/wachira/Development/LogiFlow/backend/logistics_project/urls.py changed, reloading.
+INFO 2025-08-25 20:26:48,667 autoreload 225368 123529173445504 Watching for file changes with StatReloader
+INFO 2025-08-25 20:26:57,478 autoreload 225368 123529173445504 /home/wachira/Development/LogiFlow/backend/logistics_project/urls.py changed, reloading.
+INFO 2025-08-25 20:26:58,825 autoreload 225558 126210963037056 Watching for file changes with StatReloader
+INFO 2025-08-25 20:29:14,188 autoreload 225558 126210963037056 /home/wachira/Development/LogiFlow/backend/logistics_project/urls.py changed, reloading.
+INFO 2025-08-25 20:29:15,782 autoreload 226552 126425135176576 Watching for file changes with StatReloader
+INFO 2025-08-25 20:43:48,074 autoreload 226552 126425135176576 /home/wachira/Development/LogiFlow/backend/logistics_project/urls.py changed, reloading.
+INFO 2025-08-25 20:43:49,489 autoreload 232325 125219815414656 Watching for file changes with StatReloader
+INFO 2025-08-25 20:44:28,680 autoreload 232325 125219815414656 /home/wachira/Development/LogiFlow/backend/logistics_project/urls.py changed, reloading.
+INFO 2025-08-25 20:44:30,388 autoreload 232688 128352218536832 Watching for file changes with StatReloader
+INFO 2025-08-25 20:44:35,625 autoreload 232688 128352218536832 /home/wachira/Development/LogiFlow/backend/logistics_project/urls.py changed, reloading.
+INFO 2025-08-25 20:44:37,074 autoreload 232837 139274901212032 Watching for file changes with StatReloader
+INFO 2025-08-25 20:49:12,045 autoreload 236253 123850386295680 Watching for file changes with StatReloader
+INFO 2025-08-25 21:32:09,837 basehttp 236253 123850209883840 "OPTIONS /api/v1/auth/register/ HTTP/1.1" 200 2
+WARNING 2025-08-25 21:32:10,324 log 236253 123850201491136 Bad Request: /api/v1/auth/register/
+WARNING 2025-08-25 21:32:10,337 basehttp 236253 123850201491136 "POST /api/v1/auth/register/ HTTP/1.1" 400 121
+WARNING 2025-08-25 21:33:17,654 log 236253 123850201491136 Bad Request: /api/v1/auth/register/
+WARNING 2025-08-25 21:33:17,655 basehttp 236253 123850201491136 "POST /api/v1/auth/register/ HTTP/1.1" 400 121
+INFO 2025-08-25 21:33:58,229 basehttp 236253 123850201491136 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-08-25 21:33:58,855 log 236253 123850201491136 Bad Request: /api/v1/auth/login/
+WARNING 2025-08-25 21:33:58,858 basehttp 236253 123850201491136 "POST /api/v1/auth/login/ HTTP/1.1" 400 124
+INFO 2025-08-26 20:53:37,833 autoreload 47261 140235310472064 Watching for file changes with StatReloader
+INFO 2025-08-26 21:03:31,993 basehttp 47261 140235201308352 "OPTIONS /api/v1/auth/register/ HTTP/1.1" 200 2
+ERROR 2025-08-26 21:03:32,933 log 47261 140235192915648 Internal Server Error: /api/v1/auth/register/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/generics.py", line 194, in post
+    return self.create(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/users/views.py", line 135, in create
+    tokens = get_tokens_for_user(user)
+  File "/home/wachira/Development/LogiFlow/backend/apps/users/views.py", line 34, in get_tokens_for_user
+    'refresh': str(refresh),
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py", line 95, in __str__
+    return self.get_token_backend().encode(self.payload)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework_simplejwt/backends.py", line 118, in encode
+    token = jwt.encode(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/jwt/api_jwt.py", line 68, in encode
+    json_payload = self._encode_payload(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/jwt/api_jwt.py", line 95, in _encode_payload
+    return json.dumps(
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/__init__.py", line 234, in dumps
+    return cls(
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/encoder.py", line 199, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/encoder.py", line 257, in iterencode
+    return _iterencode(o, 0)
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/encoder.py", line 179, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type UUID is not JSON serializable
+ERROR 2025-08-26 21:03:32,939 basehttp 47261 140235192915648 "POST /api/v1/auth/register/ HTTP/1.1" 500 32093
+INFO 2025-08-26 21:07:00,599 basehttp 47261 140235192915648 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+ERROR 2025-08-26 21:07:01,209 log 47261 140235192915648 Internal Server Error: /api/v1/auth/login/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/users/views.py", line 169, in post
+    tokens = get_tokens_for_user(user)
+  File "/home/wachira/Development/LogiFlow/backend/apps/users/views.py", line 34, in get_tokens_for_user
+    'refresh': str(refresh),
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py", line 95, in __str__
+    return self.get_token_backend().encode(self.payload)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework_simplejwt/backends.py", line 118, in encode
+    token = jwt.encode(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/jwt/api_jwt.py", line 68, in encode
+    json_payload = self._encode_payload(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/jwt/api_jwt.py", line 95, in _encode_payload
+    return json.dumps(
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/__init__.py", line 234, in dumps
+    return cls(
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/encoder.py", line 199, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/encoder.py", line 257, in iterencode
+    return _iterencode(o, 0)
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/encoder.py", line 179, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type UUID is not JSON serializable
+ERROR 2025-08-26 21:07:01,211 basehttp 47261 140235192915648 "POST /api/v1/auth/login/ HTTP/1.1" 500 32000
+INFO 2025-08-26 21:18:15,781 basehttp 47261 140235192915648 "OPTIONS /api/v1/auth/register/ HTTP/1.1" 200 2
+ERROR 2025-08-26 21:18:16,938 log 47261 140235201308352 Internal Server Error: /api/v1/auth/register/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/generics.py", line 194, in post
+    return self.create(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/backend/apps/users/views.py", line 135, in create
+    tokens = get_tokens_for_user(user)
+  File "/home/wachira/Development/LogiFlow/backend/apps/users/views.py", line 34, in get_tokens_for_user
+    'refresh': str(refresh),
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework_simplejwt/tokens.py", line 95, in __str__
+    return self.get_token_backend().encode(self.payload)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework_simplejwt/backends.py", line 118, in encode
+    token = jwt.encode(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/jwt/api_jwt.py", line 68, in encode
+    json_payload = self._encode_payload(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/jwt/api_jwt.py", line 95, in _encode_payload
+    return json.dumps(
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/__init__.py", line 234, in dumps
+    return cls(
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/encoder.py", line 199, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/encoder.py", line 257, in iterencode
+    return _iterencode(o, 0)
+  File "/home/wachira/.pyenv/versions/3.8.13/lib/python3.8/json/encoder.py", line 179, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type UUID is not JSON serializable
+ERROR 2025-08-26 21:18:16,952 basehttp 47261 140235201308352 "POST /api/v1/auth/register/ HTTP/1.1" 500 32093
+INFO 2025-08-26 21:32:22,234 autoreload 65062 125375201471360 Watching for file changes with StatReloader
+INFO 2025-08-26 21:34:01,093 basehttp 65062 125375091304128 "POST /api/v1/auth/register/ HTTP/1.1" 201 1388
+INFO 2025-08-26 21:35:35,315 basehttp 65062 125375091304128 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-08-26 21:35:35,953 basehttp 65062 125375078450880 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-08-26 21:36:06,366 basehttp 65062 125375078450880 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+WARNING 2025-08-26 21:36:06,404 log 65062 125375078450880 Unauthorized: /api/v1/auth/profile/
+WARNING 2025-08-26 21:36:06,405 basehttp 65062 125375078450880 "GET /api/v1/auth/profile/ HTTP/1.1" 401 256
+WARNING 2025-08-26 21:36:06,429 log 65062 125375091304128 Unauthorized: /api/v1/auth/profile/
+WARNING 2025-08-26 21:36:06,430 basehttp 65062 125375091304128 "GET /api/v1/auth/profile/ HTTP/1.1" 401 256
+WARNING 2025-08-26 21:36:06,461 log 65062 125375078450880 Unauthorized: /api/v1/auth/profile/
+WARNING 2025-08-26 21:36:06,463 basehttp 65062 125375078450880 "GET /api/v1/auth/profile/ HTTP/1.1" 401 256
+INFO 2025-08-26 21:36:06,520 basehttp 65062 125375078450880 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+WARNING 2025-08-26 21:36:06,542 log 65062 125375091304128 Unauthorized: /api/v1/auth/token/refresh/
+WARNING 2025-08-26 21:36:06,545 log 65062 125375078450880 Unauthorized: /api/v1/auth/token/refresh/
+WARNING 2025-08-26 21:36:06,545 basehttp 65062 125375091304128 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 401 138
+WARNING 2025-08-26 21:36:06,547 basehttp 65062 125375078450880 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 401 138
+WARNING 2025-08-26 21:36:06,643 log 65062 125375078450880 Unauthorized: /api/v1/auth/token/refresh/
+WARNING 2025-08-26 21:36:06,644 basehttp 65062 125375078450880 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 401 138
+INFO 2025-08-26 22:14:52,202 autoreload 84148 139855174970240 Watching for file changes with StatReloader
+INFO 2025-08-26 22:15:58,318 basehttp 84148 139854997616320 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-08-30 15:42:23,616 autoreload 255668 129714436352896 Watching for file changes with StatReloader
+INFO 2025-08-30 15:44:19,501 basehttp 255668 129714253461184 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-08-30 15:44:20,170 log 255668 129714245068480 Unauthorized: /api/v1/auth/login/
+WARNING 2025-08-30 15:44:20,174 basehttp 255668 129714245068480 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-08-30 15:44:20,187 basehttp 255668 129714245068480 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-08-30 15:44:20,231 basehttp 255668 129714245068480 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 830
+INFO 2025-08-30 15:44:21,064 basehttp 255668 129714245068480 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-08-30 15:47:14,629 basehttp 255668 129714245068480 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-08-30 15:47:14,628 basehttp 255668 129714253461184 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-08-30 15:47:14,647 basehttp 255668 129714236675776 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-08-30 15:47:15,088 basehttp 255668 129714228283072 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 15:47:15,111 basehttp 255668 129714236675776 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 15:47:15,146 basehttp 255668 129714236675776 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+WARNING 2025-08-30 15:48:27,031 log 255668 129714245068480 Unauthorized: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 15:48:27,044 basehttp 255668 129714245068480 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 401 5354
+INFO 2025-08-30 15:48:27,415 basehttp 255668 129714245068480 "GET /static/rest_framework/css/bootstrap.min.css HTTP/1.1" 200 121457
+INFO 2025-08-30 15:48:27,439 basehttp 255668 129714253461184 "GET /static/rest_framework/css/bootstrap-tweaks.css HTTP/1.1" 200 3426
+INFO 2025-08-30 15:48:27,481 basehttp 255668 129713716590272 "GET /static/rest_framework/js/ajax-form.js HTTP/1.1" 200 3796
+INFO 2025-08-30 15:48:27,490 basehttp 255668 129714219890368 "GET /static/rest_framework/css/prettify.css HTTP/1.1" 200 817
+INFO 2025-08-30 15:48:27,532 basehttp 255668 129714203104960 "GET /static/rest_framework/js/jquery-3.7.1.min.js HTTP/1.1" 200 87533
+INFO 2025-08-30 15:48:27,532 basehttp 255668 129714253461184 "GET /static/rest_framework/js/csrf.js HTTP/1.1" 200 1793
+INFO 2025-08-30 15:48:27,536 basehttp 255668 129714211497664 "GET /static/rest_framework/css/default.css HTTP/1.1" 200 1152
+INFO 2025-08-30 15:48:27,540 basehttp 255668 129714245068480 "GET /static/rest_framework/js/bootstrap.min.js HTTP/1.1" 200 39680
+INFO 2025-08-30 15:48:27,552 basehttp 255668 129714219890368 "GET /static/rest_framework/js/default.js HTTP/1.1" 200 1268
+INFO 2025-08-30 15:48:27,553 basehttp 255668 129713716590272 "GET /static/rest_framework/js/prettify-min.js HTTP/1.1" 200 13632
+INFO 2025-08-30 15:48:27,556 basehttp 255668 129714203104960 "GET /static/rest_framework/js/load-ajax-form.js HTTP/1.1" 200 59
+INFO 2025-08-30 15:48:28,969 basehttp 255668 129713716590272 "GET /static/rest_framework/img/grid.png HTTP/1.1" 200 1458
+WARNING 2025-08-30 15:48:31,598 log 255668 129713716590272 Not Found: /favicon.ico
+WARNING 2025-08-30 15:48:31,599 basehttp 255668 129713716590272 "GET /favicon.ico HTTP/1.1" 404 3815
+INFO 2025-08-30 15:50:32,965 basehttp 255668 129714236675776 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 15:50:33,023 basehttp 255668 129714228283072 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 15:50:33,057 basehttp 255668 129714236675776 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 15:53:46,434 autoreload 255668 129714436352896 /home/wachira/Development/LogiFlow/backend/logistics_project/urls.py changed, reloading.
+INFO 2025-08-30 15:53:48,985 autoreload 263987 125433072573312 Watching for file changes with StatReloader
+INFO 2025-08-30 15:57:07,886 basehttp 263987 125432962475712 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 15:57:07,958 basehttp 263987 125432953558720 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 15:57:08,053 basehttp 263987 125432962475712 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 15:57:54,822 basehttp 263987 125432962475712 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 15:57:54,847 basehttp 263987 125432953558720 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 15:57:54,881 basehttp 263987 125432962475712 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 16:02:26,074 basehttp 263987 125432962475712 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 16:02:26,240 basehttp 263987 125432962475712 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 16:02:26,691 basehttp 263987 125432962475712 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 16:20:54,158 basehttp 263987 125432962475712 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 16:20:54,196 basehttp 263987 125432953558720 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 16:20:54,213 basehttp 263987 125432944641728 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 16:22:17,100 basehttp 263987 125432944641728 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 16:22:17,202 basehttp 263987 125432953558720 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 16:22:17,290 basehttp 263987 125432944641728 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 18:35:45,291 autoreload 326509 125346474961792 Watching for file changes with StatReloader
+INFO 2025-08-30 18:38:49,971 basehttp 326509 125346365826752 "OPTIONS /api/v1/auth/register/ HTTP/1.1" 200 2
+INFO 2025-08-30 18:38:50,645 basehttp 326509 125346357434048 "POST /api/v1/auth/register/ HTTP/1.1" 201 1413
+INFO 2025-08-30 18:39:04,061 basehttp 326509 125346357434048 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-08-30 18:39:04,101 basehttp 326509 125346357434048 "GET /api/v1/auth/profile/ HTTP/1.1" 200 520
+INFO 2025-08-30 18:39:04,122 basehttp 326509 125346357434048 "GET /api/v1/auth/profile/ HTTP/1.1" 200 520
+INFO 2025-08-30 18:39:04,180 basehttp 326509 125346357434048 "GET /api/v1/auth/profile/ HTTP/1.1" 200 520
+INFO 2025-08-30 18:43:03,153 basehttp 326509 125346357434048 "GET /api/v1/auth/profile/ HTTP/1.1" 200 520
+INFO 2025-08-30 18:43:03,191 basehttp 326509 125346357434048 "GET /api/v1/auth/profile/ HTTP/1.1" 200 520
+INFO 2025-08-30 18:43:03,256 basehttp 326509 125346357434048 "GET /api/v1/auth/profile/ HTTP/1.1" 200 520
+INFO 2025-08-30 19:22:18,080 autoreload 347912 140387419380608 Watching for file changes with StatReloader
+INFO 2025-08-30 19:27:42,678 basehttp 347912 140387242997440 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-08-30 19:27:42,999 log 347912 140387234604736 Unauthorized: /api/v1/auth/login/
+WARNING 2025-08-30 19:27:43,000 basehttp 347912 140387234604736 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-08-30 19:27:43,006 basehttp 347912 140387234604736 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:43,053 basehttp 347912 140387234604736 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 830
+INFO 2025-08-30 19:27:43,783 basehttp 347912 140387234604736 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-08-30 19:27:47,738 basehttp 347912 140387234604736 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,759 basehttp 347912 140387242997440 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,790 basehttp 347912 140387234604736 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,811 basehttp 347912 140387216770752 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,817 basehttp 347912 140387242997440 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,822 basehttp 347912 140387225163456 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,823 basehttp 347912 140387208378048 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,847 basehttp 347912 140387242997440 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,852 basehttp 347912 140387225163456 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,856 basehttp 347912 140387234604736 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,879 basehttp 347912 140387225163456 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:47,859 basehttp 347912 140387208378048 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-30 19:27:48,040 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:27:48,101 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:27:48,136 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:27:48,159 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:27:48,222 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:27:48,250 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:27:48,314 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+WARNING 2025-08-30 19:27:48,322 log 347912 140387208378048 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:27:48,324 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:27:48,334 log 347912 140387225163456 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:27:48,335 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:27:48,345 log 347912 140387225163456 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:27:48,346 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:27:48,356 log 347912 140387225163456 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:27:48,357 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:27:48,365 log 347912 140387225163456 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:27:48,367 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-08-30 19:28:34,211 basehttp 347912 140387225163456 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+WARNING 2025-08-30 19:28:34,256 log 347912 140387225163456 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-30 19:28:34,261 basehttp 347912 140387225163456 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:28:34,271 log 347912 140387208378048 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-30 19:28:34,285 basehttp 347912 140387208378048 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:28:34,294 log 347912 140387208378048 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-30 19:28:34,297 basehttp 347912 140387208378048 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+INFO 2025-08-30 19:29:25,813 basehttp 347912 140387208378048 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-08-30 19:29:26,326 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:29:26,359 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:29:26,383 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:29:26,464 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:29:26,528 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:29:27,447 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:29:27,487 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:29:27,515 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:29:27,540 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+WARNING 2025-08-30 19:29:27,598 log 347912 140387225163456 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:29:27,603 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:29:27,627 log 347912 140387208378048 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:29:27,631 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:29:27,657 log 347912 140387208378048 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:29:27,661 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-08-30 19:32:02,182 basehttp 347912 140387208378048 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 19:32:02,279 basehttp 347912 140387225163456 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 19:32:02,421 basehttp 347912 140387208378048 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 19:32:02,753 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:32:02,836 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:32:02,922 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:32:02,967 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:32:03,017 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:32:03,052 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:32:03,084 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+WARNING 2025-08-30 19:32:03,090 log 347912 140387225163456 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:32:03,092 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:32:03,121 log 347912 140387208378048 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:32:03,123 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:32:03,130 log 347912 140387208378048 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:32:03,133 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:32:03,142 log 347912 140387225163456 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:32:03,159 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:32:03,165 log 347912 140387225163456 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:32:03,179 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:32:12,258 log 347912 140387225163456 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-30 19:32:12,259 basehttp 347912 140387225163456 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:32:12,299 log 347912 140387225163456 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-30 19:32:12,300 basehttp 347912 140387225163456 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:32:12,309 log 347912 140387225163456 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-30 19:32:12,312 basehttp 347912 140387225163456 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+INFO 2025-08-30 19:33:32,302 basehttp 347912 140387225163456 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-08-30 19:33:32,931 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:33:33,033 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:33:33,116 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:33:33,287 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:33:33,409 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:33:33,482 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:33:33,576 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:33:33,617 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:33:33,651 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+WARNING 2025-08-30 19:33:33,656 log 347912 140387225163456 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:33:33,657 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:33:33,672 log 347912 140387208378048 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:33:33,674 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:33:33,700 log 347912 140387208378048 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:33:33,705 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-08-30 19:35:03,815 basehttp 347912 140387208378048 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 19:35:03,889 basehttp 347912 140387225163456 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 19:35:03,945 basehttp 347912 140387208378048 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-30 19:35:04,319 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:35:04,377 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:35:04,475 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:35:04,672 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:35:04,807 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:35:04,907 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-30 19:35:04,949 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+WARNING 2025-08-30 19:35:04,952 log 347912 140387225163456 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:35:04,962 basehttp 347912 140387225163456 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:35:04,969 log 347912 140387234604736 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:35:04,992 basehttp 347912 140387234604736 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:35:05,008 log 347912 140387208378048 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:35:05,016 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:35:05,046 log 347912 140387208378048 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:35:05,056 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:35:05,100 log 347912 140387208378048 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-30 19:35:05,121 basehttp 347912 140387208378048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:35:25,679 log 347912 140387208378048 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-30 19:35:25,681 basehttp 347912 140387208378048 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:35:25,707 log 347912 140387208378048 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-30 19:35:25,709 basehttp 347912 140387208378048 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-08-30 19:35:25,717 log 347912 140387208378048 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-30 19:35:25,738 basehttp 347912 140387208378048 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+INFO 2025-08-31 08:23:26,750 autoreload 21752 137017364786048 Watching for file changes with StatReloader
+INFO 2025-08-31 08:24:37,276 basehttp 21752 137017255782080 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-08-31 08:24:38,044 log 21752 137017174259392 Bad Request: /api/v1/auth/login/
+WARNING 2025-08-31 08:24:38,045 basehttp 21752 137017174259392 "POST /api/v1/auth/login/ HTTP/1.1" 400 124
+INFO 2025-08-31 08:24:55,833 basehttp 21752 137017174259392 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-08-31 08:24:58,982 basehttp 21752 137017174259392 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:58,995 basehttp 21752 137017174259392 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,026 basehttp 21752 137017174259392 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,028 basehttp 21752 137017165866688 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,035 basehttp 21752 137017157473984 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,040 basehttp 21752 137017149081280 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,041 basehttp 21752 137017255782080 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,125 basehttp 21752 137017174259392 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,133 basehttp 21752 137017149081280 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,136 basehttp 21752 137017157473984 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,140 basehttp 21752 137017165866688 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,145 basehttp 21752 137017255782080 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:24:59,315 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:24:59,393 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:24:59,452 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:24:59,490 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:24:59,538 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:24:59,622 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:24:59,680 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:24:59,709 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+WARNING 2025-08-31 08:24:59,718 log 21752 137017174259392 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:24:59,720 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:24:59,724 log 21752 137017255782080 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:24:59,725 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:24:59,740 log 21752 137017255782080 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:24:59,748 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:24:59,754 log 21752 137017255782080 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:24:59,760 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-08-31 08:26:09,358 basehttp 21752 137017255782080 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-08-31 08:26:09,405 basehttp 21752 137017255782080 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-31 08:26:09,439 basehttp 21752 137017174259392 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-31 08:26:09,457 basehttp 21752 137017255782080 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-08-31 08:26:09,709 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:26:09,724 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:26:09,749 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:26:09,811 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:26:09,836 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:26:09,896 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:26:09,922 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+WARNING 2025-08-31 08:26:09,968 log 21752 137017174259392 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:26:09,969 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:26:09,972 log 21752 137017255782080 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:26:09,973 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:26:09,981 log 21752 137017255782080 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:26:09,982 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:26:10,000 log 21752 137017255782080 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:26:10,002 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:26:10,012 log 21752 137017255782080 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:26:10,013 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:26:31,478 log 21752 137017255782080 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-31 08:26:31,495 log 21752 137017174259392 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-31 08:26:31,496 basehttp 21752 137017255782080 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:26:31,499 basehttp 21752 137017174259392 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:26:31,520 log 21752 137017174259392 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-08-31 08:26:31,534 basehttp 21752 137017174259392 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:27:03,492 log 21752 137017174259392 Too Many Requests: /api/v1/auth/login/
+WARNING 2025-08-31 08:27:03,493 basehttp 21752 137017174259392 "POST /api/v1/auth/login/ HTTP/1.1" 429 17
+INFO 2025-08-31 08:27:16,763 basehttp 21752 137017174259392 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-08-31 08:27:17,253 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:27:17,280 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:27:17,314 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:27:17,407 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:27:17,473 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:27:17,502 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:27:17,535 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:27:17,592 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-08-31 08:27:17,611 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+WARNING 2025-08-31 08:27:17,655 log 21752 137017255782080 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:27:17,656 basehttp 21752 137017255782080 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:27:17,659 log 21752 137017174259392 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:27:17,660 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-08-31 08:27:17,668 log 21752 137017174259392 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-08-31 08:27:17,670 basehttp 21752 137017174259392 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-09-01 21:17:35,218 autoreload 45215 134943353191296 Watching for file changes with StatReloader
+INFO 2025-09-01 21:18:44,119 basehttp 45215 134943174817472 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-09-01 21:18:44,209 log 45215 134943166424768 Unauthorized: /api/v1/auth/login/
+WARNING 2025-09-01 21:18:44,211 basehttp 45215 134943166424768 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-09-01 21:18:44,221 basehttp 45215 134943166424768 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:44,240 basehttp 45215 134943166424768 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 830
+INFO 2025-09-01 21:18:44,918 basehttp 45215 134943166424768 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-01 21:18:47,725 basehttp 45215 134943166424768 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,756 basehttp 45215 134943166424768 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,760 basehttp 45215 134943174817472 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,762 basehttp 45215 134943158032064 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,771 basehttp 45215 134943158032064 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,778 basehttp 45215 134943174817472 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,793 basehttp 45215 134943158032064 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,797 basehttp 45215 134943166424768 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,809 basehttp 45215 134943174817472 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,835 basehttp 45215 134943166424768 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,838 basehttp 45215 134943149639360 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,856 basehttp 45215 134943141246656 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,859 basehttp 45215 134943158032064 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,861 basehttp 45215 134943174817472 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:18:47,993 basehttp 45215 134943132853952 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-09-01 21:18:48,053 basehttp 45215 134943141246656 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-09-01 21:18:48,084 basehttp 45215 134943132853952 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-09-01 21:18:48,111 basehttp 45215 134943141246656 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-09-01 21:18:48,183 basehttp 45215 134943132853952 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-09-01 21:18:48,221 basehttp 45215 134943141246656 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-09-01 21:18:48,295 basehttp 45215 134943132853952 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+WARNING 2025-09-01 21:18:48,303 log 45215 134943141246656 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-01 21:18:48,304 basehttp 45215 134943141246656 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-09-01 21:18:48,307 log 45215 134943132853952 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-01 21:18:48,308 basehttp 45215 134943132853952 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-09-01 21:18:48,323 log 45215 134943132853952 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-01 21:18:48,324 basehttp 45215 134943132853952 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-09-01 21:18:48,340 log 45215 134943132853952 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-01 21:18:48,342 basehttp 45215 134943132853952 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-09-01 21:18:48,350 log 45215 134943141246656 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-01 21:18:48,353 basehttp 45215 134943141246656 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-09-01 21:18:48,362 log 45215 134943141246656 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-01 21:18:48,363 basehttp 45215 134943141246656 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-09-01 21:18:48,378 log 45215 134943141246656 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-01 21:18:48,379 basehttp 45215 134943141246656 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-09-01 21:27:33,823 basehttp 45215 134943141246656 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-09-01 21:27:34,078 basehttp 45215 134943132853952 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-09-01 22:03:24,623 autoreload 66458 136164165905280 Watching for file changes with StatReloader
+INFO 2025-09-01 22:04:41,862 basehttp 66458 136164055705280 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-01 22:04:45,224 basehttp 66458 136164055705280 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-09-01 22:25:38,267 basehttp 66458 136164037871296 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-09-01 22:25:38,257 basehttp 66458 136164055705280 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-09-01 22:25:38,272 basehttp 66458 136164046264000 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-09-01 22:25:39,036 basehttp 66458 136164029478592 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-01 22:25:39,109 basehttp 66458 136164055705280 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-01 22:25:39,148 basehttp 66458 136164029478592 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-01 22:25:39,429 basehttp 66458 136164029478592 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-09-01 22:26:02,296 basehttp 66458 136164029478592 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-01 22:26:02,355 basehttp 66458 136164055705280 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-01 22:26:02,382 basehttp 66458 136164029478592 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-01 22:26:02,512 basehttp 66458 136164029478592 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977
+INFO 2025-09-01 22:26:21,297 basehttp 66458 136164029478592 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-09-01 22:27:33,499 basehttp 66458 136164029478592 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-01 22:27:33,962 basehttp 66458 136164029478592 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1977

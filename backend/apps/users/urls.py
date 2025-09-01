@@ -3,7 +3,8 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView, LoginView, logout_view, ProfileView,
-    ChangePasswordView, InviteUserView, CompanyUsersView
+    ChangePasswordView, InviteUserView, CompanyUsersView,
+    dashboard_overview
 )
 
 urlpatterns = [
@@ -20,4 +21,7 @@ urlpatterns = [
     # Company User Management
     path('invite/', InviteUserView.as_view(), name='invite_user'),
     path('company-users/', CompanyUsersView.as_view(), name='company_users'),
+
+     # Dashboard
+    path('dashboard/overview/', dashboard_overview, name='dashboard_overview'),
 ]
