@@ -14,7 +14,7 @@ interface CategoryTreeProps {
 
 interface CategoryTreeNodeProps {
   category: Category;
-  children: Category[];
+  //children: Category[];
   level: number;
   selectedCategoryId?: string;
   onSelectCategory?: (category: Category) => void;
@@ -24,11 +24,12 @@ interface CategoryTreeNodeProps {
   showActions?: boolean;
   expandedNodes: Set<string>;
   onToggleExpand: (categoryId: string) => void;
+  allCategories: Category[];
 }
 
 const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
   category,
-  children,
+  //children,
   level,
   selectedCategoryId,
   onSelectCategory,
@@ -37,9 +38,11 @@ const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
   onDeleteCategory,
   showActions = false,
   expandedNodes,
-  onToggleExpand
+  onToggleExpand,
+  allCategories
 }) => {
   const isExpanded = expandedNodes.has(category.id);
+  const children = allCategories.filter(cat => cat.parent_id === category.id);
   const hasChildren = children.length > 0;
   const isSelected = selectedCategoryId === category.id;
 
@@ -146,7 +149,7 @@ const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
             <CategoryTreeNode
               key={child.id}
               category={child}
-              children={getChildCategories(child.id, [])} // This would need the full category list
+              //children={getChildCategories(child.id, [])} // This would need the full category list
               level={level + 1}
               selectedCategoryId={selectedCategoryId}
               onSelectCategory={onSelectCategory}
@@ -156,6 +159,7 @@ const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
               showActions={showActions}
               expandedNodes={expandedNodes}
               onToggleExpand={onToggleExpand}
+              allCategories={allCategories}
             />
           ))}
         </div>
@@ -165,6 +169,7 @@ const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
 };
 
 // Helper function to build category hierarchy
+// Helper function to build category hierarchy
 const buildCategoryTree = (categories: Category[]) => {
   const categoryMap = new Map<string, Category>();
   const rootCategories: Category[] = [];
@@ -173,17 +178,17 @@ const buildCategoryTree = (categories: Category[]) => {
   // Build maps
   categories.forEach(category => {
     categoryMap.set(category.id, category);
-    if (!childrenMap.has(category.parentId || '')) {
-      childrenMap.set(category.parentId || '', []);
+    if (!childrenMap.has(category.parent_id || '')) {
+      childrenMap.set(category.parent_id || '', []);
     }
   });
 
   categories.forEach(category => {
-    if (category.parentId) {
-      const siblings = childrenMap.get(category.parentId) || [];
+    if (category.parent_id) {
+      const siblings = childrenMap.get(category.parent_id) || [];
       siblings.push(category);
-      childrenMap.set(category.parentId, siblings);
-    } else {
+      childrenMap.set(category.parent_id, siblings);
+    } else{
       rootCategories.push(category);
     }
   });
@@ -191,9 +196,6 @@ const buildCategoryTree = (categories: Category[]) => {
   return { rootCategories, childrenMap };
 };
 
-const getChildCategories = (parentId: string, allCategories: Category[]) => {
-  return allCategories.filter(cat => cat.parentId === parentId);
-};
 
 export const CategoryTree: React.FC<CategoryTreeProps> = ({
   categories,
@@ -206,7 +208,7 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
 }) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
-  const { rootCategories, childrenMap } = buildCategoryTree(categories);
+  const { rootCategories } = buildCategoryTree(categories);
 
   const handleToggleExpand = (categoryId: string) => {
     const newExpanded = new Set(expandedNodes);
@@ -242,7 +244,6 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
           <CategoryTreeNode
             key={category.id}
             category={category}
-            children={childrenMap.get(category.id) || []}
             level={0}
             selectedCategoryId={selectedCategoryId}
             onSelectCategory={onSelectCategory}
@@ -252,6 +253,7 @@ export const CategoryTree: React.FC<CategoryTreeProps> = ({
             showActions={showActions}
             expandedNodes={expandedNodes}
             onToggleExpand={handleToggleExpand}
+            allCategories={categories}
           />
         ))}
       </div>

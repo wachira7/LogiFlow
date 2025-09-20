@@ -229,7 +229,7 @@ export function ProductList() {
                           Cost: {formatCurrency(product.cost_price)}
                         </div>
                         <div className="text-sm">
-                          Sell: {formatCurrency(product.selling_price)}
+                          Sell: {formatCurrency(product.unit_price)}
                         </div>
                       </div>
                     </TableCell>

@@ -6,23 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useAuth, useAuthUtils } from '@/hooks/useAuth'
-import {
-  LayoutDashboard,
-  Package,
-  Truck,
-  Factory,
-  Warehouse,
-  BarChart3,
-  CreditCard,
-  Settings,
-  Users,
-  Building,
-  ChevronDown,
-  ChevronRight,
-  X,
-  Menu,
-  ChevronLeft,
-} from 'lucide-react'
+import { LayoutDashboard, Package, Truck, Factory, Warehouse, BarChart3, CreditCard, Settings, Users, Building, ChevronDown, ChevronRight, X, Menu, ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'

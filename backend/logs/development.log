@@ -2847,3 +2847,891 @@ WARNING 2025-09-12 20:49:37,724 log 220821 126783250486976 Too Many Requests: /a
 WARNING 2025-09-12 20:49:37,735 log 220821 126782720169664 Too Many Requests: /api/v1/inventory/categories/tree/
 WARNING 2025-09-12 20:49:37,753 basehttp 220821 126783250486976 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
 WARNING 2025-09-12 20:49:37,755 basehttp 220821 126782720169664 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 10:55:01,450 autoreload 19964 129988061825920 Watching for file changes with StatReloader
+INFO 2025-09-13 10:56:35,995 basehttp 19964 129987951716032 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-09-13 10:56:36,250 log 19964 129987943323328 Unauthorized: /api/v1/auth/login/
+WARNING 2025-09-13 10:56:36,251 basehttp 19964 129987943323328 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-09-13 10:56:36,261 basehttp 19964 129987943323328 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-09-13 10:56:36,294 basehttp 19964 129987943323328 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 830
+INFO 2025-09-13 10:56:37,028 basehttp 19964 129987943323328 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-13 10:56:40,000 basehttp 19964 129987943323328 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-13 10:56:40,066 basehttp 19964 129987943323328 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-13 10:56:50,651 basehttp 19964 129987951716032 "OPTIONS /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 2
+INFO 2025-09-13 10:56:50,664 basehttp 19964 129987943323328 "OPTIONS /api/v1/inventory/transactions/?page=1&page_size=20 HTTP/1.1" 200 2
+INFO 2025-09-13 10:56:50,667 basehttp 19964 129987933882048 "OPTIONS /api/v1/inventory/warehouses/ HTTP/1.1" 200 2
+INFO 2025-09-13 10:56:50,670 basehttp 19964 129987951716032 "OPTIONS /api/v1/inventory/transactions/?page=1&page_size=20 HTTP/1.1" 200 2
+INFO 2025-09-13 10:56:50,702 basehttp 19964 129987943323328 "OPTIONS /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 2
+INFO 2025-09-13 10:56:50,710 basehttp 19964 129987933882048 "OPTIONS /api/v1/inventory/warehouses/ HTTP/1.1" 200 2
+INFO 2025-09-13 10:56:51,000 basehttp 19964 129987933882048 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:56:51,016 basehttp 19964 129987951716032 "GET /api/v1/inventory/transactions/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 10:56:51,037 basehttp 19964 129987943323328 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 10:56:51,942 basehttp 19964 129987951716032 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 10:56:51,947 basehttp 19964 129987722081984 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:56:51,954 basehttp 19964 129987933882048 "GET /api/v1/inventory/transactions/?page=1&page_size=20 HTTP/1.1" 200 100
+WARNING 2025-09-13 10:57:17,717 log 19964 129987933882048 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 10:57:17,726 basehttp 19964 129987933882048 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 10:57:17,729 log 19964 129987951716032 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 10:57:17,734 basehttp 19964 129987951716032 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+INFO 2025-09-13 10:58:02,442 basehttp 19964 129987722081984 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:58:02,565 basehttp 19964 129987943323328 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:58:18,167 basehttp 19964 129987943323328 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:58:18,203 basehttp 19964 129987943323328 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:58:21,317 basehttp 19964 129987943323328 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:58:21,403 basehttp 19964 129987722081984 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:58:26,057 basehttp 19964 129987722081984 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:58:26,148 basehttp 19964 129987943323328 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:58:28,166 basehttp 19964 129987943323328 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:58:28,206 basehttp 19964 129987722081984 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+WARNING 2025-09-13 10:58:29,314 log 19964 129987722081984 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 10:58:29,318 basehttp 19964 129987722081984 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 10:58:29,328 log 19964 129987943323328 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 10:58:29,332 basehttp 19964 129987943323328 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 10:58:31,066 log 19964 129987943323328 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-13 10:58:31,073 basehttp 19964 129987943323328 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-09-13 10:59:02,933 basehttp 19964 129987722081984 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+INFO 2025-09-13 10:59:02,946 basehttp 19964 129987951716032 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 10:59:03,044 basehttp 19964 129987722081984 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 10:59:03,074 basehttp 19964 129987951716032 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+WARNING 2025-09-13 10:59:03,089 log 19964 129987722081984 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 10:59:03,127 basehttp 19964 129987722081984 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 10:59:03,141 log 19964 129987951716032 Too Many Requests: /api/v1/inventory/categories/tree/
+INFO 2025-09-13 10:59:03,158 basehttp 19964 129987933882048 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+WARNING 2025-09-13 10:59:03,158 basehttp 19964 129987951716032 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 10:59:03,159 basehttp 19964 129987943323328 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+WARNING 2025-09-13 10:59:03,151 log 19964 129987713689280 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 10:59:03,193 log 19964 129987951716032 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 10:59:03,210 basehttp 19964 129987951716032 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 10:59:03,201 basehttp 19964 129987713689280 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 10:59:03,172 log 19964 129987722081984 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 10:59:03,222 basehttp 19964 129987722081984 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 10:59:03,229 log 19964 129987933882048 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 10:59:03,235 basehttp 19964 129987933882048 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+INFO 2025-09-13 10:59:36,658 basehttp 19964 129987943323328 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 10:59:36,694 basehttp 19964 129987713689280 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 10:59:36,695 basehttp 19964 129987933882048 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:59:36,811 basehttp 19964 129987943323328 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 10:59:36,816 basehttp 19964 129987951716032 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 10:59:36,821 basehttp 19964 129987722081984 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 11:05:29,159 basehttp 19964 129987943323328 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 11:05:29,169 basehttp 19964 129987933882048 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 11:05:29,170 basehttp 19964 129987722081984 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 11:05:29,170 basehttp 19964 129987713689280 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 11:05:29,285 basehttp 19964 129987713689280 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 11:05:29,333 basehttp 19964 129987933882048 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 11:05:29,335 basehttp 19964 129987722081984 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 11:05:29,336 basehttp 19964 129987951716032 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 11:05:36,363 basehttp 19964 129987933882048 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+WARNING 2025-09-13 11:05:36,370 log 19964 129987713689280 Too Many Requests: /api/v1/inventory/products/
+INFO 2025-09-13 11:05:36,371 basehttp 19964 129987722081984 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+WARNING 2025-09-13 11:05:36,382 basehttp 19964 129987713689280 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:36,379 log 19964 129987933882048 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 11:05:36,386 basehttp 19964 129987933882048 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+INFO 2025-09-13 11:05:36,385 basehttp 19964 129987951716032 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+WARNING 2025-09-13 11:05:36,403 log 19964 129987951716032 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 11:05:36,404 basehttp 19964 129987951716032 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:37,902 log 19964 129987722081984 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 11:05:37,903 basehttp 19964 129987722081984 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:37,915 log 19964 129987943323328 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 11:05:37,932 log 19964 129987933882048 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 11:05:37,925 log 19964 129987722081984 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 11:05:37,936 basehttp 19964 129987943323328 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:37,938 log 19964 129987951716032 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 11:05:37,947 log 19964 129987943323328 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 11:05:37,950 basehttp 19964 129987722081984 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:37,952 basehttp 19964 129987933882048 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:37,957 log 19964 129987713689280 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 11:05:37,960 basehttp 19964 129987943323328 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:37,966 basehttp 19964 129987951716032 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:37,969 basehttp 19964 129987713689280 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:37,981 log 19964 129987713689280 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 11:05:37,984 basehttp 19964 129987713689280 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:39,236 log 19964 129987713689280 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-13 11:05:39,239 basehttp 19964 129987713689280 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-09-13 11:05:52,245 basehttp 19964 129987713689280 "OPTIONS /api/v1/inventory/products/ HTTP/1.1" 200 2
+WARNING 2025-09-13 11:05:52,279 log 19964 129987713689280 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 11:05:52,294 log 19964 129987722081984 Too Many Requests: /api/v1/inventory/warehouses/
+INFO 2025-09-13 11:05:52,303 basehttp 19964 129987705296576 "OPTIONS /api/v1/inventory/products/low_stock/ HTTP/1.1" 200 2
+WARNING 2025-09-13 11:05:52,300 log 19964 129987696903872 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 11:05:52,305 basehttp 19964 129987722081984 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,304 basehttp 19964 129987713689280 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+INFO 2025-09-13 11:05:52,306 basehttp 19964 129987951716032 "OPTIONS /api/v1/inventory/products/low_stock/ HTTP/1.1" 200 2
+WARNING 2025-09-13 11:05:52,311 basehttp 19964 129987696903872 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+INFO 2025-09-13 11:05:52,307 basehttp 19964 129987943323328 "OPTIONS /api/v1/inventory/transactions/?page_size=10 HTTP/1.1" 200 2
+WARNING 2025-09-13 11:05:52,319 log 19964 129987722081984 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 11:05:52,322 basehttp 19964 129987722081984 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 11:05:52,358 basehttp 19964 129987713689280 "OPTIONS /api/v1/inventory/transactions/?page_size=10 HTTP/1.1" 200 2
+WARNING 2025-09-13 11:05:52,371 log 19964 129987696903872 Too Many Requests: /api/v1/inventory/products/low_stock/
+INFO 2025-09-13 11:05:52,373 basehttp 19964 129987705296576 "OPTIONS /api/v1/inventory/products/low_stock/ HTTP/1.1" 200 2
+INFO 2025-09-13 11:05:52,373 basehttp 19964 129987722081984 "OPTIONS /api/v1/inventory/products/ HTTP/1.1" 200 2
+WARNING 2025-09-13 11:05:52,384 log 19964 129987951716032 Too Many Requests: /api/v1/inventory/products/
+INFO 2025-09-13 11:05:52,385 basehttp 19964 129987943323328 "OPTIONS /api/v1/inventory/products/low_stock/ HTTP/1.1" 200 2
+WARNING 2025-09-13 11:05:52,408 log 19964 129987688511168 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 11:05:52,406 log 19964 129987705296576 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 11:05:52,393 basehttp 19964 129987696903872 "GET /api/v1/inventory/products/low_stock/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,400 basehttp 19964 129987951716032 "GET /api/v1/inventory/products/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,387 log 19964 129987713689280 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 11:05:52,419 basehttp 19964 129987688511168 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,434 basehttp 19964 129987705296576 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,436 log 19964 129987943323328 Too Many Requests: /api/v1/inventory/transactions/
+WARNING 2025-09-13 11:05:52,443 basehttp 19964 129987713689280 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,451 basehttp 19964 129987943323328 "GET /api/v1/inventory/transactions/?page_size=10 HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,458 log 19964 129987951716032 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 11:05:52,471 basehttp 19964 129987951716032 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,466 log 19964 129987713689280 Too Many Requests: /api/v1/inventory/products/low_stock/
+WARNING 2025-09-13 11:05:52,485 basehttp 19964 129987713689280 "GET /api/v1/inventory/products/low_stock/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,489 log 19964 129987705296576 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 11:05:52,495 basehttp 19964 129987705296576 "GET /api/v1/inventory/products/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,509 log 19964 129987713689280 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 11:05:52,524 basehttp 19964 129987713689280 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,523 log 19964 129987943323328 Too Many Requests: /api/v1/inventory/transactions/
+WARNING 2025-09-13 11:05:52,517 log 19964 129987951716032 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 11:05:52,527 log 19964 129987696903872 Too Many Requests: /api/v1/inventory/products/low_stock/
+WARNING 2025-09-13 11:05:52,534 log 19964 129987705296576 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 11:05:52,539 basehttp 19964 129987943323328 "GET /api/v1/inventory/transactions/?page_size=10 HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,544 basehttp 19964 129987696903872 "GET /api/v1/inventory/products/low_stock/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,551 basehttp 19964 129987705296576 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,551 basehttp 19964 129987951716032 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,554 log 19964 129987943323328 Too Many Requests: /api/v1/inventory/products/low_stock/
+WARNING 2025-09-13 11:05:52,564 basehttp 19964 129987943323328 "GET /api/v1/inventory/products/low_stock/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:05:52,602 log 19964 129987943323328 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 11:05:52,616 basehttp 19964 129987943323328 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+INFO 2025-09-13 11:06:35,060 basehttp 19964 129987943323328 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-13 11:18:42,745 basehttp 19964 129987705296576 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 11:18:42,749 basehttp 19964 129987951716032 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 11:18:42,790 basehttp 19964 129987696903872 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 11:18:42,823 basehttp 19964 129987943323328 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 11:18:42,958 basehttp 19964 129987722081984 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 11:18:42,996 basehttp 19964 129987713689280 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 11:18:43,013 basehttp 19964 129987696903872 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 11:18:43,021 basehttp 19964 129987951716032 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+WARNING 2025-09-13 11:19:22,319 log 19964 129987713689280 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 11:19:22,348 basehttp 19964 129987713689280 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:19:22,384 log 19964 129987722081984 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 11:19:22,424 basehttp 19964 129987722081984 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 11:19:22,433 basehttp 19964 129987951716032 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 11:19:22,434 basehttp 19964 129987696903872 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+WARNING 2025-09-13 11:19:22,438 log 19964 129987705296576 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 11:19:22,443 basehttp 19964 129987705296576 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 11:19:22,440 log 19964 129987943323328 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 11:19:22,447 basehttp 19964 129987943323328 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+INFO 2025-09-13 11:33:00,611 autoreload 19964 129988061825920 /home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+INFO 2025-09-13 11:33:04,824 autoreload 38068 140025742588800 Watching for file changes with StatReloader
+INFO 2025-09-13 11:33:08,248 autoreload 38068 140025742588800 /home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+INFO 2025-09-13 11:33:09,623 autoreload 38162 139722135346048 Watching for file changes with StatReloader
+INFO 2025-09-13 11:33:18,669 autoreload 38162 139722135346048 /home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+INFO 2025-09-13 11:33:20,056 autoreload 38326 131693075549056 Watching for file changes with StatReloader
+INFO 2025-09-13 11:33:24,902 autoreload 38326 131693075549056 /home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+INFO 2025-09-13 11:33:26,548 autoreload 38399 127106178268032 Watching for file changes with StatReloader
+INFO 2025-09-13 11:34:02,394 autoreload 38399 127106178268032 /home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+INFO 2025-09-13 11:34:03,848 autoreload 38807 124733282130816 Watching for file changes with StatReloader
+INFO 2025-09-13 11:34:15,139 autoreload 38807 124733282130816 /home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+INFO 2025-09-13 11:34:17,461 autoreload 38961 137872927882112 Watching for file changes with StatReloader
+INFO 2025-09-13 11:34:24,201 autoreload 38961 137872927882112 /home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+INFO 2025-09-13 11:34:25,321 autoreload 39135 125862474959744 Watching for file changes with StatReloader
+INFO 2025-09-13 11:34:32,034 autoreload 39135 125862474959744 /home/wachira/Development/LogiFlow/backend/logistics_project/settings.py changed, reloading.
+INFO 2025-09-13 11:34:33,541 autoreload 39272 127042307419008 Watching for file changes with StatReloader
+INFO 2025-09-13 11:58:18,149 autoreload 50417 127092096609152 Watching for file changes with StatReloader
+WARNING 2025-09-13 12:01:58,605 log 50417 127091987441344 Unauthorized: /api/v1/auth/login/
+WARNING 2025-09-13 12:01:58,612 basehttp 50417 127091987441344 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-09-13 12:01:58,658 basehttp 50417 127091987441344 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 830
+INFO 2025-09-13 12:01:59,536 basehttp 50417 127091987441344 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-13 12:02:02,030 basehttp 50417 127091987441344 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-13 12:02:29,441 basehttp 50417 127091907491520 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:02:29,443 basehttp 50417 127091899098816 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:02:29,449 basehttp 50417 127091890706112 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+WARNING 2025-09-13 12:02:29,460 log 50417 127091907491520 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 12:02:29,463 basehttp 50417 127091907491520 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 12:02:29,466 basehttp 50417 127091987441344 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+WARNING 2025-09-13 12:02:29,475 log 50417 127091873920704 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 12:02:29,481 basehttp 50417 127091873920704 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+INFO 2025-09-13 12:02:29,521 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:02:29,521 basehttp 50417 127091899098816 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+WARNING 2025-09-13 12:02:38,357 log 50417 127091899098816 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 12:02:38,361 basehttp 50417 127091899098816 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:38,360 log 50417 127091882313408 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 12:02:38,380 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:38,369 log 50417 127091987441344 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 12:02:38,381 basehttp 50417 127091987441344 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:38,391 log 50417 127091899098816 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 12:02:38,376 log 50417 127091890706112 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 12:02:38,396 basehttp 50417 127091890706112 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:38,396 basehttp 50417 127091899098816 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:38,393 log 50417 127091882313408 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 12:02:38,403 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:53,607 log 50417 127091890706112 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 12:02:53,609 log 50417 127091882313408 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 12:02:53,621 basehttp 50417 127091882313408 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:53,615 log 50417 127091899098816 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 12:02:53,626 log 50417 127091987441344 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 12:02:53,619 basehttp 50417 127091890706112 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:53,628 basehttp 50417 127091899098816 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:53,631 log 50417 127091907491520 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 12:02:53,639 basehttp 50417 127091907491520 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:53,637 basehttp 50417 127091987441344 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:54,592 log 50417 127091882313408 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 12:02:54,598 log 50417 127091907491520 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 12:02:54,603 log 50417 127091987441344 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 12:02:54,605 basehttp 50417 127091987441344 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:54,606 basehttp 50417 127091882313408 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:54,606 basehttp 50417 127091907491520 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:02:56,558 log 50417 127091907491520 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-13 12:02:56,559 basehttp 50417 127091907491520 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-09-13 12:03:03,548 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:03:03,604 basehttp 50417 127091907491520 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:03:03,737 basehttp 50417 127091987441344 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:03:03,762 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+WARNING 2025-09-13 12:03:08,860 log 50417 127091987441344 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 12:03:08,867 log 50417 127091882313408 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 12:03:08,868 basehttp 50417 127091987441344 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:03:08,877 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:03:08,881 log 50417 127091907491520 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 12:03:08,890 log 50417 127091882313408 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 12:03:08,894 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:03:08,891 basehttp 50417 127091907491520 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 12:07:56,630 basehttp 50417 127091882313408 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:07:57,036 basehttp 50417 127091882313408 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:07:57,049 basehttp 50417 127091907491520 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:07:57,192 basehttp 50417 127091882313408 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-13 12:07:57,278 basehttp 50417 127091907491520 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-13 12:07:57,340 basehttp 50417 127091882313408 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-13 12:07:57,619 basehttp 50417 127091882313408 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-13 12:34:49,756 basehttp 50417 127091907491520 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 12:34:49,757 basehttp 50417 127091987441344 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:34:49,771 basehttp 50417 127091890706112 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:34:49,774 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:34:49,852 basehttp 50417 127091987441344 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:34:49,855 basehttp 50417 127091899098816 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-13 12:34:49,856 basehttp 50417 127091907491520 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:34:49,869 basehttp 50417 127091873920704 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:34:52,166 basehttp 50417 127091907491520 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-13 12:35:30,627 basehttp 50417 127091907491520 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:35:30,685 basehttp 50417 127091987441344 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:35:37,912 basehttp 50417 127091987441344 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:35:37,974 basehttp 50417 127091907491520 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:36:45,434 basehttp 50417 127091907491520 "POST /api/v1/inventory/warehouses/ HTTP/1.1" 201 296
+INFO 2025-09-13 12:36:45,479 basehttp 50417 127091907491520 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+INFO 2025-09-13 12:36:45,810 basehttp 50417 127091907491520 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+INFO 2025-09-13 12:36:45,899 basehttp 50417 127091987441344 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+INFO 2025-09-13 12:37:27,073 basehttp 50417 127091987441344 "OPTIONS /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:37:27,088 basehttp 50417 127091907491520 "OPTIONS /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/inventory/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:37:27,136 basehttp 50417 127091873920704 "OPTIONS /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:37:27,159 basehttp 50417 127091899098816 "OPTIONS /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/inventory/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:37:27,232 basehttp 50417 127091890706112 "GET /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/ HTTP/1.1" 200 296
+INFO 2025-09-13 12:37:27,243 basehttp 50417 127091882313408 "GET /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/inventory/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:37:27,343 basehttp 50417 127091890706112 "GET /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/inventory/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:37:27,344 basehttp 50417 127091899098816 "GET /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/ HTTP/1.1" 200 296
+INFO 2025-09-13 12:37:38,116 basehttp 50417 127091890706112 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+INFO 2025-09-13 12:37:38,149 basehttp 50417 127091899098816 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+WARNING 2025-09-13 12:37:41,704 log 50417 127091899098816 Too Many Requests: /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/
+WARNING 2025-09-13 12:37:41,707 log 50417 127091890706112 Too Many Requests: /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/inventory/
+WARNING 2025-09-13 12:37:41,716 basehttp 50417 127091890706112 "GET /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/inventory/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:37:41,715 basehttp 50417 127091899098816 "GET /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:37:41,724 log 50417 127091882313408 Too Many Requests: /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/
+WARNING 2025-09-13 12:37:41,739 log 50417 127091890706112 Too Many Requests: /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/inventory/
+WARNING 2025-09-13 12:37:41,742 basehttp 50417 127091890706112 "GET /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/inventory/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:37:41,743 basehttp 50417 127091882313408 "GET /api/v1/inventory/warehouses/07844fe6-fb59-400a-b80f-abae90084447/ HTTP/1.1" 429 17
+INFO 2025-09-13 12:37:46,414 basehttp 50417 127091890706112 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+INFO 2025-09-13 12:37:46,455 basehttp 50417 127091882313408 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+INFO 2025-09-13 12:38:01,886 basehttp 50417 127091882313408 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+WARNING 2025-09-13 12:38:01,912 log 50417 127091899098816 Too Many Requests: /api/v1/inventory/warehouses/
+INFO 2025-09-13 12:38:01,924 basehttp 50417 127091890706112 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+WARNING 2025-09-13 12:38:01,925 basehttp 50417 127091899098816 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:38:01,930 log 50417 127091882313408 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-09-13 12:38:01,940 basehttp 50417 127091882313408 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:38:01,942 log 50417 127091890706112 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 12:38:01,954 log 50417 127091882313408 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-09-13 12:38:01,959 basehttp 50417 127091882313408 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:38:01,962 basehttp 50417 127091890706112 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+INFO 2025-09-13 12:38:50,323 basehttp 50417 127091890706112 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-13 12:38:52,164 basehttp 50417 127091890706112 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-13 12:39:17,455 basehttp 50417 127091890706112 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+INFO 2025-09-13 12:39:17,508 basehttp 50417 127091882313408 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+INFO 2025-09-13 12:39:22,378 basehttp 50417 127091882313408 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-13 12:39:29,160 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:39:29,175 basehttp 50417 127091890706112 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 12:39:29,242 basehttp 50417 127091899098816 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 12:39:29,259 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+WARNING 2025-09-13 12:39:32,979 log 50417 127091899098816 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 12:39:32,993 basehttp 50417 127091899098816 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 12:39:32,999 log 50417 127091890706112 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 12:39:33,016 basehttp 50417 127091890706112 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 12:39:33,051 basehttp 50417 127091882313408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+WARNING 2025-09-13 12:39:33,076 log 50417 127091890706112 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 12:39:33,080 basehttp 50417 127091890706112 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:19:53,983 autoreload 87421 125762403076992 Watching for file changes with StatReloader
+INFO 2025-09-13 13:22:46,613 basehttp 87421 125762293982912 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-13 13:22:47,323 basehttp 87421 125762212460224 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-13 13:22:47,395 basehttp 87421 125762204067520 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-13 13:23:08,722 basehttp 87421 125762204067520 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-09-13 13:23:08,929 basehttp 87421 125762212460224 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-09-13 13:24:07,039 basehttp 87421 125762212460224 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-09-13 13:24:07,904 basehttp 87421 125762293982912 "POST /api/v1/auth/login/ HTTP/1.1" 200 1418
+INFO 2025-09-13 13:24:12,228 basehttp 87421 125762293982912 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-13 13:24:12,409 basehttp 87421 125762293982912 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1642
+INFO 2025-09-13 13:24:41,619 basehttp 87421 125762293982912 "OPTIONS /api/v1/inventory/warehouses/ HTTP/1.1" 200 2
+INFO 2025-09-13 13:24:41,630 basehttp 87421 125762212460224 "OPTIONS /api/v1/inventory/warehouses/ HTTP/1.1" 200 2
+INFO 2025-09-13 13:24:41,952 basehttp 87421 125762293982912 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+INFO 2025-09-13 13:24:41,994 basehttp 87421 125762212460224 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+INFO 2025-09-13 13:25:04,371 basehttp 87421 125762212460224 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1642
+INFO 2025-09-13 13:25:16,593 basehttp 87421 125762293982912 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+INFO 2025-09-13 13:25:16,594 basehttp 87421 125762212460224 "OPTIONS /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 2
+INFO 2025-09-13 13:25:18,930 basehttp 87421 125762293982912 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 13:25:18,952 basehttp 87421 125762187282112 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 13:25:19,271 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:25:19,285 basehttp 87421 125762195674816 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+INFO 2025-09-13 13:25:19,289 basehttp 87421 125762187282112 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-13 13:25:19,297 basehttp 87421 125762204067520 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+WARNING 2025-09-13 13:25:19,631 log 87421 125762204067520 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 13:25:19,661 basehttp 87421 125762204067520 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:25:19,827 basehttp 87421 125762293982912 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+INFO 2025-09-13 13:25:19,830 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:25:19,837 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+WARNING 2025-09-13 13:25:38,425 log 87421 125762212460224 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 13:25:38,426 basehttp 87421 125762212460224 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 13:25:38,444 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 13:25:38,448 log 87421 125762293982912 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:25:38,454 basehttp 87421 125762187282112 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 13:25:38,455 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:25:38,465 log 87421 125762195674816 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:25:38,473 log 87421 125762178889408 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:25:38,476 basehttp 87421 125762195674816 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:25:38,477 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:25:38,515 log 87421 125762178889408 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:25:38,517 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:25:56,614 log 87421 125762293982912 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:25:56,632 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:25:56,648 log 87421 125762212460224 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:25:56,652 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 13:25:56,656 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:25:56,672 basehttp 87421 125762187282112 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:25:56,699 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 13:25:56,722 basehttp 87421 125762187282112 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:25:56,743 basehttp 87421 125762178889408 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+INFO 2025-09-13 13:25:56,745 basehttp 87421 125762195674816 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+WARNING 2025-09-13 13:25:56,755 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 13:25:56,758 basehttp 87421 125762187282112 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 13:25:56,773 log 87421 125762195674816 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:25:56,774 basehttp 87421 125762195674816 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:06,360 log 87421 125762195674816 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:26:06,363 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:26:06,370 basehttp 87421 125762195674816 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:06,382 log 87421 125762212460224 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:26:06,397 basehttp 87421 125762187282112 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:06,409 log 87421 125762195674816 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:26:06,412 basehttp 87421 125762195674816 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:06,398 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:26:06,450 basehttp 87421 125762178889408 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+WARNING 2025-09-13 13:26:06,455 log 87421 125762195674816 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 13:26:06,463 basehttp 87421 125762195674816 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:07,254 log 87421 125762178889408 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 13:26:07,256 basehttp 87421 125762178889408 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:07,260 log 87421 125762195674816 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:26:07,275 log 87421 125762212460224 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 13:26:07,278 basehttp 87421 125762195674816 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:07,283 basehttp 87421 125762212460224 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:07,280 log 87421 125762178889408 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:26:07,292 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-13 13:26:07,293 basehttp 87421 125762187282112 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:07,301 log 87421 125762293982912 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:26:07,301 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:07,305 log 87421 125762212460224 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-13 13:26:07,325 basehttp 87421 125762212460224 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:07,314 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:07,349 log 87421 125762293982912 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:26:07,352 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:26:09,109 log 87421 125762293982912 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-13 13:26:09,110 basehttp 87421 125762293982912 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:26:50,899 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:26:50,914 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-13 13:26:51,050 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:26:51,055 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-13 13:27:11,948 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:27:11,969 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-13 13:27:12,034 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:27:12,037 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+WARNING 2025-09-13 13:28:04,219 log 87421 125762212460224 Bad Request: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:28:04,223 basehttp 87421 125762212460224 "POST /api/v1/inventory/categories/ HTTP/1.1" 400 112
+INFO 2025-09-13 13:28:04,321 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-13 13:28:04,323 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:28:04,751 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:28:04,763 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+WARNING 2025-09-13 13:28:04,774 log 87421 125762212460224 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:28:04,775 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:28:04,831 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:28:31,592 basehttp 87421 125762212460224 "GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+INFO 2025-09-13 13:28:31,696 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+WARNING 2025-09-13 13:28:31,700 log 87421 125762212460224 Too Many Requests: /api/v1/inventory/categories/tree/
+INFO 2025-09-13 13:28:31,723 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+WARNING 2025-09-13 13:28:31,731 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:28:31,733 basehttp 87421 125762187282112 "GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+WARNING 2025-09-13 13:28:31,746 log 87421 125762204067520 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:28:31,773 basehttp 87421 125762204067520 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:28:31,774 log 87421 125762212460224 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-09-13 13:28:31,775 basehttp 87421 125762212460224 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:28:32,181 log 87421 125762293982912 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:28:32,188 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:28:32,184 log 87421 125762178889408 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:28:32,198 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:28:56,151 log 87421 125762187282112 Too Many Requests: /api/v1/auth/login/
+WARNING 2025-09-13 13:28:56,155 basehttp 87421 125762187282112 "POST /api/v1/auth/login/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:29:09,773 basehttp 87421 125762187282112 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-13 13:29:11,235 basehttp 87421 125762187282112 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-13 13:29:20,155 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-13 13:29:20,156 basehttp 87421 125762187282112 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 13:29:20,224 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 100
+INFO 2025-09-13 13:29:20,226 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+WARNING 2025-09-13 13:29:24,933 log 87421 125762293982912 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:29:24,938 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:29:24,936 log 87421 125762212460224 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:29:24,942 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:29:24,948 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:29:24,951 basehttp 87421 125762187282112 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:29:24,956 log 87421 125762178889408 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:29:24,962 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:29:48,890 basehttp 87421 125762178889408 "POST /api/v1/inventory/categories/ HTTP/1.1" 201 301
+INFO 2025-09-13 13:29:49,023 basehttp 87421 125762187282112 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-13 13:29:49,029 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+WARNING 2025-09-13 13:29:49,278 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:29:49,283 basehttp 87421 125762187282112 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:29:49,326 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:29:49,331 basehttp 87421 125762187282112 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:29:49,333 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+WARNING 2025-09-13 13:29:49,338 log 87421 125762212460224 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:29:49,340 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:30:11,904 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-13 13:30:11,905 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+WARNING 2025-09-13 13:30:11,920 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:30:11,923 log 87421 125762293982912 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:30:11,926 basehttp 87421 125762187282112 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:30:11,930 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:30:58,423 log 87421 125762212460224 Bad Request: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:30:58,424 basehttp 87421 125762212460224 "POST /api/v1/inventory/categories/ HTTP/1.1" 400 112
+INFO 2025-09-13 13:30:58,468 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-13 13:30:58,470 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-13 13:30:58,727 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-13 13:30:58,739 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-13 13:30:58,821 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-13 13:30:58,823 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-13 13:31:21,330 basehttp 87421 125762178889408 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-13 13:31:21,356 basehttp 87421 125762293982912 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+INFO 2025-09-13 13:31:21,377 basehttp 87421 125762178889408 "GET /api/v1/auth/profile/ HTTP/1.1" 200 528
+WARNING 2025-09-13 13:31:26,021 log 87421 125762178889408 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:31:26,026 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:31:26,025 log 87421 125762293982912 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:31:26,029 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:31:26,039 log 87421 125762212460224 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-09-13 13:31:26,046 basehttp 87421 125762212460224 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:31:26,066 log 87421 125762293982912 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:31:26,114 log 87421 125762178889408 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:31:26,115 basehttp 87421 125762293982912 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:31:26,121 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:31:26,105 log 87421 125762212460224 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-09-13 13:31:26,128 basehttp 87421 125762212460224 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:31:26,166 log 87421 125762187282112 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-13 13:31:26,171 log 87421 125762212460224 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-13 13:31:26,179 basehttp 87421 125762187282112 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:31:26,180 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:31:26,190 log 87421 125762293982912 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-09-13 13:31:26,216 basehttp 87421 125762293982912 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:31:41,434 log 87421 125762293982912 Too Many Requests: /api/v1/auth/login/
+WARNING 2025-09-13 13:31:41,437 basehttp 87421 125762293982912 "POST /api/v1/auth/login/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:31:54,150 log 87421 125762293982912 Too Many Requests: /api/v1/auth/login/
+WARNING 2025-09-13 13:31:54,152 basehttp 87421 125762293982912 "POST /api/v1/auth/login/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:32:24,515 basehttp 87421 125762293982912 "POST /api/v1/auth/login/ HTTP/1.1" 200 1418
+INFO 2025-09-13 13:32:25,111 basehttp 87421 125762293982912 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1642
+INFO 2025-09-13 13:32:36,477 basehttp 87421 125762187282112 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-13 13:32:36,500 basehttp 87421 125762293982912 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+INFO 2025-09-13 13:32:36,522 basehttp 87421 125762178889408 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+INFO 2025-09-13 13:32:36,533 basehttp 87421 125762212460224 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:32:36,588 basehttp 87421 125762204067520 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-13 13:32:36,595 basehttp 87421 125762187282112 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+INFO 2025-09-13 13:32:36,603 basehttp 87421 125762178889408 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-13 13:32:36,614 basehttp 87421 125762293982912 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+WARNING 2025-09-13 13:32:48,511 log 87421 125762293982912 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-09-13 13:32:48,513 basehttp 87421 125762293982912 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:32:48,544 log 87421 125762178889408 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-09-13 13:32:48,550 basehttp 87421 125762178889408 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+WARNING 2025-09-13 13:32:48,558 log 87421 125762187282112 Too Many Requests: /api/v1/auth/profile/
+WARNING 2025-09-13 13:32:48,560 basehttp 87421 125762187282112 "GET /api/v1/auth/profile/ HTTP/1.1" 429 17
+INFO 2025-09-13 13:42:08,529 basehttp 87421 125762187282112 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-13 13:42:09,951 basehttp 87421 125762187282112 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-13 13:46:20,127 basehttp 87421 125762204067520 "GET /api/docs/ HTTP/1.1" 200 4645
+INFO 2025-09-13 13:46:24,308 basehttp 87421 125762204067520 "GET /api/schema/ HTTP/1.1" 200 564788
+INFO 2025-09-16 20:30:01,902 autoreload 24207 126936255208320 Watching for file changes with StatReloader
+INFO 2025-09-16 20:32:36,293 basehttp 24207 126936069433024 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-09-16 20:32:36,752 log 24207 126936077825728 Unauthorized: /api/v1/auth/login/
+WARNING 2025-09-16 20:32:36,754 basehttp 24207 126936077825728 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-09-16 20:32:36,762 basehttp 24207 126936077825728 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-09-16 20:32:36,817 basehttp 24207 126936077825728 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 830
+INFO 2025-09-16 20:32:37,766 basehttp 24207 126936077825728 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-16 20:32:39,781 basehttp 24207 126936077825728 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-16 20:32:39,882 basehttp 24207 126936077825728 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-16 20:32:49,021 basehttp 24207 126936077825728 "OPTIONS /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 2
+INFO 2025-09-16 20:32:49,024 basehttp 24207 126936069433024 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+INFO 2025-09-16 20:32:49,030 basehttp 24207 126936069433024 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-16 20:32:49,073 basehttp 24207 126936077825728 "OPTIONS /api/v1/inventory/warehouses/ HTTP/1.1" 200 2
+INFO 2025-09-16 20:32:49,085 basehttp 24207 126936043206336 "OPTIONS /api/v1/inventory/warehouses/ HTTP/1.1" 200 2
+INFO 2025-09-16 20:32:49,088 basehttp 24207 126936069433024 "OPTIONS /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 2
+INFO 2025-09-16 20:32:49,092 basehttp 24207 126936051599040 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-16 20:32:49,097 basehttp 24207 126936059991744 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+INFO 2025-09-16 20:32:50,213 basehttp 24207 126936026420928 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-16 20:32:50,258 basehttp 24207 126936034813632 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-16 20:32:50,260 basehttp 24207 126935543838400 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+WARNING 2025-09-16 20:32:50,273 log 24207 126936034813632 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-16 20:32:50,277 basehttp 24207 126936034813632 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-16 20:32:50,278 basehttp 24207 126935535445696 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+WARNING 2025-09-16 20:32:50,290 log 24207 126935543838400 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-16 20:32:50,298 basehttp 24207 126935543838400 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+INFO 2025-09-16 20:32:50,321 basehttp 24207 126936026420928 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-16 20:32:50,321 basehttp 24207 126936059991744 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+WARNING 2025-09-16 20:32:58,068 log 24207 126936026420928 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-16 20:32:58,075 log 24207 126936059991744 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-16 20:32:58,081 basehttp 24207 126936059991744 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-16 20:32:58,079 basehttp 24207 126936026420928 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-16 20:32:58,077 log 24207 126935535445696 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-16 20:32:58,092 basehttp 24207 126935535445696 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-16 20:32:58,126 log 24207 126936059991744 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-16 20:32:58,132 basehttp 24207 126936059991744 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-16 20:32:58,139 log 24207 126935535445696 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-16 20:32:58,153 basehttp 24207 126935535445696 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-16 20:32:58,141 log 24207 126936026420928 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-16 20:32:58,161 basehttp 24207 126936026420928 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-16 20:44:53,083 log 24207 126936026420928 Unauthorized: /api/v1/inventory/products/
+WARNING 2025-09-16 20:44:53,084 basehttp 24207 126936026420928 "GET /api/v1/inventory/products/ HTTP/1.1" 401 5415
+INFO 2025-09-16 20:44:53,183 basehttp 24207 126935535445696 "GET /static/rest_framework/css/bootstrap-tweaks.css HTTP/1.1" 200 3426
+INFO 2025-09-16 20:44:53,197 basehttp 24207 126935543838400 "GET /static/rest_framework/css/default.css HTTP/1.1" 200 1152
+INFO 2025-09-16 20:44:53,198 basehttp 24207 126936026420928 "GET /static/rest_framework/css/bootstrap.min.css HTTP/1.1" 200 121457
+INFO 2025-09-16 20:44:53,200 basehttp 24207 126936051599040 "GET /static/rest_framework/js/ajax-form.js HTTP/1.1" 200 3796
+INFO 2025-09-16 20:44:53,200 basehttp 24207 126935535445696 "GET /static/rest_framework/js/csrf.js HTTP/1.1" 200 1793
+INFO 2025-09-16 20:44:53,201 basehttp 24207 126936059991744 "GET /static/rest_framework/css/prettify.css HTTP/1.1" 200 817
+INFO 2025-09-16 20:44:53,208 basehttp 24207 126936075728576 "GET /static/rest_framework/js/jquery-3.7.1.min.js HTTP/1.1" 200 87533
+INFO 2025-09-16 20:44:53,225 basehttp 24207 126936051599040 "GET /static/rest_framework/js/prettify-min.js HTTP/1.1" 200 13632
+INFO 2025-09-16 20:44:53,227 basehttp 24207 126936026420928 "GET /static/rest_framework/js/load-ajax-form.js HTTP/1.1" 200 59
+INFO 2025-09-16 20:44:53,227 basehttp 24207 126936059991744 "GET /static/rest_framework/js/default.js HTTP/1.1" 200 1268
+INFO 2025-09-16 20:44:53,227 basehttp 24207 126935543838400 "GET /static/rest_framework/js/bootstrap.min.js HTTP/1.1" 200 39680
+INFO 2025-09-16 20:44:54,137 basehttp 24207 126936026420928 "GET /static/rest_framework/img/grid.png HTTP/1.1" 200 1458
+WARNING 2025-09-16 20:44:55,654 log 24207 126936026420928 Not Found: /favicon.ico
+WARNING 2025-09-16 20:44:55,654 basehttp 24207 126936026420928 "GET /favicon.ico HTTP/1.1" 404 3815
+WARNING 2025-09-16 20:45:10,441 log 24207 126936026420928 Unauthorized: /api/v1/inventory/products/
+WARNING 2025-09-16 20:45:10,442 basehttp 24207 126936026420928 "GET /api/v1/inventory/products/ HTTP/1.1" 401 5415
+WARNING 2025-09-16 20:45:11,902 log 24207 126936026420928 Unauthorized: /api/v1/inventory/products/
+WARNING 2025-09-16 20:45:11,903 basehttp 24207 126936026420928 "GET /api/v1/inventory/products/ HTTP/1.1" 401 5415
+WARNING 2025-09-16 20:45:17,012 log 24207 126936026420928 Unauthorized: /api/v1/inventory/products/
+WARNING 2025-09-16 20:45:17,013 basehttp 24207 126936026420928 "GET /api/v1/inventory/products/ HTTP/1.1" 401 5415
+WARNING 2025-09-16 20:45:17,603 log 24207 126936026420928 Unauthorized: /api/v1/inventory/products/
+WARNING 2025-09-16 20:45:17,604 basehttp 24207 126936026420928 "GET /api/v1/inventory/products/ HTTP/1.1" 401 5415
+WARNING 2025-09-16 20:46:39,659 log 24207 126936043206336 Unauthorized: /api/v1/inventory/products/
+WARNING 2025-09-16 20:46:39,660 basehttp 24207 126936043206336 "GET /api/v1/inventory/products/ HTTP/1.1" 401 5415
+INFO 2025-09-16 20:46:39,755 basehttp 24207 126936043206336 "GET /static/rest_framework/css/bootstrap.min.css HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:39,771 basehttp 24207 126935518660288 "GET /static/rest_framework/js/jquery-3.7.1.min.js HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:39,779 basehttp 24207 126935510267584 "GET /static/rest_framework/css/prettify.css HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:39,783 basehttp 24207 126936043206336 "GET /static/rest_framework/js/ajax-form.js HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:39,783 basehttp 24207 126936034813632 "GET /static/rest_framework/css/bootstrap-tweaks.css HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:39,784 basehttp 24207 126935501874880 "GET /static/rest_framework/js/bootstrap.min.js HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:39,794 basehttp 24207 126935527052992 "GET /static/rest_framework/css/default.css HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:39,794 basehttp 24207 126935510267584 "GET /static/rest_framework/js/prettify-min.js HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:39,796 basehttp 24207 126935518660288 "GET /static/rest_framework/js/csrf.js HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:39,799 basehttp 24207 126936034813632 "GET /static/rest_framework/js/default.js HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:39,810 basehttp 24207 126935527052992 "GET /static/rest_framework/js/load-ajax-form.js HTTP/1.1" 304 0
+INFO 2025-09-16 20:46:40,583 basehttp 24207 126935527052992 "GET /static/rest_framework/img/grid.png HTTP/1.1" 304 0
+WARNING 2025-09-16 20:46:42,054 log 24207 126935527052992 Not Found: /favicon.ico
+WARNING 2025-09-16 20:46:42,056 basehttp 24207 126935527052992 "GET /favicon.ico HTTP/1.1" 404 3815
+INFO 2025-09-18 02:02:50,728 autoreload 14468 135509829884800 Watching for file changes with StatReloader
+INFO 2025-09-18 02:04:13,841 basehttp 14468 135509720688320 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-09-18 02:04:13,910 log 14468 135509720688320 Unauthorized: /api/v1/auth/login/
+WARNING 2025-09-18 02:04:13,910 basehttp 14468 135509720688320 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-09-18 02:04:13,922 basehttp 14468 135509720688320 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-09-18 02:04:13,932 basehttp 14468 135509720688320 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 830
+INFO 2025-09-18 02:04:14,631 basehttp 14468 135509720688320 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-18 02:04:17,007 basehttp 14468 135509720688320 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-18 02:04:17,054 basehttp 14468 135509720688320 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-18 02:04:24,705 basehttp 14468 135509720688320 "OPTIONS /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 2
+INFO 2025-09-18 02:04:24,713 basehttp 14468 135509640738496 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+INFO 2025-09-18 02:04:24,723 basehttp 14468 135509632345792 "OPTIONS /api/v1/inventory/warehouses/ HTTP/1.1" 200 2
+INFO 2025-09-18 02:04:24,718 basehttp 14468 135509720688320 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-18 02:04:24,751 basehttp 14468 135509720688320 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+INFO 2025-09-18 02:04:24,758 basehttp 14468 135509632345792 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-18 02:04:24,760 basehttp 14468 135509640738496 "OPTIONS /api/v1/inventory/warehouses/ HTTP/1.1" 200 2
+INFO 2025-09-18 02:04:24,824 basehttp 14468 135509623953088 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-18 02:04:25,009 basehttp 14468 135509632345792 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+WARNING 2025-09-18 02:04:25,034 log 14468 135509632345792 Too Many Requests: /api/v1/inventory/warehouses/
+INFO 2025-09-18 02:04:25,035 basehttp 14468 135509720688320 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+WARNING 2025-09-18 02:04:25,035 basehttp 14468 135509632345792 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+INFO 2025-09-18 02:04:25,056 basehttp 14468 135509615560384 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+INFO 2025-09-18 02:04:25,066 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+WARNING 2025-09-18 02:04:25,072 log 14468 135509615560384 Too Many Requests: /api/v1/inventory/categories/
+INFO 2025-09-18 02:04:25,076 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+WARNING 2025-09-18 02:04:25,079 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:04:40,433 log 14468 135509623953088 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:04:40,436 log 14468 135509640738496 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:04:40,438 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:04:40,447 log 14468 135509720688320 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:04:40,448 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:04:40,449 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:04:40,482 log 14468 135509623953088 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:04:40,484 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:05:07,469 log 14468 135509623953088 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:05:07,473 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:05:07,492 log 14468 135509623953088 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:05:07,498 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:05:07,510 log 14468 135509720688320 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:05:07,518 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:05:07,519 log 14468 135509623953088 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:05:07,525 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-18 02:05:58,437 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-18 02:05:58,439 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-18 02:05:58,610 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-18 02:05:58,620 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-18 02:06:02,394 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-18 02:06:02,397 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-18 02:06:02,501 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-18 02:06:02,501 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-18 02:06:03,803 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+WARNING 2025-09-18 02:06:03,816 log 14468 135509623953088 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:06:03,821 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+INFO 2025-09-18 02:06:03,824 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+WARNING 2025-09-18 02:06:03,832 log 14468 135509640738496 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:06:03,834 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:06:05,178 log 14468 135509615560384 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-18 02:06:05,180 basehttp 14468 135509615560384 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-09-18 02:06:34,579 basehttp 14468 135509720688320 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+WARNING 2025-09-18 02:06:34,607 log 14468 135509720688320 Too Many Requests: /api/v1/auth/logout/
+WARNING 2025-09-18 02:06:34,610 basehttp 14468 135509720688320 "POST /api/v1/auth/logout/ HTTP/1.1" 429 17
+INFO 2025-09-18 02:08:00,055 basehttp 14468 135509720688320 "POST /api/v1/auth/login/ HTTP/1.1" 200 1418
+INFO 2025-09-18 02:08:02,009 basehttp 14468 135509720688320 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1642
+INFO 2025-09-18 02:09:24,026 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-18 02:09:24,056 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-18 02:09:24,190 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-18 02:09:24,209 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-18 02:09:51,289 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-18 02:09:51,322 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-18 02:09:51,373 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+INFO 2025-09-18 02:09:51,390 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+INFO 2025-09-18 02:09:56,426 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 338
+WARNING 2025-09-18 02:09:56,445 log 14468 135509640738496 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:09:56,452 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-18 02:09:56,472 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 436
+WARNING 2025-09-18 02:09:56,478 log 14468 135509615560384 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:09:56,480 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:10:04,243 log 14468 135509720688320 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:10:04,250 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:10:04,250 log 14468 135509615560384 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:10:04,262 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:10:04,300 log 14468 135509615560384 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:10:04,307 log 14468 135509720688320 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:10:04,309 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:10:04,310 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-18 02:10:58,820 basehttp 14468 135509615560384 "POST /api/v1/inventory/categories/ HTTP/1.1" 201 310
+INFO 2025-09-18 02:10:58,913 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 02:10:58,915 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 02:10:59,654 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 02:10:59,660 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 02:10:59,805 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 02:10:59,825 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 02:15:02,039 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 02:15:02,081 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 02:15:02,241 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 02:15:02,315 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 02:15:04,652 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 02:15:04,666 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 02:15:04,758 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 02:15:04,759 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 02:15:06,645 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+WARNING 2025-09-18 02:15:06,667 log 14468 135509720688320 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:15:06,682 basehttp 14468 135509720688320 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+INFO 2025-09-18 02:15:06,686 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+WARNING 2025-09-18 02:15:06,717 log 14468 135509623953088 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:15:06,720 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:15:16,845 log 14468 135509615560384 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:15:16,847 log 14468 135509640738496 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:15:16,849 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:15:16,850 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:15:16,874 log 14468 135509615560384 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:15:16,891 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:15:16,899 log 14468 135509623953088 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:15:16,900 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:15:17,831 log 14468 135509623953088 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-18 02:15:17,832 basehttp 14468 135509623953088 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+INFO 2025-09-18 02:16:23,629 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 02:16:23,642 basehttp 14468 135509623953088 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+INFO 2025-09-18 02:16:23,694 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 02:16:23,819 basehttp 14468 135509720688320 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+INFO 2025-09-18 02:16:23,896 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 02:16:23,925 basehttp 14468 135509632345792 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 02:16:23,945 basehttp 14468 135509615560384 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+INFO 2025-09-18 02:16:23,991 basehttp 14468 135509640738496 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+WARNING 2025-09-18 02:16:32,968 log 14468 135509632345792 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:16:32,981 basehttp 14468 135509632345792 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:16:33,050 log 14468 135509623953088 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 02:16:33,087 basehttp 14468 135509623953088 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 02:16:33,147 log 14468 135509720688320 Too Many Requests: /api/v1/inventory/products/
+INFO 2025-09-18 02:16:33,150 basehttp 14468 135509640738496 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+WARNING 2025-09-18 02:16:33,177 basehttp 14468 135509720688320 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+INFO 2025-09-18 02:16:33,234 basehttp 14468 135509615560384 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+WARNING 2025-09-18 02:16:33,238 log 14468 135509640738496 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 02:16:33,250 basehttp 14468 135509640738496 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+INFO 2025-09-18 02:17:51,560 basehttp 14468 135509615560384 "OPTIONS /api/v1/inventory/products/ HTTP/1.1" 200 2
+WARNING 2025-09-18 02:17:51,619 log 14468 135509615560384 Bad Request: /api/v1/inventory/products/
+WARNING 2025-09-18 02:17:51,621 basehttp 14468 135509615560384 "POST /api/v1/inventory/products/ HTTP/1.1" 400 156
+INFO 2025-09-18 03:00:20,362 autoreload 39751 135277838486400 Watching for file changes with StatReloader
+INFO 2025-09-18 03:01:07,274 basehttp 39751 135277645395648 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 833
+INFO 2025-09-18 03:01:07,291 basehttp 39751 135277728491200 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 833
+INFO 2025-09-18 03:01:07,292 basehttp 39751 135277637002944 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 833
+INFO 2025-09-18 03:01:07,465 basehttp 39751 135277728491200 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-09-18 03:01:07,497 basehttp 39751 135277645395648 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-09-18 03:01:07,498 basehttp 39751 135277637002944 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-09-18 03:01:07,910 basehttp 39751 135277628610240 "GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+INFO 2025-09-18 03:01:07,976 basehttp 39751 135277637002944 "GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+INFO 2025-09-18 03:01:08,045 basehttp 39751 135277628610240 "GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+INFO 2025-09-18 03:01:59,248 basehttp 39751 135277628610240 "GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+INFO 2025-09-18 03:01:59,513 basehttp 39751 135277628610240 "GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+INFO 2025-09-18 03:01:59,728 basehttp 39751 135277628610240 "GET /api/v1/auth/profile/ HTTP/1.1" 200 537
+INFO 2025-09-18 03:02:10,838 basehttp 39751 135277628610240 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-09-18 03:02:45,041 basehttp 39751 135277628610240 "POST /api/v1/auth/login/ HTTP/1.1" 200 1418
+INFO 2025-09-18 03:02:49,414 basehttp 39751 135277628610240 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1642
+INFO 2025-09-18 03:03:12,413 basehttp 39751 135277637002944 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 03:03:12,420 basehttp 39751 135277628610240 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+INFO 2025-09-18 03:03:12,432 basehttp 39751 135277645395648 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 03:03:12,461 basehttp 39751 135277728491200 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+INFO 2025-09-18 03:03:12,655 basehttp 39751 135277620217536 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 03:03:12,668 basehttp 39751 135277628610240 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 03:03:12,670 basehttp 39751 135277637002944 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+INFO 2025-09-18 03:03:12,676 basehttp 39751 135277645395648 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+WARNING 2025-09-18 03:03:22,644 log 39751 135277645395648 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-18 03:03:22,646 log 39751 135277637002944 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 03:03:22,647 log 39751 135277628610240 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 03:03:22,652 basehttp 39751 135277628610240 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 03:03:22,648 basehttp 39751 135277645395648 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-18 03:03:22,655 basehttp 39751 135277637002944 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 03:03:22,661 log 39751 135277728491200 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 03:03:22,662 log 39751 135277620217536 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-18 03:03:22,663 basehttp 39751 135277728491200 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 03:03:22,666 log 39751 135277611824832 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 03:03:22,670 basehttp 39751 135277620217536 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-18 03:03:22,675 basehttp 39751 135277611824832 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-18 03:04:42,725 basehttp 39751 135277611824832 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+INFO 2025-09-18 03:04:42,811 basehttp 39751 135277620217536 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 03:04:42,848 basehttp 39751 135277728491200 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 03:04:42,860 basehttp 39751 135277637002944 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+INFO 2025-09-18 03:04:42,861 basehttp 39751 135277645395648 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 466
+INFO 2025-09-18 03:04:42,937 basehttp 39751 135277611824832 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 747
+INFO 2025-09-18 03:04:42,949 basehttp 39751 135277620217536 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 649
+INFO 2025-09-18 03:04:42,970 basehttp 39751 135277728491200 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 827
+INFO 2025-09-18 20:05:35,088 autoreload 24599 127117224823680 Watching for file changes with StatReloader
+INFO 2025-09-18 20:07:15,779 basehttp 24599 127117115778752 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-09-18 20:07:16,116 log 24599 127117107386048 Unauthorized: /api/v1/auth/login/
+WARNING 2025-09-18 20:07:16,117 basehttp 24599 127117107386048 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-09-18 20:07:16,125 basehttp 24599 127117107386048 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-09-18 20:07:16,175 basehttp 24599 127117107386048 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 833
+INFO 2025-09-18 20:07:17,034 basehttp 24599 127117107386048 "POST /api/v1/auth/login/ HTTP/1.1" 200 1406
+INFO 2025-09-18 20:07:20,257 basehttp 24599 127117107386048 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-09-18 20:07:20,381 basehttp 24599 127117107386048 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-09-18 20:07:33,479 basehttp 24599 127117107386048 "OPTIONS /api/v1/inventory/warehouses/ HTTP/1.1" 200 2
+INFO 2025-09-18 20:07:33,627 basehttp 24599 127117107386048 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+INFO 2025-09-18 20:07:33,694 basehttp 24599 127117115778752 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+INFO 2025-09-18 20:07:49,957 basehttp 24599 127117115778752 "OPTIONS /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 2
+INFO 2025-09-18 20:07:49,967 basehttp 24599 127117107386048 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+INFO 2025-09-18 20:07:49,986 basehttp 24599 127117107386048 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-18 20:07:50,012 basehttp 24599 127117097682624 "OPTIONS /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 2
+INFO 2025-09-18 20:07:50,070 basehttp 24599 127117089289920 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-09-18 20:07:50,094 basehttp 24599 127117107386048 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+INFO 2025-09-18 20:07:50,224 basehttp 24599 127117115778752 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+WARNING 2025-09-18 20:07:51,093 log 24599 127117089289920 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-18 20:07:51,104 basehttp 24599 127117089289920 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:07:51,121 log 24599 127117115778752 Too Many Requests: /api/v1/inventory/products/
+INFO 2025-09-18 20:07:51,121 basehttp 24599 127116737771200 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+WARNING 2025-09-18 20:07:51,133 basehttp 24599 127117115778752 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+INFO 2025-09-18 20:07:51,145 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+WARNING 2025-09-18 20:07:51,148 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:07:51,153 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+INFO 2025-09-18 20:07:51,153 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+WARNING 2025-09-18 20:07:51,155 log 24599 127116729378496 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:07:51,158 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:03,537 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-18 20:08:03,543 log 24599 127116729378496 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:08:03,543 basehttp 24599 127117097682624 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:03,546 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:03,552 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:08:03,556 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:03,558 log 24599 127116729378496 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-18 20:08:03,569 basehttp 24599 127116729378496 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:03,564 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:08:03,567 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:08:03,573 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:03,573 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:19,672 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:08:19,696 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:19,717 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:08:19,736 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+INFO 2025-09-18 20:08:19,769 basehttp 24599 127117097682624 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 200 100
+WARNING 2025-09-18 20:08:19,791 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-18 20:08:19,797 basehttp 24599 127116737771200 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+INFO 2025-09-18 20:08:19,796 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-18 20:08:19,796 basehttp 24599 127117115778752 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 200 396
+WARNING 2025-09-18 20:08:19,800 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-18 20:08:19,811 basehttp 24599 127117097682624 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:19,820 log 24599 127116729378496 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:08:19,822 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-18 20:08:21,444 basehttp 24599 127117115778752 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+WARNING 2025-09-18 20:08:30,191 log 24599 127117115778752 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:08:30,203 basehttp 24599 127117115778752 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:30,216 log 24599 127116729378496 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:08:30,222 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:30,224 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:08:30,245 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:08:30,284 log 24599 127116729378496 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:08:30,285 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-18 20:08:51,658 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-18 20:08:51,685 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-18 20:08:51,820 basehttp 24599 127117115778752 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 401
+INFO 2025-09-18 20:08:51,827 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 303
+INFO 2025-09-18 20:10:22,220 basehttp 24599 127116729378496 "POST /api/v1/inventory/categories/ HTTP/1.1" 201 314
+INFO 2025-09-18 20:10:22,335 basehttp 24599 127117115778752 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 618
+INFO 2025-09-18 20:10:22,337 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 716
+INFO 2025-09-18 20:10:22,752 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 716
+INFO 2025-09-18 20:10:22,853 basehttp 24599 127117115778752 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 618
+INFO 2025-09-18 20:10:22,936 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 716
+INFO 2025-09-18 20:10:23,052 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 618
+INFO 2025-09-18 20:10:42,021 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 618
+INFO 2025-09-18 20:10:42,021 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 716
+WARNING 2025-09-18 20:10:42,036 log 24599 127117115778752 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:10:42,049 basehttp 24599 127117115778752 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+INFO 2025-09-18 20:10:42,098 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 716
+WARNING 2025-09-18 20:10:43,667 log 24599 127116729378496 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:10:43,677 basehttp 24599 127116729378496 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:43,672 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:10:43,681 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:10:43,687 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:43,693 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:43,704 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:10:43,706 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:45,271 log 24599 127117097682624 Too Many Requests: /api/v1/auth/dashboard/overview/
+WARNING 2025-09-18 20:10:45,273 basehttp 24599 127117097682624 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:56,570 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-18 20:10:56,576 basehttp 24599 127117097682624 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:56,575 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:10:56,580 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:56,584 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:10:56,588 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:56,602 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-18 20:10:56,603 basehttp 24599 127117097682624 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:56,617 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-18 20:10:56,619 basehttp 24599 127116737771200 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:56,644 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:10:56,645 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:10:56,652 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:56,647 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:10:56,650 log 24599 127116729378496 Too Many Requests: /api/v1/inventory/warehouses/
+WARNING 2025-09-18 20:10:56,655 basehttp 24599 127116729378496 "GET /api/v1/inventory/warehouses/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:11:04,390 log 24599 127116729378496 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-18 20:11:04,405 basehttp 24599 127116729378496 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-18 20:11:04,408 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:11:04,395 log 24599 127117097682624 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:11:04,420 log 24599 127117115778752 Too Many Requests: /api/v1/inventory/products/
+WARNING 2025-09-18 20:11:04,428 basehttp 24599 127117097682624 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:11:04,431 basehttp 24599 127117115778752 "GET /api/v1/inventory/products/?page=1&page_size=20 HTTP/1.1" 429 17
+WARNING 2025-09-18 20:11:04,423 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:11:04,476 log 24599 127116737771200 Too Many Requests: /api/v1/inventory/categories/tree/
+WARNING 2025-09-18 20:11:04,484 basehttp 24599 127116737771200 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 429 17
+WARNING 2025-09-18 20:11:04,483 log 24599 127117115778752 Too Many Requests: /api/v1/inventory/categories/
+WARNING 2025-09-18 20:11:04,488 basehttp 24599 127117115778752 "GET /api/v1/inventory/categories/ HTTP/1.1" 429 17

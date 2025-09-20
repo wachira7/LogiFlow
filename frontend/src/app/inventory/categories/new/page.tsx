@@ -32,7 +32,12 @@ export default function NewCategoryPage() {
 
     setIsLoading(true)
     try {
-      await createCategory(formData)
+      // Convert "none" back to empty string/null for the API
+      const submitData = {
+        ...formData,
+        parent_id: formData.parent_id === '' ? null : formData.parent_id
+      }
+      await createCategory(submitData)
       router.push('/inventory/categories')
     } catch (error) {
       console.error('Failed to create category:', error)
@@ -40,7 +45,6 @@ export default function NewCategoryPage() {
       setIsLoading(false)
     }
   }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
@@ -81,7 +85,7 @@ export default function NewCategoryPage() {
                     <SelectValue placeholder="Select parent category (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">None (Top Level)</SelectItem>
+                    <SelectItem value="none">None (Top Level)</SelectItem>
                     {categories.filter(cat => cat.is_active).map((category) => (
                       <SelectItem key={category.id} value={category.id}>
                         {category.name}

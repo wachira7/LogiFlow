@@ -26,7 +26,7 @@ interface ProductFormData {
   description: string
   category_id: string
   cost_price: string
-  selling_price: string
+  unit_price: string
   unit_of_measure: string
   weight: string
   dimensions: string
@@ -61,7 +61,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     description: '',
     category_id: '',
     cost_price: '',
-    selling_price: '',
+    unit_price: '',
     unit_of_measure: '',
     weight: '',
     dimensions: '',
@@ -90,7 +90,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         description: currentProduct.description || '',
         category_id: currentProduct.category_id,
         cost_price: currentProduct.cost_price?.toString() || '',
-        selling_price: currentProduct.selling_price?.toString() || '',
+        unit_price: currentProduct.unit_price?.toString() || '', // Fixed: use selling_price consistently
         unit_of_measure: currentProduct.unit_of_measure || '',
         weight: currentProduct.weight?.toString() || '',
         dimensions: currentProduct.dimensions || '',
@@ -126,8 +126,8 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       newErrors.cost_price = 'Cost price must be a valid number'
     }
 
-    if (formData.selling_price && isNaN(parseFloat(formData.selling_price))) {
-      newErrors.selling_price = 'Selling price must be a valid number'
+    if (formData.unit_price && isNaN(parseFloat(formData.unit_price))) {
+      newErrors.unit_price = 'Unit price must be a valid number'
     }
 
     if (formData.weight && isNaN(parseFloat(formData.weight))) {
@@ -167,7 +167,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       const submitData = {
         ...formData,
         cost_price: formData.cost_price ? parseFloat(formData.cost_price) : undefined,
-        selling_price: formData.selling_price ? parseFloat(formData.selling_price) : undefined,
+        unit_price: formData.unit_price ? parseFloat(formData.unit_price) : undefined, // Fixed: use selling_price
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
         minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : undefined,
         maximum_stock: formData.maximum_stock ? parseInt(formData.maximum_stock) : undefined,
@@ -317,17 +317,17 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="selling_price">Selling Price</Label>
+              <Label htmlFor="unit_price">Unit Price</Label>
               <Input
-                id="selling_price"
+                id="unit_price"
                 type="number"
                 step="0.01"
-                value={formData.selling_price}
-                onChange={(e) => handleInputChange('selling_price', e.target.value)}
+                value={formData.unit_price}
+                onChange={(e) => handleInputChange('unit_price', e.target.value)}
                 placeholder="0.00"
-                className={errors.selling_price ? 'border-destructive' : ''}
+                className={errors.unit_price ? 'border-destructive' : ''}
               />
-              {errors.selling_price && <p className="text-sm text-destructive">{errors.selling_price}</p>}
+              {errors.unit_price && <p className="text-sm text-destructive">{errors.unit_price}</p>}
             </div>
           </div>
         </CardContent>

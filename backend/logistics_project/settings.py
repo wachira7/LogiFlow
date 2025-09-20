@@ -436,10 +436,13 @@ SUPPORTED_CRYPTOCURRENCIES = [
 
 # Rate Limiting Configuration
 RATE_LIMITING_SETTINGS = {
-    'ANONYMOUS_LIMIT': tuple(map(int, os.getenv('ANONYMOUS_RATE_LIMIT', '100,3600').split(','))),
-    'AUTHENTICATED_LIMIT': tuple(map(int, os.getenv('AUTHENTICATED_RATE_LIMIT', '800,3600').split(','))),
-    'PREMIUM_LIMIT': tuple(map(int, os.getenv('PREMIUM_RATE_LIMIT', '2000,3600').split(','))),
-    'ENTERPRISE_LIMIT': tuple(map(int, os.getenv('ENTERPRISE_RATE_LIMIT', '5000,3600').split(','))),
+    'ANONYMOUS_LIMIT': (300, 3600),     
+    'AUTHENTICATED_LIMIT': (2400, 3600),  
+    'PREMIUM_LIMIT': (4800, 3600),
+    'ENTERPRISE_LIMIT': (9600, 3600),
+    'ADMIN_LIMIT': (14400, 3600),
+    'BURST_LIMIT': (100, 60),           
+    'DAILY_LIMIT': (50000, 86400),      
 }
 
 # Health Check Configuration

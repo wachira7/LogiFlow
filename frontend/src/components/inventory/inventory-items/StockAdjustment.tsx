@@ -99,7 +99,7 @@ export function StockAdjustment({ itemId, onSuccess, onCancel }: StockAdjustment
     setIsSubmitting(true)
     try {
       await adjustStock(selectedItemId, {
-        adjustment_type: adjustmentData.adjustment_type,
+        adjustment_type: adjustmentData.adjustment_type as 'set' | 'add' | 'subtract' | 'INCREASE' | 'DECREASE' | 'SET',
         quantity: parseInt(adjustmentData.quantity),
         reason: adjustmentData.reason,
         notes: adjustmentData.notes

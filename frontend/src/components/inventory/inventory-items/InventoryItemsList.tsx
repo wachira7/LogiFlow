@@ -209,7 +209,7 @@ export function InventoryItemsList() {
                           Cost: {formatCurrency(item.cost_price as number | null)}
                         </div>
                         <div className="text-sm">
-                          Sell: {formatCurrency(item.selling_price as number | null)}
+                          Sell: {formatCurrency(item.unit_price as number | null)}
                         </div>
                       </div>
                     </TableCell>

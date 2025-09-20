@@ -27,6 +27,8 @@ export default function NewProductPage() {
     description: '',
     category_id: '',
     unit_of_measure: '',
+    cost_price: 0,
+    unit_price: 0,
     reorder_level: 10,
     reorder_quantity: 50,
     is_active: true
@@ -137,6 +139,35 @@ export default function NewProductPage() {
                   placeholder="e.g., pieces, kg, liters"
                   value={formData.unit_of_measure}
                   onChange={(e) => handleInputChange('unit_of_measure', e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="cost-price">Cost Price</Label>
+                <Input
+                  id="cost-price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={formData.cost_price}
+                  onChange={(e) => handleInputChange('cost_price', parseFloat(e.target.value) || 0)} 
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="selling-price">Selling Price</Label>
+                <Input
+                  id="selling-price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={formData.unit_price}
+                  onChange={(e) => handleInputChange('unit_price', parseFloat(e.target.value) || 0)}
                   required
                 />
               </div>

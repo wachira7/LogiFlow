@@ -5,7 +5,7 @@ import { useCategories } from '@/hooks/useInventory'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { FolderTree } from 'lucide-react'
+import { FolderTree, AlertTriangle } from 'lucide-react'
 import { Category } from '@/types/inventory.types'
 
 interface CategorySelectorProps {
@@ -29,9 +29,9 @@ export function CategorySelector({
 }: CategorySelectorProps) {
   const { categories, isLoading } = useCategories()
 
-  const filteredCategories = categories.filter(category => 
+  const filteredCategories = categories?.filter(category => 
     showInactive ? true : category.is_active
-  )
+  ) || []
 
   // Group categories by parent for better organization
   const topLevelCategories = filteredCategories.filter(cat => !cat.parent_id)
@@ -48,13 +48,14 @@ export function CategorySelector({
     return (
       <div className={className}>
         {label && (
-          <Label className="text-sm font-medium">
+          <Label className="text-sm font-medium mb-2 block">
             {label}
             {required && <span className="text-destructive ml-1">*</span>}
           </Label>
         )}
         <div className="flex items-center justify-center h-10 border rounded-md">
           <LoadingSpinner size="sm" />
+          <span className="ml-2 text-sm text-muted-foreground">Loading categories...</span>
         </div>
       </div>
     )
@@ -73,10 +74,18 @@ export function CategorySelector({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
-          {filteredCategories.length === 0 ? (
+          {!categories || categories.length === 0 ? (
+            <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              <div>
+                <div>No categories found</div>
+                <div className="text-xs mt-1">Create a category first</div>
+              </div>
+            </div>
+          ) : filteredCategories.length === 0 ? (
             <div className="flex items-center justify-center py-6 text-sm text-muted-foreground">
               <FolderTree className="h-4 w-4 mr-2" />
-              No categories available
+              No active categories available
             </div>
           ) : (
             <>

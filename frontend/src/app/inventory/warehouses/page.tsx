@@ -24,11 +24,16 @@ export default function WarehousesPage() {
 
   const { warehouses, isLoading, deleteWarehouse } = useWarehouses()
 
-  const filteredWarehouses = warehouses.filter(warehouse =>
-    warehouse.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    warehouse.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    warehouse.address.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredWarehouses = warehouses.filter((warehouse) => {
+    if (!warehouse || !warehouse.address) {
+      return false;
+    }
+    return (
+      warehouse.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      warehouse.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      warehouse.address.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  });
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this warehouse? This action cannot be undone.')) {

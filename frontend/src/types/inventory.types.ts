@@ -1,4 +1,4 @@
-// types/inventory.types.ts - CORRECTED VERSION TO MATCH COMPONENTS
+// types/inventory.types.ts 
 
 export interface Product {
   id: string
@@ -9,7 +9,7 @@ export interface Product {
   category?: Category
   unit_of_measure?: string
   cost_price?: number
-  selling_price?: number
+  unit_price?: number
   weight?: number
   dimensions?: string
   barcode?: string
@@ -18,9 +18,9 @@ export interface Product {
   track_stock?: boolean
   minimum_stock?: number | undefined
   maximum_stock?: number | undefined
-  reorder_level?: number | undefined  // Keep your existing field
-  reorder_point?: number | undefined  // Add this for component compatibility
-  reorder_quantity?: number | undefined // Keep your existing field
+  reorder_level?: number | undefined  
+  reorder_point?: number | undefined  
+  reorder_quantity?: number | undefined 
   notes?: string
   is_active: boolean
   created_at: string
@@ -36,7 +36,7 @@ export interface Category {
   id: string
   name: string
   description?: string
-  parent_id?: string | null  // Allow null for components
+  parent_id?: string | null  
   parent?: Category
   children?: Category[]
   is_active: boolean
@@ -52,11 +52,11 @@ export interface Warehouse {
   code: string
   description?: string
   address?: string
-  city?: string             // Add for component compatibility
+  city?: string             
   state?: string
   postal_code?: string
   country?: string
-  phone?: string            // Add for component compatibility
+  phone?: string            
   email?: string            // Add for component compatibility
   manager_name?: string
   manager_email?: string
@@ -85,7 +85,7 @@ export interface InventoryItem {
   maximum_stock?: number
   reorder_point?: number
   cost_price?: number
-  selling_price?: number
+  unit_price?: number
   unit_of_measure?: string
   category_id?: string
   is_active: boolean
@@ -140,7 +140,7 @@ export interface CreateProductData {
   category_id: string
   unit_of_measure?: string
   cost_price?: number
-  selling_price?: number
+  unit_price?: number
   weight?: number
   dimensions?: string
   barcode?: string
@@ -163,7 +163,7 @@ export interface UpdateProductData {
   category_id?: string
   unit_of_measure?: string
   cost_price?: number
-  selling_price?: number
+  unit_price?: number
   weight?: number
   dimensions?: string
   barcode?: string
@@ -241,7 +241,7 @@ export interface CreateInventoryItemData {
   category_id: string
   unit_of_measure?: string
   cost_price?: number
-  selling_price?: number
+  unit_price?: number
   current_stock?: number
   minimum_stock?: number
   maximum_stock?: number
@@ -270,7 +270,7 @@ export interface UpdateInventoryItemData {
   category_id?: string
   unit_of_measure?: string
   cost_price?: number
-  selling_price?: number
+  unit_price?: number
   current_stock?: number
   minimum_stock?: number
   maximum_stock?: number
