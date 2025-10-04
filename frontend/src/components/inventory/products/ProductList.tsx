@@ -3,38 +3,18 @@
 
 import { useState } from 'react'
 import { useProducts } from '@/hooks/useInventory'
+import { formatRelativeDate } from '@/utils/dateUtils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu'
-import { 
-  Plus, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
-  Package2,
-  Eye,
-  AlertTriangle,
-  TrendingDown
-} from 'lucide-react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Plus, MoreHorizontal, Edit, Trash2, Package2, Eye, AlertTriangle, TrendingDown } from 'lucide-react'
 import Link from 'next/link'
 import { InventoryFilters } from '../shared/InventoryFilters'
-import { Product } from '@/types/inventory.types' // Add missing import
+import { Product } from '@/types/inventory.types' 
 
 export function ProductList() {
   const { products, isLoading, deleteProduct } = useProducts()
@@ -181,6 +161,7 @@ export function ProductList() {
                   <TableHead>Total Stock</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Last Updated</TableHead> 
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -237,6 +218,9 @@ export function ProductList() {
                       <Badge variant={product.is_active ? "default" : "secondary"}>
                         {product.is_active ? 'Active' : 'Inactive'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {formatRelativeDate(product.updated_at)}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

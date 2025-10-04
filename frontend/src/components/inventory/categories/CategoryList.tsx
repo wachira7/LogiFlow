@@ -3,35 +3,16 @@
 
 import { useState } from 'react'
 import { useCategories } from '@/hooks/useInventory'
+import { formatRelativeDate } from '@/utils/dateUtils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu'
-import { 
-  Search, 
-  Plus, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
-  FolderTree,
-  Eye
-} from 'lucide-react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Search, Plus, MoreHorizontal, Edit, Trash2, FolderTree, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 export function CategoryList() {
@@ -140,6 +121,7 @@ export function CategoryList() {
                   <TableHead>Description</TableHead>
                   <TableHead>Products</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Last Updated</TableHead> 
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -167,6 +149,9 @@ export function CategoryList() {
                       <Badge variant={category.is_active ? "default" : "secondary"}>
                         {category.is_active ? 'Active' : 'Inactive'}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {formatRelativeDate(category.updated_at)}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

@@ -50,7 +50,11 @@ const unitOptions = [
   { value: 'liter', label: 'Liter' },
   { value: 'gallon', label: 'Gallon' },
   { value: 'meter', label: 'Meter' },
-  { value: 'foot', label: 'Foot' }
+  { value: 'foot', label: 'Foot' },
+  { value: 'inch', label: 'Inch' },
+  { value: 'cm', label: 'Centimeter' },
+  { value: 'mm', label: 'Millimeter' },
+  
 ]
 
 export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps) {

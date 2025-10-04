@@ -1,4 +1,4 @@
-// src/hooks/useInventory.ts - COMPLETE UPDATED VERSION
+// src/hooks/useInventory.ts 
 
 import { useState, useCallback, useEffect } from 'react'
 import { inventoryService } from '@/services/inventoryService'

@@ -250,31 +250,44 @@ export class InventoryService {
 
   // Categories
   async getCategories(): Promise<ApiResponse<Category[]>> {
-    try {
-      console.log('API call: GET /api/v1/inventory/categories/')
-      const response = await api.get<BackendResponse<Category>>('/api/v1/inventory/categories/')
-      console.log('Categories API response:', response)
-      
-      if (!response.success || !response.data) {
-        return {
-          success: false,
-          error: response.error || 'Failed to fetch categories'
-        }
-      }
-      
-      const data = response.data
-      return {
-        success: true,
-        data: data.results || (Array.isArray(data) ? data as Category[] : [])
-      }
-    } catch (error) {
-      console.error('Categories API error:', error)
+  try {
+    console.log('API call: GET /api/v1/inventory/categories/')
+    const response = await api.get<BackendResponse<Category>>('/api/v1/inventory/categories/')
+    console.log('Categories API response:', response)
+    
+    // FIX: Check for actual HTTP errors first
+    if (!response.success) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch categories'
+        data: [],
+        error: response.error || 'Failed to fetch categories'
       }
     }
+    
+    // FIX: Handle the case where response.data might be undefined
+    if (!response.data) {
+      return {
+        success: true,
+        data: []  // Return empty array instead of failing
+      }
+    }
+    
+    const data = response.data
+    const categories = data.results || (Array.isArray(data) ? data as Category[] : [])
+    
+    return {
+      success: true,
+      data: categories
+    }
+  } catch (error) {
+    console.error('Categories API error:', error)
+    return {
+      success: false,
+      data: [],
+      error: error instanceof Error ? error.message : 'Failed to fetch categories'
+    }
   }
+}
 
   async getCategoryTree(): Promise<ApiResponse<Category[]>> {
     try {

@@ -1,4 +1,4 @@
-// services/api.ts - Fixed
+// services/api.ts 
 import { TokenManager } from '@/utils/auth/tokenManager'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'

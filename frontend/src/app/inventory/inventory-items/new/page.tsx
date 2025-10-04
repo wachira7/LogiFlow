@@ -32,7 +32,7 @@ export default function NewInventoryItemPage() {
     product_id: '',
     unit_of_measure: '',
     cost_price: '',
-    selling_price: '',
+    unit_price: '',
     current_stock: '',
     quantity: '',
     minimum_stock: '',
@@ -56,8 +56,8 @@ export default function NewInventoryItemPage() {
     try {
       const itemData = {
         ...formData,
-        cost_price: formData.cost_price ? parseFloat(formData.cost_price) : null,
-        selling_price: formData.selling_price ? parseFloat(formData.selling_price) : null,
+        cost_price: formData.cost_price ? parseFloat(formData.cost_price) : undefined,
+        unit_price: formData.unit_price ? parseFloat(formData.unit_price) : undefined,
         current_stock: formData.current_stock ? parseInt(formData.current_stock) : 0,
         minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : null,
         maximum_stock: formData.maximum_stock ? parseInt(formData.maximum_stock) : null,
@@ -244,11 +244,11 @@ export default function NewInventoryItemPage() {
               <div className="space-y-2">
                 <Label htmlFor="selling_price">Selling Price</Label>
                 <Input
-                  id="selling_price"
+                  id="unit_price"
                   type="number"
                   step="0.01"
-                  value={formData.selling_price}
-                  onChange={(e) => setFormData({ ...formData, selling_price: e.target.value })}
+                  value={formData.unit_price}
+                  onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
                   placeholder="0.00"
                 />
               </div>

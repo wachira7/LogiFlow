@@ -12,6 +12,7 @@ class Category(TimeStampedModel):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children')
+    is_active = models.BooleanField(default=True)
     
     class Meta:
         db_table = 'categories'

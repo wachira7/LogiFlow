@@ -207,7 +207,7 @@ export interface CreateWarehouseData {
   manager_name?: string
   manager_email?: string
   manager_phone?: string
-  capacity?: number
+  capacity?: number | null
   is_active?: boolean
 }
 
@@ -225,7 +225,7 @@ export interface UpdateWarehouseData {
   manager_name?: string
   manager_email?: string
   manager_phone?: string
-  capacity?: number
+  capacity?: number | null
   is_active?: boolean
 }
 
@@ -240,16 +240,16 @@ export interface CreateInventoryItemData {
   description?: string
   category_id: string
   unit_of_measure?: string
-  cost_price?: number
-  unit_price?: number
-  current_stock?: number
-  minimum_stock?: number
-  maximum_stock?: number
-  reorder_point?: number
+  cost_price?: number | undefined
+  unit_price?: number | undefined
+  current_stock?: number | null | 0
+  minimum_stock?: number | null
+  maximum_stock?: number | null
+  reorder_point?: number | null
   supplier_name?: string
   supplier_sku?: string
   barcode?: string
-  weight?: number
+  weight?: number | null
   dimensions?: string
   notes?: string
   is_active?: boolean

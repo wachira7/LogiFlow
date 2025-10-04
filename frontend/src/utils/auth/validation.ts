@@ -74,13 +74,15 @@ export const updateProfileSchema = z.object({
   notifications_enabled: z.boolean().optional()
 })
 
+// FIXED: Alternative approach with custom error message
 export const inviteUserSchema = z.object({
   email: emailSchema,
-  role: z.enum(['admin', 'manager', 'user'], {
-    required_error: 'Please select a role'
-  }),
+  role: z.string().refine(
+    (val) => ['admin', 'manager', 'user'].includes(val),
+    { message: 'Please select a role' }
+  ),
   message: z.string().max(500, 'Message must be less than 500 characters').optional()
-})
+});
 
 // Validation helper functions
 export const validatePassword = (password: string) => {

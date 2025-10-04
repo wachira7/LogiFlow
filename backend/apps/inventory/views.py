@@ -10,7 +10,7 @@ from .models import Category, Product, Warehouse, InventoryItem, InventoryTransa
 from .serializers import (
     CategorySerializer, ProductListSerializer, ProductDetailSerializer,
     WarehouseSerializer, InventoryItemSerializer, InventoryTransactionSerializer,
-    StockAdjustmentSerializer, BulkStockUpdateSerializer
+    StockAdjustmentSerializer, BulkStockUpdateSerializer, ProductCreateUpdateSerializer
 )
 from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
@@ -61,6 +61,8 @@ class ProductViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet)
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return ProductDetailSerializer
+        elif self.action in ['create', 'update', 'partial_update']:
+            return ProductCreateUpdateSerializer
         return ProductListSerializer
 
     @action(detail=False, methods=['get'])

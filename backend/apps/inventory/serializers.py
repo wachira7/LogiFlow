@@ -18,7 +18,7 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = [
             'id', 'company_id', 'name', 'description', 'parent_id', 'parent_name',
-            'full_path', 'children_count', 'products_count', 'created_at', 'updated_at'
+            'full_path', 'children_count', 'products_count', 'created_at', 'updated_at', 'is_active'
         ]
         read_only_fields = ['id', 'company_id', 'created_at', 'updated_at']
 
@@ -33,7 +33,13 @@ class ProductListSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     company_id = serializers.UUIDField(read_only=True)
     category_id = serializers.UUIDField(read_only=True)
+    
+    # ADD: Include the full category object (lightweight version)
+    category = serializers.SerializerMethodField()
+    
+    # KEEP: For backward compatibility
     category_name = serializers.CharField(source='category.name', read_only=True)
+    
     total_stock = serializers.ReadOnlyField()
     needs_reorder = serializers.ReadOnlyField()
     profit_margin = serializers.ReadOnlyField()
@@ -41,18 +47,36 @@ class ProductListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'company_id', 'name', 'sku', 'category_id', 'category_name',
+            'id', 'company_id', 'name', 'sku', 'category_id', 'category', 'category_name',
             'unit_price', 'cost_price', 'profit_margin', 'total_stock', 
-            'needs_reorder', 'reorder_point', 'is_active', 'created_at'
+            'needs_reorder', 'reorder_point', 'is_active', 'created_at', 'updated_at'
         ]
+
+    def get_category(self, obj):
+        """Return lightweight category data"""
+        if obj.category:
+            return {
+                'id': str(obj.category.id),
+                'name': obj.category.name,
+                'is_active': obj.category.is_active
+            }
+        return None
+
+
 
 class ProductDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for Product model."""
     id = serializers.UUIDField(read_only=True)
     company_id = serializers.UUIDField(read_only=True)
     category_id = serializers.UUIDField(required=False, allow_null=True)
+    
+    # ADD: Include the full category object
+    category = CategorySerializer(read_only=True)
+    
+    # KEEP: These for backward compatibility
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_full_path = serializers.CharField(source='category.full_path', read_only=True)
+    
     total_stock = serializers.ReadOnlyField()
     needs_reorder = serializers.ReadOnlyField()
     profit_margin = serializers.ReadOnlyField()
@@ -62,9 +86,9 @@ class ProductDetailSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'id', 'company_id', 'name', 'sku', 'description', 'category_id',
-            'category_name', 'category_full_path', 'unit_price', 'cost_price',
+            'category', 'category_name', 'category_full_path', 'unit_price', 'cost_price',
             'profit_margin', 'barcode', 'weight', 'dimensions', 'image',
-            'min_stock_level', 'max_stock_level', 'reorder_point', 'lead_time_days',
+            'min_stock_level', 'max_stock_level', 'reorder_point', 'lead_time_days', 
             'total_stock', 'needs_reorder', 'stock_by_warehouse', 'is_active',
             'created_at', 'updated_at'
         ]
@@ -81,7 +105,26 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             }
             for item in obj.inventory_items.select_related('warehouse')
         ]
+    
+class ProductCreateUpdateSerializer(serializers.ModelSerializer):
+    """Serializer for creating and updating products."""
+    id = serializers.UUIDField(read_only=True)
+    company_id = serializers.UUIDField(read_only=True)
+    category_id = serializers.UUIDField(required=False, allow_null=True)
 
+    class Meta:
+        model = Product
+        fields = [
+            'id', 'company_id', 'name', 'sku', 'description', 'category_id',
+            'unit_price', 'cost_price', 'barcode', 'weight', 'dimensions', 'image',
+            'min_stock_level', 'max_stock_level', 'reorder_point', 'lead_time_days',
+            'is_active'
+        ]
+        read_only_fields = ['id', 'company_id']
+
+    def create(self, validated_data):
+        validated_data['company'] = self.context['request'].user.company
+        return super().create(validated_data)    
 class WarehouseSerializer(serializers.ModelSerializer):
     """Serializer for Warehouse model."""
     id = serializers.UUIDField(read_only=True)
