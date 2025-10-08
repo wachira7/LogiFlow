@@ -1,4 +1,4 @@
-// src/services/inventoryService.ts - COMPLETE UPDATED VERSION FOR NEW API CLIENT
+// src/services/inventoryService.ts 
 
 import { api } from './api'
 import type {

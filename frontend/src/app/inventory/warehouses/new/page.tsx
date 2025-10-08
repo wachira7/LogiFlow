@@ -42,7 +42,7 @@ export default function NewWarehousePage() {
     try {
       const warehouseData = {
         ...formData,
-        capacity: formData.capacity ? parseInt(formData.capacity) : null
+        capacity: formData.capacity ? parseInt(formData.capacity) : undefined
       }
       await createWarehouse(warehouseData)
       router.push('/inventory/warehouses')

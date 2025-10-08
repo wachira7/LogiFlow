@@ -1,4 +1,3 @@
-// ==== NEW INVENTORY ITEM FORM PAGE ====
 // /app/inventory/inventory-items/new/page.tsx
 'use client'
 
@@ -59,10 +58,10 @@ export default function NewInventoryItemPage() {
         cost_price: formData.cost_price ? parseFloat(formData.cost_price) : undefined,
         unit_price: formData.unit_price ? parseFloat(formData.unit_price) : undefined,
         current_stock: formData.current_stock ? parseInt(formData.current_stock) : 0,
-        minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : null,
-        maximum_stock: formData.maximum_stock ? parseInt(formData.maximum_stock) : null,
-        reorder_point: formData.reorder_point ? parseInt(formData.reorder_point) : null,
-        weight: formData.weight ? parseFloat(formData.weight) : null,
+       minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : undefined,
+        maximum_stock: formData.maximum_stock ? parseInt(formData.maximum_stock) : undefined,
+        reorder_point: formData.reorder_point ? parseInt(formData.reorder_point) : undefined,
+        weight: formData.weight ? parseFloat(formData.weight) : undefined,
         quantity: formData.quantity ? parseInt(formData.quantity) : 0
       }
       await createInventoryItem(itemData)
