@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    
     # Third party apps
     'rest_framework',
     'rest_framework_simplejwt',
@@ -36,6 +37,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_filters',
     'django_extensions',
+    'django_celery_beat',
+    'django_celery_results',
     
     # Local apps
     'apps.tenants',
@@ -433,6 +436,53 @@ NOWPAYMENTS_SANDBOX_URL = "https://api-sandbox.nowpayments.io/v1"
 SUPPORTED_CRYPTOCURRENCIES = [
     'btc', 'eth', 'usdt', 'usdc', 'ltc', 'bch', 'bnb', 'ada', 'dot', 'trx', 'xrp', 'sol', 'matic', 'doge', 'xlm',
 ]
+
+
+# Currency Conversion Configuration
+EXCHANGE_RATE_API_KEY = os.getenv('EXCHANGE_RATE_API_KEY', None)  # Optional - uses free API if not set
+
+# Default Exchange Rates (fallback if API fails)
+DEFAULT_EXCHANGE_RATES = {
+    'KES': 150.0,  # 1 USD = 150 KES
+    'EUR': 0.85,   # 1 USD = 0.85 EUR
+    'GBP': 0.73,   # 1 USD = 0.73 GBP
+    'yen': 110.0,  # 1 USD = 110 yen
+    'yuan': 6.5,   # 1 USD = 6.5 yuan
+    'rupee': 50.0, # 1 USD = 50 rupees
+    'riyal': 3.67, # 1 USD = 3.67 Riyals
+    'rub': 60.0,   # 1 USD = 60 rub
+}
+
+# Cache duration for exchange rates (in seconds)
+EXCHANGE_RATE_CACHE_DURATION = int(os.getenv('EXCHANGE_RATE_CACHE_DURATION', 3600))  # 1 hour
+
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+
+
+# Celery Result Backend
+CELERY_RESULT_BACKEND = 'django-db'  # Store results in Django database
+CELERY_CACHE_BACKEND = 'django-cache'
+
+# Celery Task Settings
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+
+# Celery Beat Settings (for scheduled tasks)
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+# Task time limits
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes
+
+# Worker settings
+CELERY_WORKER_PREFETCH_MULTIPLIER = 4
+CELERY_WORKER_MAX_TASKS_PER_CHILD = 1000
+
+# Task result expiration
+CELERY_RESULT_EXPIRES = 3600  # 1 hour
 
 # Rate Limiting Configuration
 RATE_LIMITING_SETTINGS = {

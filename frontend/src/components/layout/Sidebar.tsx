@@ -113,6 +113,7 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarP
       roles: ['company_owner'],
       children: [
         { title: 'Plans', href: '/billing/plans', icon: CreditCard },
+        { title: 'Subscriptions', href: '/billing/subscriptions', icon: CreditCard },
         { title: 'Payment Methods', href: '/billing/payment-methods', icon: CreditCard },
         { title: 'Transactions', href: '/billing/transactions', icon: BarChart3 },
       ],

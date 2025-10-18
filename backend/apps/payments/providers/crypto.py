@@ -1,4 +1,5 @@
 # apps/payments/providers/crypto.py 
+# Better error handling and logging
 import requests
 import json
 import logging
@@ -22,6 +23,9 @@ class CryptoService:
             self.base_url = settings.NOWPAYMENTS_SANDBOX_URL
         else:
             self.base_url = settings.NOWPAYMENTS_BASE_URL
+        
+        # ✅ Log initialization
+        logger.info(f"CryptoService initialized - Environment: {settings.NOWPAYMENTS_ENVIRONMENT}, URL: {self.base_url}")
     
     def get_headers(self):
         """Get headers for NOWPayments API."""
@@ -34,20 +38,28 @@ class CryptoService:
         """Test NOWPayments API connection."""
         try:
             headers = self.get_headers()
-            response = requests.get(f"{self.base_url}/status", headers=headers)
+            response = requests.get(f"{self.base_url}/status", headers=headers, timeout=10)
             response.raise_for_status()
             
-            logger.info("NOWPayments connection test successful")
+            logger.info("✅ NOWPayments connection test successful")
             return True
+        except requests.exceptions.Timeout:
+            logger.error("❌ NOWPayments connection timeout")
+            return False
+        except requests.exceptions.RequestException as e:
+            logger.error(f"❌ NOWPayments connection test failed: {str(e)}")
+            if hasattr(e.response, 'text'):
+                logger.error(f"Response: {e.response.text}")
+            return False
         except Exception as e:
-            logger.error(f"NOWPayments connection test failed: {str(e)}")
+            logger.error(f"❌ Unexpected error in connection test: {str(e)}")
             return False
     
     def get_supported_currencies(self):
         """Get list of supported cryptocurrencies."""
         try:
             headers = self.get_headers()
-            response = requests.get(f"{self.base_url}/currencies", headers=headers)
+            response = requests.get(f"{self.base_url}/currencies", headers=headers, timeout=10)
             response.raise_for_status()
             
             currencies = response.json()
@@ -60,6 +72,9 @@ class CryptoService:
     def create_payment(self, amount, currency='USD', pay_currency=None, order_id=None, order_description=None, user=None, company=None):
         """Create a crypto payment with NOWPayments."""
         try:
+            # ✅ Log the attempt
+            logger.info(f"Creating crypto payment - Amount: {amount} {currency}, Pay Currency: {pay_currency}")
+            
             # Prepare payment data
             payment_data = {
                 'price_amount': float(amount),
@@ -67,26 +82,49 @@ class CryptoService:
                 'order_id': order_id or f"logiflow-{int(datetime.now().timestamp())}",
                 'order_description': order_description or 'LogiFlow Payment',
                 'ipn_callback_url': settings.NOWPAYMENTS_CALLBACK_URL,
-                'success_url': f"{settings.FRONTEND_URL}/payment/success" if hasattr(settings, 'FRONTEND_URL') else None,
-                'cancel_url': f"{settings.FRONTEND_URL}/payment/cancel" if hasattr(settings, 'FRONTEND_URL') else None,
             }
             
+            # Add URLs if available
+            if hasattr(settings, 'FRONTEND_URL'):
+                payment_data['success_url'] = f"{settings.FRONTEND_URL}/payment/success"
+                payment_data['cancel_url'] = f"{settings.FRONTEND_URL}/payment/cancel"
+            
             # Add specific crypto currency if requested
-            if pay_currency:
+            if pay_currency and pay_currency != 'auto':
                 payment_data['pay_currency'] = pay_currency.lower()
             
             headers = self.get_headers()
             
+            # ✅ Log the request
+            logger.debug(f"Sending request to: {self.base_url}/payment")
+            logger.debug(f"Request data: {json.dumps(payment_data, indent=2)}")
+            
             response = requests.post(
                 f"{self.base_url}/payment",
                 json=payment_data,
-                headers=headers
+                headers=headers,
+                timeout=30
             )
-            response.raise_for_status()
             
+            # Log response status
+            logger.info(f"NOWPayments response status: {response.status_code}")
+            
+            # Better error handling
+            if response.status_code not in [200, 201]:
+                error_msg = f"NOWPayments API error: {response.status_code}"
+                try:
+                    error_data = response.json()
+                    error_msg = f"{error_msg} - {error_data.get('message', 'Unknown error')}"
+                    logger.error(f"Error response: {json.dumps(error_data, indent=2)}")
+                except:
+                    logger.error(f"Response text: {response.text}")
+                
+                raise Exception(error_msg)
+            
+            response.raise_for_status()
             payment_response = response.json()
             
-            logger.info(f"Created NOWPayments payment: {payment_response.get('id')}")
+            logger.info(f"✅ Created NOWPayments payment: {payment_response.get('payment_id', payment_response.get('id'))}")
             
             # Create pending payment transaction
             if user and company:
@@ -98,21 +136,36 @@ class CryptoService:
                     status='PENDING',
                     payment_type='ONE_TIME',
                     provider='CRYPTO',
-                    provider_transaction_id=payment_response.get('id', ''),
+                    provider_transaction_id=payment_response.get('payment_id', payment_response.get('id', '')),
                     description=order_description or 'Crypto payment',
-                    receipt_url=payment_response.get('payment_url', '')
+                    receipt_url=payment_response.get('invoice_url', payment_response.get('payment_url', ''))
                 )
                 
                 logger.info(f"Created pending crypto transaction: {transaction.id}")
             
             return payment_response
             
+        except requests.exceptions.Timeout:
+            error_msg = "NOWPayments API request timeout"
+            logger.error(f"❌ {error_msg}")
+            raise Exception(error_msg)
         except requests.exceptions.RequestException as e:
-            logger.error(f"NOWPayments payment creation failed: {str(e)}")
-            raise
+            error_msg = f"NOWPayments payment creation failed: {str(e)}"
+            logger.error(f"❌ {error_msg}")
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_details = e.response.json()
+                    logger.error(f"Error details: {json.dumps(error_details, indent=2)}")
+                    # ✅ Return more specific error message
+                    if 'message' in error_details:
+                        error_msg = f"NOWPayments error: {error_details['message']}"
+                except:
+                    logger.error(f"Error response text: {e.response.text}")
+            raise Exception(error_msg)
         except Exception as e:
-            logger.error(f"Crypto payment error: {str(e)}")
-            raise
+            error_msg = f"Crypto payment error: {str(e)}"
+            logger.error(f"❌ {error_msg}")
+            raise Exception(error_msg)
     
     def get_payment_status(self, payment_id):
         """Get payment status from NOWPayments."""
@@ -121,7 +174,8 @@ class CryptoService:
             
             response = requests.get(
                 f"{self.base_url}/payment/{payment_id}",
-                headers=headers
+                headers=headers,
+                timeout=10
             )
             response.raise_for_status()
             
@@ -169,7 +223,7 @@ class CryptoService:
             
             logger.info(f"Processing NOWPayments webhook: {webhook_data}")
             
-            payment_id = webhook_data.get('id')
+            payment_id = webhook_data.get('payment_id', webhook_data.get('id'))
             payment_status = webhook_data.get('payment_status')
             
             if not payment_id:
