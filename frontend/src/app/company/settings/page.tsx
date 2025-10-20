@@ -12,19 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CompanyService } from '@/services/companyService'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { useToast } from '@/hooks/use-toast'
-import { 
-  ArrowLeft, 
-  Users, 
-  Building, 
-  Shield,
-  Settings as SettingsIcon,
-  Bell,
-  Lock,
-  Globe,
-  Clock,
-  Mail,
-  Calendar
-} from 'lucide-react'
+import { ArrowLeft, Users, Building, Shield, Settings as SettingsIcon, Bell, Lock, Globe, Clock, Mail, Calendar } from 'lucide-react'
 import type { Company, CompanySettings as CompanySettingsType, SettingsFormData, Invitation } from '@/types/company.types'
 
 function CompanySettingsContent() {

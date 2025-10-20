@@ -12,18 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CompanyService } from '@/services/companyService'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { useToast } from '@/hooks/use-toast'
-import { 
-  ArrowLeft, 
-  Users, 
-  Settings,
-  UserPlus,
-  Building,
-  Mail,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle
-} from 'lucide-react'
+import { ArrowLeft, Users, Settings, UserPlus, Building, Mail, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import type { Company, Invitation } from '@/types/company.types'
 
 function CompanyUsersContent() {
