@@ -126,6 +126,7 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarP
       children: [
         { title: 'Profile', href: '/company/profile', icon: Building },
         { title: 'Users', href: '/company/users', icon: Users },
+        { title: 'Settings', href: '/company/settings', icon: Settings },
       ],
     },
     {

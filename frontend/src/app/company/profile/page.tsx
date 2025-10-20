@@ -153,7 +153,7 @@ function CompanyProfileContent() {
           <Link href="/company/users">
             <Button variant="outline" size="sm">
               <Users className="w-4 h-4 mr-2" />
-              Team ({company?.user_count || 0})
+              Team ({company?.users_count || 0})
               <ArrowRight className="w-3 h-3 ml-2" />
             </Button>
           </Link>
@@ -197,7 +197,7 @@ function CompanyProfileContent() {
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                     <div className="flex items-center space-x-1">
                       <Users className="w-4 h-4" />
-                      <span>{company.user_count} members</span>
+                      <span>{company.users_count} members</span>
                     </div>
                     {pendingInvitations.length > 0 && (
                       <Badge variant="secondary">
@@ -218,9 +218,9 @@ function CompanyProfileContent() {
                   </div>
                 </div>
 
-                {company.description && (
+                {/* {company.description && (
                   <p className="text-muted-foreground mt-2">{company.description}</p>
-                )}
+                )} */}
               </div>
             </div>
           </CardContent>

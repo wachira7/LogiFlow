@@ -3,21 +3,24 @@
 export interface Company {
   id: string
   name: string
+  slug: string                    
+  domain?: string                 
   industry: string
   email: string
   logo?: string
-  description?: string
   website?: string
   phone?: string
-  address?: string
-  city?: string
-  state?: string
-  country?: string
-  postal_code?: string
+  address?: string               
+  company_size?: string           
+  timezone: string                
   created_at: string
   updated_at: string
-  user_count: number
+  users_count: number             
   subscription_status?: 'active' | 'inactive' | 'trial' | 'suspended'
+  subscription_plan?: string     
+  is_active: boolean              
+  trial_ends_at?: string       
+  onboarding_completed: boolean   
 }
 
 export interface UpdateCompanyData {
@@ -25,6 +28,8 @@ export interface UpdateCompanyData {
   industry?: string
   email?: string
   description?: string
+  company_size?: string
+  timezone?: string
   website?: string
   phone?: string
   address?: string
@@ -65,10 +70,12 @@ export interface Invitation {
     name: string
     email: string
   }
+  company_name: string
   created_at: string
   expires_at: string
   accepted_at?: string
   token: string
+  is_expired: boolean
 }
 
 export type InvitationStatus = 
@@ -86,7 +93,6 @@ export interface CreateInvitationData {
 }
 
 export interface CompanySettings {
-  id: string
   // General Settings
   timezone: string
   currency: string
@@ -120,6 +126,7 @@ export interface CompanySettings {
   api_access_enabled: boolean
   webhook_url?: string
   
+  // Timestamps
   created_at: string
   updated_at: string
 }
@@ -132,7 +139,7 @@ export interface AuditLog {
     email: string
   }
   action: string
-  resource_type: string
+  resource: string
   resource_id?: string
   resource_name?: string
   details: Record<string, unknown>

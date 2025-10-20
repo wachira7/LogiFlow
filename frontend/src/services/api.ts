@@ -253,12 +253,12 @@ class ApiClient {
     })
   }
 
-  /**
-   * Upload file
-   */
-  async upload<T>(endpoint: string, file: File, additionalData?: Record<string, unknown>): Promise<ApiResponse<T>> {
+ /**
+ * Upload file
+ */
+  async upload<T>(endpoint: string, file: File, fieldName: string = 'file', additionalData?: Record<string, unknown>): Promise<ApiResponse<T>> {
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append(fieldName, file)
     
     if (additionalData) {
       Object.entries(additionalData).forEach(([key, value]) => {

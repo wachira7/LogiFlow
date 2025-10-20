@@ -20,9 +20,6 @@ class Company(TimeStampedModel):
     company_size = models.CharField(max_length=20, blank=True)
     timezone = models.CharField(max_length=50, default='UTC')
     
-    # TODO: Add subscription relationship after all payment models are complete
-    # subscription = models.ForeignKey('payments.UserSubscription', ...)
-    
     is_active = models.BooleanField(default=True)
     trial_ends_at = models.DateTimeField(null=True, blank=True)
     onboarding_completed = models.BooleanField(default=False)
@@ -86,7 +83,7 @@ class AuditLog(models.Model):
     user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='audit_logs', null=True, blank=True)
     action = models.CharField(max_length=50)
     resource = models.CharField(max_length=100)
-    resource_id = models.CharField(max_length=100, null=True, blank=True)  # Changed to CharField for UUIDs
+    resource_id = models.CharField(max_length=100, null=True, blank=True)
     old_values = models.JSONField(null=True, blank=True)
     new_values = models.JSONField(null=True, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
@@ -105,29 +102,87 @@ class AuditLog(models.Model):
 
 class CompanySetting(TimeStampedModel):
     """
-    Company setting model - matches 'company_settings' table
+    UPDATED: Structured company settings model.
+    One-to-one relationship with Company.
     """
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name='settings')
-    setting_key = models.CharField(max_length=100)
-    setting_value = models.TextField()
+    company = models.OneToOneField(
+        Company, 
+        on_delete=models.CASCADE, 
+        related_name='settings',
+        unique=True
+    )
     
-    SETTING_TYPE_CHOICES = [
-        ('STRING', 'String'),
-        ('INTEGER', 'Integer'),
-        ('BOOLEAN', 'Boolean'),
-        ('JSON', 'JSON'),
-    ]
-    setting_type = models.CharField(max_length=20, choices=SETTING_TYPE_CHOICES)
-    is_encrypted = models.BooleanField(default=False)
+    # General Settings
+    timezone = models.CharField(max_length=50, default='UTC')
+    currency = models.CharField(max_length=3, default='USD')
+    date_format = models.CharField(
+        max_length=20, 
+        default='MM/DD/YYYY',
+        choices=[
+            ('MM/DD/YYYY', 'MM/DD/YYYY'),
+            ('DD/MM/YYYY', 'DD/MM/YYYY'),
+            ('YYYY-MM-DD', 'YYYY-MM-DD'),
+        ]
+    )
+    time_format = models.CharField(
+        max_length=10, 
+        default='12h',
+        choices=[
+            ('12h', '12-hour'),
+            ('24h', '24-hour'),
+        ]
+    )
+    language = models.CharField(max_length=10, default='en')
+    
+    # Notification Settings
+    email_notifications = models.BooleanField(default=True)
+    push_notifications = models.BooleanField(default=True)
+    marketing_emails = models.BooleanField(default=False)
+    
+    # Business Settings
+    fiscal_year_start = models.CharField(
+        max_length=20, 
+        default='january',
+        choices=[
+            ('january', 'January'), ('february', 'February'),
+            ('march', 'March'), ('april', 'April'),
+            ('may', 'May'), ('june', 'June'),
+            ('july', 'July'), ('august', 'August'),
+            ('september', 'September'), ('october', 'October'),
+            ('november', 'November'), ('december', 'December'),
+        ]
+    )
+    working_days = models.JSONField(
+        default=list,
+        help_text='Array of working days: ["monday", "tuesday", ...]'
+    )
+    working_hours_start = models.TimeField(default='09:00')
+    working_hours_end = models.TimeField(default='17:00')
+    
+    # Security Settings
+    require_2fa = models.BooleanField(default=False)
+    session_timeout = models.IntegerField(
+        default=60,
+        help_text='Session timeout in minutes'
+    )
+    
+    # API/Integration Settings (optional - for future use)
+    api_access_enabled = models.BooleanField(default=True)
+    webhook_url = models.URLField(blank=True)
     
     class Meta:
         db_table = 'company_settings'
         verbose_name = 'Company Setting'
         verbose_name_plural = 'Company Settings'
-        unique_together = [['company', 'setting_key']]
     
     def __str__(self):
-        return f"{self.company.name} - {self.setting_key}"
+        return f"Settings for {self.company.name}"
+    
+    def save(self, *args, **kwargs):
+        # Ensure working_days is a list with defaults
+        if not self.working_days:
+            self.working_days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
+        super().save(*args, **kwargs)
 
 
 # Keep Tenant as an alias for backward compatibility

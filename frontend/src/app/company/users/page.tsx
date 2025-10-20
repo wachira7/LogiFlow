@@ -132,7 +132,7 @@ function CompanyUsersContent() {
               <Users className="w-5 h-5 text-blue-600" />
               <div>
                 <p className="text-sm text-muted-foreground">Active Members</p>
-                <p className="text-2xl font-bold">{company?.user_count || 0}</p>
+                <p className="text-2xl font-bold">{company?.users_count || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -208,7 +208,7 @@ function CompanyUsersContent() {
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
                   <Badge variant="outline">{company.industry}</Badge>
-                  <Badge variant="secondary">{company.user_count} members</Badge>
+                  <Badge variant="secondary">{company.users_count} members</Badge>
                 </div>
                 
                 <div className="flex items-center space-x-4 text-sm text-muted-foreground">
@@ -218,9 +218,9 @@ function CompanyUsersContent() {
                   </div>
                 </div>
 
-                {company.description && (
+                {/* {company.description && (
                   <p className="text-muted-foreground mt-2 text-sm">{company.description}</p>
-                )}
+                )} */}
               </div>
             </div>
           </CardContent>

@@ -1,4 +1,4 @@
-// services/companyService.ts
+// frontend/src/services/companyService.ts
 import { api } from './api'
 import type { ApiResponse } from './api'
 import type { 
@@ -46,19 +46,15 @@ export class CompanyService {
   }
 
   /**
-   * Upload company logo
-   */
+ * Upload company logo
+ */
   static async uploadLogo(file: File): Promise<ApiResponse<{ logo_url: string }>> {
     try {
-      const formData = new FormData()
-      formData.append('logo', file)
-      
-      const response = await api.post<{ logo_url: string }>('/api/v1/tenants/company/logo/',{
-        body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      })
+      const response = await api.upload<{ logo_url: string }>(
+        '/api/v1/tenants/company/logo/', 
+        file,
+        'logo'
+      )
       return response
     } catch (error) {
       console.error('Failed to upload company logo:', error)
@@ -126,9 +122,9 @@ export class CompanyService {
   /**
    * Resend invitation
    */
-  static async resendInvitation(invitationId: string): Promise<ApiResponse<{ success: boolean }>> {
+  static async resendInvitation(invitationId: string): Promise<ApiResponse<{ message: string }>> {
     try {
-      const response = await api.post<{ success: boolean }>(`/api/v1/tenants/invitations/${invitationId}/resend/`)
+      const response = await api.post<{ message: string }>(`/api/v1/tenants/invitations/${invitationId}/resend/`, {})
       return response
     } catch (error) {
       console.error('Failed to resend invitation:', error)
@@ -140,10 +136,10 @@ export class CompanyService {
     }
   }
 
-  // COMPANY SETTINGS
+  // COMPANY SETTINGS - ✅ NOW SIMPLIFIED!
 
   /**
-   * Get company settings
+   * Get company settings (structured object from backend)
    */
   static async getSettings(): Promise<ApiResponse<CompanySettings>> {
     try {
@@ -164,7 +160,7 @@ export class CompanyService {
    */
   static async updateSettings(data: Partial<CompanySettings>): Promise<ApiResponse<CompanySettings>> {
     try {
-      const response = await api.post<CompanySettings>('/api/v1/tenants/settings/', data)
+      const response = await api.patch<CompanySettings>('/api/v1/tenants/settings/', data)
       return response
     } catch (error) {
       console.error('Failed to update company settings:', error)

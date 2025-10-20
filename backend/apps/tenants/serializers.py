@@ -1,14 +1,30 @@
-# apps/tenants/serializers.py
+# backend/apps/tenants/serializers.py
 from rest_framework import serializers
 from .models import Company, CompanyInvitation, CompanySetting, PlatformAnalytics, AuditLog
 from apps.users.models import User
+
+
+class CompanySettingSerializer(serializers.ModelSerializer):
+    """Serializer for structured CompanySetting model."""
+    
+    class Meta:
+        model = CompanySetting
+        fields = [
+            'timezone', 'currency', 'date_format', 'time_format', 'language',
+            'email_notifications', 'push_notifications', 'marketing_emails',
+            'fiscal_year_start', 'working_days', 'working_hours_start', 
+            'working_hours_end', 'require_2fa', 'session_timeout',
+            'api_access_enabled', 'webhook_url', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
 
 class CompanySerializer(serializers.ModelSerializer):
     """Serializer for Company model."""
     users_count = serializers.SerializerMethodField()
     subscription_status = serializers.CharField(source='subscription.status', read_only=True)
     subscription_plan = serializers.CharField(source='subscription.plan.name', read_only=True)
-
+    
     class Meta:
         model = Company
         fields = [
@@ -23,6 +39,7 @@ class CompanySerializer(serializers.ModelSerializer):
     def get_users_count(self, obj):
         return obj.users.filter(is_active=True).count()
 
+
 class CompanyUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating company information."""
     
@@ -33,24 +50,38 @@ class CompanyUpdateSerializer(serializers.ModelSerializer):
             'industry', 'company_size', 'timezone'
         ]
 
+
 class CompanyInvitationSerializer(serializers.ModelSerializer):
     """Serializer for Company Invitations."""
     invited_by_name = serializers.CharField(source='invited_by.get_full_name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
     is_expired = serializers.SerializerMethodField()
-
+    status = serializers.SerializerMethodField()
+    
     class Meta:
         model = CompanyInvitation
         fields = [
             'id', 'email', 'role', 'token', 'invited_by_name',
             'company_name', 'accepted_at', 'expires_at', 'is_expired',
-            'created_at'
+            'status', 'created_at'
         ]
         read_only_fields = ['id', 'token', 'created_at']
 
     def get_is_expired(self, obj):
         from django.utils import timezone
         return timezone.now() > obj.expires_at
+    
+    def get_status(self, obj):
+        """Compute invitation status."""
+        from django.utils import timezone
+        
+        if obj.accepted_at:
+            return 'accepted'
+        elif timezone.now() > obj.expires_at:
+            return 'expired'
+        else:
+            return 'pending'
+
 
 class AcceptInvitationSerializer(serializers.Serializer):
     """Serializer for accepting company invitations."""
@@ -68,16 +99,6 @@ class AcceptInvitationSerializer(serializers.Serializer):
             })
         return attrs
 
-class CompanySettingSerializer(serializers.ModelSerializer):
-    """Serializer for Company Settings."""
-    
-    class Meta:
-        model = CompanySetting
-        fields = [
-            'id', 'setting_key', 'setting_value', 'setting_type',
-            'created_at', 'updated_at'
-        ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
 
 class PlatformAnalyticsSerializer(serializers.ModelSerializer):
     """Serializer for Platform Analytics."""
@@ -88,6 +109,7 @@ class PlatformAnalyticsSerializer(serializers.ModelSerializer):
             'id', 'metric_name', 'metric_value', 'metric_date', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
 
 class AuditLogSerializer(serializers.ModelSerializer):
     """Serializer for Audit Logs."""

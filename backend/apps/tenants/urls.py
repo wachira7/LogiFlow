@@ -1,23 +1,26 @@
+# backend/apps/tenants/urls.py
 from django.urls import path
 from .views import (
-    CompanyDetailView, CompanyInvitationsView, accept_invitation, 
-    revoke_invitation, CompanySettingsView, CompanySettingDetailView,
-    AuditLogView
+    CompanyDetailView, upload_company_logo, CompanyInvitationsView, 
+    accept_invitation, resend_invitation, revoke_invitation, 
+    CompanySettingsView, AuditLogView
 )
 
 urlpatterns = [
     # Company Management
-    path('company/', CompanyDetailView.as_view(), name='company_detail'),
+    path('company/', CompanyDetailView.as_view(), name='company-detail'),
+    path('company/logo/', upload_company_logo, name='upload-logo'),
     
     # Invitations
-    path('invitations/', CompanyInvitationsView.as_view(), name='company_invitations'),
-    path('invitations/accept/', accept_invitation, name='accept_invitation'),
-    path('invitations/<uuid:invitation_id>/revoke/', revoke_invitation, name='revoke_invitation'),
+    path('invitations/', CompanyInvitationsView.as_view(), name='invitations-list'),
+    path('invitations/accept/', accept_invitation, name='accept-invitation'),
+    path('invitations/<uuid:invitation_id>/resend/', resend_invitation, name='resend-invitation'),
+    path('invitations/<uuid:invitation_id>/revoke/', revoke_invitation, name='revoke-invitation'),
     
     # Settings
-    path('settings/', CompanySettingsView.as_view(), name='company_settings'),
-    path('settings/<uuid:id>/', CompanySettingDetailView.as_view(), name='company_setting_detail'),
-    
+    path('settings/', CompanySettingsView.as_view(), name='settings-list'),
+        
     # Audit Logs
-    path('audit-logs/', AuditLogView.as_view(), name='audit_logs'),
+    path('audit-logs/', AuditLogView.as_view(), name='audit-logs'),
+    
 ]

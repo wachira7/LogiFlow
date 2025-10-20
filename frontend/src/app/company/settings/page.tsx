@@ -141,7 +141,7 @@ function CompanySettingsContent() {
           <Link href="/company/users">
             <Button variant="outline" size="sm">
               <Users className="w-4 h-4 mr-2" />
-              Team ({company?.user_count || 0})
+              Team ({company?.users_count || 0})
             </Button>
           </Link>
         </div>
@@ -177,7 +177,7 @@ function CompanySettingsContent() {
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
                       <p className="text-sm text-muted-foreground">Team Size</p>
-                      <p className="font-semibold">{company.user_count} members</p>
+                      <p className="font-semibold">{company.users_count} members</p>
                     </div>
                     {pendingInvitations.length > 0 && (
                       <div className="text-right">
@@ -199,9 +199,9 @@ function CompanySettingsContent() {
                   </div>
                 </div>
 
-                {company.description && (
+                {/* {company.description && (
                   <p className="text-muted-foreground mt-2">{company.description}</p>
-                )}
+                )} */}
               </div>
             </div>
           </CardContent>
