@@ -1,4 +1,4 @@
-# utils/permissions.py
+#backend/utils/permissions.py
 from rest_framework import permissions
 from django.core.exceptions import ObjectDoesNotExist
 import logging

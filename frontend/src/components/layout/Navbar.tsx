@@ -215,6 +215,13 @@ export function Navbar({ onMenuClick, sidebarCollapsed }: NavbarProps = {}) {
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
+                  {/*Profile Link */}
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/company/settings">
                       <Settings className="mr-2 h-4 w-4" />

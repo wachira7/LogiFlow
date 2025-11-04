@@ -10,19 +10,21 @@ export interface User {
   company_id: string // From Django UserSerializer
   company_name: string // From Django UserSerializer
   is_active: boolean
+  is_platform_admin: boolean
   is_company_owner: boolean // Django role fields
   is_warehouse_manager: boolean
   is_production_manager: boolean
   is_logistics_coordinator: boolean
   is_inventory_manager: boolean
   is_driver: boolean
+  role: string
   date_joined: string
   last_login?: string
   
   // Optional computed fields for backward compatibility
   name?: string // Can be computed from full_name
   avatar?: string // Can be mapped from profile_picture
-  role?: string // Can be computed from role booleans
+  //role?: string // Can be computed from role booleans
 }
 
 export interface Company {

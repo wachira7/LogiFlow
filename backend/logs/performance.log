@@ -27156,3 +27156,483 @@ INFO 2025-10-20 06:42:55,048 middleware 66967 133822658115264 [ed9e9091] 200 GET
 INFO 2025-10-20 06:42:55,061 middleware 66967 133822649722560 [00d612d4] 200 GET /api/v1/tenants/company/ - 0.070s
 INFO 2025-10-20 06:43:29,990 middleware 66967 133822649722560 [9fb2768d] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
 INFO 2025-10-20 06:43:30,023 middleware 66967 133822649722560 [9fb2768d] 200 GET /api/v1/auth/dashboard/overview/ - 0.033s
+INFO 2025-10-29 01:27:17,890 middleware 14621 138500129150656 [0437bec2] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-10-29 01:27:17,911 middleware 14621 138500129150656 [0437bec2] 401 POST /api/v1/auth/login/ - 0.022s
+ERROR 2025-10-29 01:27:17,912 middleware 14621 138500129150656 [0437bec2] ERROR: 401 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-10-29 01:27:17,938 middleware 14621 138500129150656 [4a274bc7] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-10-29 01:27:17,945 middleware 14621 138500129150656 [4a274bc7] 401 POST /api/v1/auth/token/refresh/ - 0.007s
+ERROR 2025-10-29 01:27:17,946 middleware 14621 138500129150656 [4a274bc7] ERROR: 401 POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-10-29 01:27:47,875 middleware 14621 138500129150656 [5ab2d2f2] POST /api/v1/auth/login/ - User: Anonymous
+WARNING 2025-10-29 01:27:49,134 middleware 14621 138500129150656 PERFORMANCE: POST /api/v1/auth/login/ - Time: 1.258s, DB Queries: 7
+INFO 2025-10-29 01:27:49,138 middleware 14621 138500129150656 [5ab2d2f2] 200 POST /api/v1/auth/login/ - 1.263s
+INFO 2025-10-29 01:27:54,159 middleware 14621 138500129150656 [17b03725] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-10-29 01:27:54,177 middleware 14621 138500129150656 [17b03725] 200 GET /api/v1/auth/dashboard/overview/ - 0.018s
+INFO 2025-10-29 01:28:41,969 middleware 14621 138500129150656 [fb18a528] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-10-29 01:28:41,987 middleware 14621 138500129150656 [fb18a528] 200 POST /api/v1/auth/logout/ - 0.018s
+INFO 2025-10-29 01:29:45,976 middleware 14621 138500129150656 [f5bd805c] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-10-29 01:29:46,663 middleware 14621 138500129150656 [f5bd805c] 400 POST /api/v1/auth/login/ - 0.688s
+ERROR 2025-10-29 01:29:46,664 middleware 14621 138500129150656 [f5bd805c] ERROR: 400 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-10-29 01:30:55,848 middleware 14621 138500129150656 [677750a6] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-10-29 01:30:56,790 middleware 14621 138500129150656 [677750a6] 200 POST /api/v1/auth/login/ - 0.942s
+INFO 2025-10-29 01:30:57,422 middleware 14621 138500129150656 [243de276] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-10-29 01:30:57,465 middleware 14621 138500129150656 [243de276] 400 GET /api/v1/auth/dashboard/overview/ - 0.043s
+ERROR 2025-10-29 01:30:57,465 middleware 14621 138500129150656 [243de276] ERROR: 400 GET /api/v1/auth/dashboard/overview/ - User: warumanu254@gmail.com
+INFO 2025-10-29 01:31:44,731 middleware 14621 138500129150656 [7c71c06f] GET /api/v1/auth/profile/ - User: Anonymous
+INFO 2025-10-29 01:31:44,758 middleware 14621 138500129150656 [7c71c06f] 200 GET /api/v1/auth/profile/ - 0.027s
+INFO 2025-10-29 01:31:44,768 middleware 14621 138500119709376 [375645fd] GET /api/v1/auth/profile/ - User: Anonymous
+INFO 2025-10-29 01:31:44,791 middleware 14621 138500119709376 [375645fd] 200 GET /api/v1/auth/profile/ - 0.023s
+INFO 2025-10-29 01:31:44,800 middleware 14621 138500129150656 [c75a6eda] GET /api/v1/auth/profile/ - User: Anonymous
+INFO 2025-10-29 01:31:44,817 middleware 14621 138500129150656 [c75a6eda] 200 GET /api/v1/auth/profile/ - 0.017s
+INFO 2025-10-29 01:31:45,091 middleware 14621 138500129150656 [d2e0eaab] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-10-29 01:31:45,095 middleware 14621 138500129150656 [d2e0eaab] 400 GET /api/v1/auth/dashboard/overview/ - 0.004s
+ERROR 2025-10-29 01:31:45,095 middleware 14621 138500129150656 [d2e0eaab] ERROR: 400 GET /api/v1/auth/dashboard/overview/ - User: warumanu254@gmail.com
+INFO 2025-10-29 01:32:43,321 middleware 14621 138500129150656 [e23b84f5] GET /api/v1/auth/profile/ - User: Anonymous
+INFO 2025-10-29 01:32:43,336 middleware 14621 138500129150656 [e23b84f5] 200 GET /api/v1/auth/profile/ - 0.015s
+INFO 2025-10-29 01:32:43,369 middleware 14621 138500129150656 [c3c36d69] GET /api/v1/auth/profile/ - User: Anonymous
+INFO 2025-10-29 01:32:43,395 middleware 14621 138500129150656 [c3c36d69] 200 GET /api/v1/auth/profile/ - 0.026s
+INFO 2025-10-29 01:32:43,442 middleware 14621 138500119709376 [579ede00] GET /api/v1/auth/profile/ - User: Anonymous
+INFO 2025-10-29 01:32:43,457 middleware 14621 138500119709376 [579ede00] 200 GET /api/v1/auth/profile/ - 0.015s
+INFO 2025-10-29 01:32:43,711 middleware 14621 138500119709376 [50fe247b] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-10-29 01:32:43,718 middleware 14621 138500119709376 [50fe247b] 400 GET /api/v1/auth/dashboard/overview/ - 0.007s
+ERROR 2025-10-29 01:32:43,718 middleware 14621 138500119709376 [50fe247b] ERROR: 400 GET /api/v1/auth/dashboard/overview/ - User: warumanu254@gmail.com
+INFO 2025-10-29 01:32:56,947 middleware 14621 138500102661824 [b2e6a8fa] GET /api/v1/tenants/company/ - User: Anonymous
+INFO 2025-10-29 01:32:56,957 middleware 14621 138500119709376 [719c326c] GET /api/v1/tenants/settings/ - User: Anonymous
+INFO 2025-10-29 01:32:56,965 middleware 14621 138500129150656 [a9d4db25] GET /api/v1/tenants/invitations/ - User: Anonymous
+INFO 2025-10-29 01:32:56,985 middleware 14621 138500102661824 [b2e6a8fa] 200 GET /api/v1/tenants/company/ - 0.038s
+INFO 2025-10-29 01:32:57,001 middleware 14621 138500129150656 [a9d4db25] 200 GET /api/v1/tenants/invitations/ - 0.036s
+INFO 2025-10-29 01:32:57,017 middleware 14621 138500111054528 [ee83c7ef] GET /api/v1/tenants/company/ - User: Anonymous
+INFO 2025-10-29 01:32:57,018 middleware 14621 138500102661824 [3959e2d6] GET /api/v1/tenants/invitations/ - User: Anonymous
+INFO 2025-10-29 01:32:57,046 middleware 14621 138500111054528 [ee83c7ef] 200 GET /api/v1/tenants/company/ - 0.029s
+INFO 2025-10-29 01:32:57,057 middleware 14621 138500102661824 [3959e2d6] 200 GET /api/v1/tenants/invitations/ - 0.039s
+WARNING 2025-10-29 01:32:57,170 middleware 14621 138500119709376 PERFORMANCE: GET /api/v1/tenants/settings/ - Time: 0.210s, DB Queries: 46
+INFO 2025-10-29 01:32:57,171 middleware 14621 138500119709376 [719c326c] 500 GET /api/v1/tenants/settings/ - 0.215s
+ERROR 2025-10-29 01:32:57,172 middleware 14621 138500119709376 [719c326c] ERROR: 500 GET /api/v1/tenants/settings/ - User: warumanu254@gmail.com
+INFO 2025-10-29 01:32:57,175 middleware 14621 138500102661824 [55bc697a] GET /api/v1/tenants/settings/ - User: Anonymous
+WARNING 2025-10-29 01:32:57,282 middleware 14621 138500102661824 PERFORMANCE: GET /api/v1/tenants/settings/ - Time: 0.107s, DB Queries: 46
+INFO 2025-10-29 01:32:57,283 middleware 14621 138500102661824 [55bc697a] 500 GET /api/v1/tenants/settings/ - 0.108s
+ERROR 2025-10-29 01:32:57,283 middleware 14621 138500102661824 [55bc697a] ERROR: 500 GET /api/v1/tenants/settings/ - User: warumanu254@gmail.com
+INFO 2025-10-29 01:33:11,194 middleware 14621 138500102661824 [f46b0ce2] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-10-29 01:33:11,202 middleware 14621 138500102661824 [f46b0ce2] 400 GET /api/v1/auth/dashboard/overview/ - 0.007s
+ERROR 2025-10-29 01:33:11,202 middleware 14621 138500102661824 [f46b0ce2] ERROR: 400 GET /api/v1/auth/dashboard/overview/ - User: warumanu254@gmail.com
+INFO 2025-10-29 01:33:31,258 middleware 14621 138500102661824 [6c033a32] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-10-29 01:33:31,280 middleware 14621 138500102661824 [6c033a32] 200 POST /api/v1/auth/logout/ - 0.022s
+INFO 2025-10-29 01:34:15,601 middleware 14621 138500102661824 [86f8545d] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-10-29 01:34:16,305 middleware 14621 138500102661824 [86f8545d] 200 POST /api/v1/auth/login/ - 0.704s
+INFO 2025-10-29 01:34:16,986 middleware 14621 138500102661824 [70521c56] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-10-29 01:34:17,000 middleware 14621 138500102661824 [70521c56] 400 GET /api/v1/auth/dashboard/overview/ - 0.014s
+ERROR 2025-10-29 01:34:17,002 middleware 14621 138500102661824 [70521c56] ERROR: 400 GET /api/v1/auth/dashboard/overview/ - User: warumanu254@gmail.com
+INFO 2025-10-29 01:35:08,582 middleware 14621 138500102661824 [9e42c403] GET /api/v1/auth/profile/ - User: Anonymous
+INFO 2025-10-29 01:35:08,615 middleware 14621 138500102661824 [9e42c403] 200 GET /api/v1/auth/profile/ - 0.033s
+INFO 2025-10-29 01:35:08,663 middleware 14621 138500102661824 [7ba8362b] GET /api/v1/auth/profile/ - User: Anonymous
+INFO 2025-10-29 01:35:08,744 middleware 14621 138500102661824 [7ba8362b] 200 GET /api/v1/auth/profile/ - 0.081s
+INFO 2025-10-29 01:35:08,750 middleware 14621 138500119709376 [a5e5fe2b] GET /api/v1/auth/profile/ - User: Anonymous
+INFO 2025-10-29 01:35:08,761 middleware 14621 138500119709376 [a5e5fe2b] 200 GET /api/v1/auth/profile/ - 0.013s
+INFO 2025-10-29 01:35:09,067 middleware 14621 138500119709376 [b7f7387e] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-10-29 01:35:09,074 middleware 14621 138500119709376 [b7f7387e] 400 GET /api/v1/auth/dashboard/overview/ - 0.007s
+ERROR 2025-10-29 01:35:09,075 middleware 14621 138500119709376 [b7f7387e] ERROR: 400 GET /api/v1/auth/dashboard/overview/ - User: warumanu254@gmail.com
+INFO 2025-10-29 02:39:41,468 middleware 46517 137353942783680 [9baab210] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-10-29 02:39:41,726 middleware 46517 137353942783680 [9baab210] 401 POST /api/v1/auth/login/ - 0.264s
+ERROR 2025-10-29 02:39:41,729 middleware 46517 137353942783680 [9baab210] ERROR: 401 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-10-29 02:39:41,782 middleware 46517 137353942783680 [3c61102b] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-10-29 02:39:41,842 middleware 46517 137353942783680 [3c61102b] 200 POST /api/v1/auth/token/refresh/ - 0.060s
+INFO 2025-10-29 02:39:41,909 middleware 46517 137353942783680 [6b0e0134] POST /api/v1/auth/login/ - User: Anonymous
+WARNING 2025-10-29 02:39:42,961 middleware 46517 137353942783680 PERFORMANCE: POST /api/v1/auth/login/ - Time: 1.050s, DB Queries: 7
+INFO 2025-10-29 02:39:42,964 middleware 46517 137353942783680 [6b0e0134] 200 POST /api/v1/auth/login/ - 1.055s
+INFO 2025-10-29 02:39:46,356 middleware 46517 137353942783680 [b2af2685] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-10-29 02:39:46,392 middleware 46517 137353942783680 [b2af2685] 400 GET /api/v1/auth/dashboard/overview/ - 0.036s
+ERROR 2025-10-29 02:39:46,394 middleware 46517 137353942783680 [b2af2685] ERROR: 400 GET /api/v1/auth/dashboard/overview/ - User: warumanu254@gmail.com
+INFO 2025-10-29 02:40:42,759 middleware 46517 137353942783680 [4e7792a9] PATCH /api/v1/auth/profile/ - User: Anonymous
+INFO 2025-10-29 02:40:42,832 middleware 46517 137353942783680 [4e7792a9] 200 PATCH /api/v1/auth/profile/ - 0.073s
+INFO 2025-10-29 02:41:01,326 middleware 46517 137353942783680 [e7310221] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-10-29 02:41:01,335 middleware 46517 137353942783680 [e7310221] 400 GET /api/v1/auth/dashboard/overview/ - 0.008s
+ERROR 2025-10-29 02:41:01,335 middleware 46517 137353942783680 [e7310221] ERROR: 400 GET /api/v1/auth/dashboard/overview/ - User: warumanu254@gmail.com
+INFO 2025-11-01 12:04:25,993 middleware 15972 124051354797760 [4fd6a2b1] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 12:04:26,152 middleware 15972 124051354797760 [4fd6a2b1] 401 POST /api/v1/auth/login/ - 0.159s
+ERROR 2025-11-01 12:04:26,153 middleware 15972 124051354797760 [4fd6a2b1] ERROR: 401 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 12:04:26,186 middleware 15972 124051354797760 [ca4410ad] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-01 12:04:26,202 middleware 15972 124051354797760 [ca4410ad] 200 POST /api/v1/auth/token/refresh/ - 0.015s
+INFO 2025-11-01 12:04:26,214 middleware 15972 124051354797760 [e48786cf] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 12:04:26,906 middleware 15972 124051354797760 [e48786cf] 200 POST /api/v1/auth/login/ - 0.692s
+INFO 2025-11-01 12:04:30,256 middleware 15972 124051354797760 [7f3b2dfd] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-11-01 12:04:30,318 middleware 15972 124051354797760 [7f3b2dfd] 200 GET /api/v1/auth/dashboard/overview/ - 0.063s
+INFO 2025-11-01 12:05:02,625 middleware 15972 124051129362112 [7007b93f] GET /api/v1/payments/plans/ - User: Anonymous
+INFO 2025-11-01 12:05:02,637 middleware 15972 124051354797760 [59a7cd61] GET /api/v1/payments/payment-methods/ - User: Anonymous
+INFO 2025-11-01 12:05:02,650 middleware 15972 124051137754816 [3fedd221] GET /api/v1/payments/plans/ - User: Anonymous
+INFO 2025-11-01 12:05:02,657 middleware 15972 124051363190464 [3169cbb3] GET /api/v1/payments/subscriptions/ - User: Anonymous
+INFO 2025-11-01 12:05:02,712 middleware 15972 124051120969408 [cb73d0ae] GET /api/v1/payments/subscriptions/ - User: Anonymous
+INFO 2025-11-01 12:05:02,774 middleware 15972 124051129362112 [7007b93f] 200 GET /api/v1/payments/plans/ - 0.149s
+INFO 2025-11-01 12:05:02,828 middleware 15972 124051354797760 [59a7cd61] 200 GET /api/v1/payments/payment-methods/ - 0.198s
+INFO 2025-11-01 12:05:02,858 middleware 15972 124051137754816 [3fedd221] 200 GET /api/v1/payments/plans/ - 0.208s
+INFO 2025-11-01 12:05:02,890 middleware 15972 124051363190464 [3169cbb3] 200 GET /api/v1/payments/subscriptions/ - 0.243s
+INFO 2025-11-01 12:05:02,897 middleware 15972 124051120969408 [cb73d0ae] 200 GET /api/v1/payments/subscriptions/ - 0.199s
+INFO 2025-11-01 12:05:16,539 middleware 15972 124051120969408 [ec5f7384] GET /api/v1/payments/subscriptions/ - User: Anonymous
+INFO 2025-11-01 12:05:16,640 middleware 15972 124051120969408 [ec5f7384] 200 GET /api/v1/payments/subscriptions/ - 0.100s
+INFO 2025-11-01 12:05:35,412 middleware 15972 124051120969408 [68a87146] GET /api/v1/payments/payment-methods/ - User: Anonymous
+INFO 2025-11-01 12:05:35,478 middleware 15972 124051120969408 [68a87146] 200 GET /api/v1/payments/payment-methods/ - 0.066s
+INFO 2025-11-01 12:05:40,101 middleware 15972 124051363190464 [9c14b020] GET /api/v1/payments/transactions/ - User: Anonymous
+INFO 2025-11-01 12:05:40,150 middleware 15972 124051363190464 [9c14b020] 200 GET /api/v1/payments/transactions/ - 0.050s
+INFO 2025-11-01 12:06:05,684 middleware 15972 124051363190464 [b5085b35] GET /api/v1/payments/payment-methods/ - User: Anonymous
+INFO 2025-11-01 12:06:05,722 middleware 15972 124051363190464 [b5085b35] 200 GET /api/v1/payments/payment-methods/ - 0.038s
+INFO 2025-11-01 12:06:15,332 middleware 15972 124051129362112 [fd8663d0] GET /api/v1/payments/transactions/revenue_report/ - User: Anonymous
+INFO 2025-11-01 12:06:15,337 middleware 15972 124051354797760 [81d7f739] GET /api/v1/payments/subscriptions/dashboard/ - User: Anonymous
+INFO 2025-11-01 12:06:15,423 middleware 15972 124051354797760 [81d7f739] 200 GET /api/v1/payments/subscriptions/dashboard/ - 0.086s
+INFO 2025-11-01 12:06:15,424 middleware 15972 124051129362112 [fd8663d0] 200 GET /api/v1/payments/transactions/revenue_report/ - 0.092s
+INFO 2025-11-01 12:06:40,446 middleware 15972 124051354797760 [f44dd1e7] GET /api/v1/payments/subscriptions/ - User: Anonymous
+INFO 2025-11-01 12:06:40,447 middleware 15972 124051129362112 [1d8de0cd] GET /api/v1/payments/payment-methods/ - User: Anonymous
+INFO 2025-11-01 12:06:40,454 middleware 15972 124051137754816 [d3157b52] GET /api/v1/payments/subscriptions/ - User: Anonymous
+INFO 2025-11-01 12:06:40,523 middleware 15972 124051129362112 [1d8de0cd] 200 GET /api/v1/payments/payment-methods/ - 0.076s
+INFO 2025-11-01 12:06:40,545 middleware 15972 124051137754816 [d3157b52] 200 GET /api/v1/payments/subscriptions/ - 0.091s
+INFO 2025-11-01 12:06:40,554 middleware 15972 124051354797760 [f44dd1e7] 200 GET /api/v1/payments/subscriptions/ - 0.109s
+INFO 2025-11-01 12:06:50,266 middleware 15972 124051354797760 [19e336af] GET /api/v1/payments/subscriptions/dashboard/ - User: Anonymous
+INFO 2025-11-01 12:06:50,268 middleware 15972 124051137754816 [776c7d47] GET /api/v1/payments/transactions/revenue_report/ - User: Anonymous
+INFO 2025-11-01 12:06:50,336 middleware 15972 124051137754816 [776c7d47] 200 GET /api/v1/payments/transactions/revenue_report/ - 0.068s
+INFO 2025-11-01 12:06:50,360 middleware 15972 124051354797760 [19e336af] 200 GET /api/v1/payments/subscriptions/dashboard/ - 0.094s
+INFO 2025-11-01 12:06:54,334 middleware 15972 124051354797760 [b78be65f] GET /api/v1/payments/subscriptions/ - User: Anonymous
+INFO 2025-11-01 12:06:54,337 middleware 15972 124051129362112 [0db2fb7d] GET /api/v1/payments/subscriptions/ - User: Anonymous
+INFO 2025-11-01 12:06:54,339 middleware 15972 124051137754816 [c6280399] GET /api/v1/payments/payment-methods/ - User: Anonymous
+INFO 2025-11-01 12:06:54,414 middleware 15972 124051137754816 [c6280399] 200 GET /api/v1/payments/payment-methods/ - 0.075s
+INFO 2025-11-01 12:06:54,428 middleware 15972 124051354797760 [b78be65f] 200 GET /api/v1/payments/subscriptions/ - 0.094s
+INFO 2025-11-01 12:06:54,445 middleware 15972 124051129362112 [0db2fb7d] 200 GET /api/v1/payments/subscriptions/ - 0.109s
+INFO 2025-11-01 12:06:55,264 middleware 15972 124051129362112 [f2b740f3] GET /api/v1/payments/subscriptions/dashboard/ - User: Anonymous
+INFO 2025-11-01 12:06:55,279 middleware 15972 124051137754816 [b78c4c1e] GET /api/v1/payments/transactions/revenue_report/ - User: Anonymous
+INFO 2025-11-01 12:06:55,372 middleware 15972 124051137754816 [b78c4c1e] 200 GET /api/v1/payments/transactions/revenue_report/ - 0.093s
+INFO 2025-11-01 12:06:55,383 middleware 15972 124051129362112 [f2b740f3] 200 GET /api/v1/payments/subscriptions/dashboard/ - 0.120s
+INFO 2025-11-01 12:06:56,718 middleware 15972 124051129362112 [8422b4ab] GET /api/v1/payments/payment-methods/ - User: Anonymous
+INFO 2025-11-01 12:06:56,755 middleware 15972 124051129362112 [8422b4ab] 200 GET /api/v1/payments/payment-methods/ - 0.037s
+INFO 2025-11-01 12:06:57,823 middleware 15972 124051129362112 [097cb499] GET /api/v1/payments/transactions/ - User: Anonymous
+INFO 2025-11-01 12:06:57,941 middleware 15972 124051129362112 [097cb499] 200 GET /api/v1/payments/transactions/ - 0.118s
+INFO 2025-11-01 12:06:59,103 middleware 15972 124051129362112 [97f7b664] GET /api/v1/payments/payment-methods/ - User: Anonymous
+INFO 2025-11-01 12:06:59,174 middleware 15972 124051129362112 [97f7b664] 200 GET /api/v1/payments/payment-methods/ - 0.072s
+INFO 2025-11-01 12:07:01,810 middleware 15972 124051129362112 [a4235726] GET /api/v1/payments/subscriptions/ - User: Anonymous
+INFO 2025-11-01 12:07:01,880 middleware 15972 124051129362112 [a4235726] 200 GET /api/v1/payments/subscriptions/ - 0.070s
+INFO 2025-11-01 12:07:02,882 middleware 15972 124051129362112 [5801962e] GET /api/v1/payments/subscriptions/ - User: Anonymous
+INFO 2025-11-01 12:07:02,887 middleware 15972 124051137754816 [ae34b280] GET /api/v1/payments/payment-methods/ - User: Anonymous
+INFO 2025-11-01 12:07:02,894 middleware 15972 124051354797760 [a4faee14] GET /api/v1/payments/subscriptions/ - User: Anonymous
+INFO 2025-11-01 12:07:02,987 middleware 15972 124051137754816 [ae34b280] 200 GET /api/v1/payments/payment-methods/ - 0.100s
+INFO 2025-11-01 12:07:03,028 middleware 15972 124051354797760 [a4faee14] 200 GET /api/v1/payments/subscriptions/ - 0.133s
+INFO 2025-11-01 12:07:03,035 middleware 15972 124051129362112 [5801962e] 200 GET /api/v1/payments/subscriptions/ - 0.153s
+INFO 2025-11-01 12:07:04,058 middleware 15972 124051129362112 [ee605908] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-11-01 12:07:04,095 middleware 15972 124051129362112 [ee605908] 200 GET /api/v1/auth/dashboard/overview/ - 0.036s
+INFO 2025-11-01 12:07:48,109 middleware 15972 124051129362112 [64b5542b] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-11-01 12:07:48,131 middleware 15972 124051129362112 [64b5542b] 200 GET /api/v1/auth/dashboard/overview/ - 0.022s
+INFO 2025-11-01 12:08:19,499 middleware 15972 124051354797760 [b973417b] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-01 12:08:19,511 middleware 15972 124051354797760 [b973417b] 200 POST /api/v1/auth/logout/ - 0.012s
+INFO 2025-11-01 12:08:58,753 middleware 15972 124051354797760 [de1112a0] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 12:08:59,292 middleware 15972 124051354797760 [de1112a0] 400 POST /api/v1/auth/login/ - 0.539s
+ERROR 2025-11-01 12:08:59,292 middleware 15972 124051354797760 [de1112a0] ERROR: 400 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 12:10:46,781 middleware 15972 124051354797760 [7ed7db88] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 12:10:47,374 middleware 15972 124051354797760 [7ed7db88] 200 POST /api/v1/auth/login/ - 0.593s
+INFO 2025-11-01 12:10:48,037 middleware 15972 124051354797760 [7764c447] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-11-01 12:10:48,055 middleware 15972 124051354797760 [7764c447] 400 GET /api/v1/auth/dashboard/overview/ - 0.018s
+ERROR 2025-11-01 12:10:48,055 middleware 15972 124051354797760 [7764c447] ERROR: 400 GET /api/v1/auth/dashboard/overview/ - User: warumanu254@gmail.com
+INFO 2025-11-01 12:21:50,543 middleware 24735 134114079397568 [4fdbd7e7] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-01 12:21:50,574 middleware 24735 134114079397568 [4fdbd7e7] 200 POST /api/v1/auth/logout/ - 0.031s
+INFO 2025-11-01 12:24:20,370 middleware 24735 134114079397568 [7f7261d9] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 12:24:21,134 middleware 24735 134114079397568 [7f7261d9] 200 POST /api/v1/auth/login/ - 0.764s
+INFO 2025-11-01 12:24:25,046 middleware 24735 134114079397568 [ad1efe81] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-11-01 12:24:25,078 middleware 24735 134114079397568 [ad1efe81] 400 GET /api/v1/auth/dashboard/overview/ - 0.031s
+ERROR 2025-11-01 12:24:25,080 middleware 24735 134114079397568 [ad1efe81] ERROR: 400 GET /api/v1/auth/dashboard/overview/ - User: warumanu254@gmail.com
+INFO 2025-11-01 15:47:23,651 middleware 98104 125333311317696 [c5ace5d3] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 15:47:24,585 middleware 98104 125333311317696 [c5ace5d3] 200 POST /api/v1/auth/login/ - 0.934s
+INFO 2025-11-01 17:34:38,185 middleware 141176 129998515857088 [07b68fb4] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 17:34:38,350 middleware 141176 129998515857088 [07b68fb4] 401 POST /api/v1/auth/login/ - 0.169s
+ERROR 2025-11-01 17:34:38,351 middleware 141176 129998515857088 [07b68fb4] ERROR: 401 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 17:34:38,431 middleware 141176 129998506940096 [601671b3] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-01 17:34:38,515 middleware 141176 129998506940096 [601671b3] 200 POST /api/v1/auth/token/refresh/ - 0.085s
+INFO 2025-11-01 17:34:38,613 middleware 141176 129998506940096 [297f2d01] POST /api/v1/auth/login/ - User: Anonymous
+WARNING 2025-11-01 17:34:39,833 middleware 141176 129998506940096 PERFORMANCE: POST /api/v1/auth/login/ - Time: 1.187s, DB Queries: 7
+INFO 2025-11-01 17:34:39,835 middleware 141176 129998506940096 [297f2d01] 200 POST /api/v1/auth/login/ - 1.221s
+INFO 2025-11-01 17:41:44,982 middleware 145588 126925225825984 [49263dc2] GET /api/v1/tenants/invitations/ - User: Anonymous
+INFO 2025-11-01 17:41:44,983 middleware 145588 126925276182208 [1c9f3d4f] GET /api/v1/tenants/company/ - User: Anonymous
+INFO 2025-11-01 17:41:44,984 middleware 145588 126925267789504 [640b3cad] GET /api/v1/tenants/settings/ - User: Anonymous
+INFO 2025-11-01 17:41:45,094 middleware 145588 126925276182208 [1c9f3d4f] 200 GET /api/v1/tenants/company/ - 0.111s
+INFO 2025-11-01 17:41:45,112 middleware 145588 126925242611392 [83a4ea74] GET /api/v1/tenants/company/ - User: Anonymous
+INFO 2025-11-01 17:41:45,127 middleware 145588 126925225825984 [49263dc2] 200 GET /api/v1/tenants/invitations/ - 0.145s
+INFO 2025-11-01 17:41:45,140 middleware 145588 126925276182208 [42fa20e1] GET /api/v1/tenants/invitations/ - User: Anonymous
+INFO 2025-11-01 17:41:45,156 middleware 145588 126925242611392 [83a4ea74] 200 GET /api/v1/tenants/company/ - 0.044s
+INFO 2025-11-01 17:41:45,172 middleware 145588 126925276182208 [42fa20e1] 200 GET /api/v1/tenants/invitations/ - 0.032s
+WARNING 2025-11-01 17:41:45,346 middleware 145588 126925267789504 PERFORMANCE: GET /api/v1/tenants/settings/ - Time: 0.352s, DB Queries: 46
+INFO 2025-11-01 17:41:45,347 middleware 145588 126925267789504 [640b3cad] 500 GET /api/v1/tenants/settings/ - 0.363s
+ERROR 2025-11-01 17:41:45,347 middleware 145588 126925267789504 [640b3cad] ERROR: 500 GET /api/v1/tenants/settings/ - User: warumanu254@gmail.com
+INFO 2025-11-01 17:41:45,355 middleware 145588 126925276182208 [feca3ad6] GET /api/v1/tenants/settings/ - User: Anonymous
+WARNING 2025-11-01 17:41:45,564 middleware 145588 126925276182208 PERFORMANCE: GET /api/v1/tenants/settings/ - Time: 0.208s, DB Queries: 46
+INFO 2025-11-01 17:41:45,564 middleware 145588 126925276182208 [feca3ad6] 500 GET /api/v1/tenants/settings/ - 0.210s
+ERROR 2025-11-01 17:41:45,565 middleware 145588 126925276182208 [feca3ad6] ERROR: 500 GET /api/v1/tenants/settings/ - User: warumanu254@gmail.com
+INFO 2025-11-01 18:43:57,984 middleware 168580 124743692838592 [549aa540] POST /api/v1/auth/login/ - User: Anonymous
+WARNING 2025-11-01 18:43:59,240 middleware 168580 124743692838592 PERFORMANCE: POST /api/v1/auth/login/ - Time: 1.251s, DB Queries: 6
+INFO 2025-11-01 18:43:59,248 middleware 168580 124743692838592 [549aa540] 200 POST /api/v1/auth/login/ - 1.264s
+INFO 2025-11-01 19:16:40,787 middleware 183300 132163055908544 [a6f4788c] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-01 19:16:40,968 middleware 183300 132163055908544 [a6f4788c] 200 POST /api/v1/auth/logout/ - 0.181s
+INFO 2025-11-01 19:17:38,986 middleware 183300 132163055908544 [1d3d6acc] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-01 19:17:39,893 middleware 183300 132163055908544 [1d3d6acc] 200 POST /api/v1/auth/login/ - 0.908s
+INFO 2025-11-03 07:25:47,227 middleware 86172 139110624253632 [d562b5e5] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 07:25:47,346 middleware 86172 139110624253632 [d562b5e5] 401 POST /api/v1/auth/login/ - 0.119s
+ERROR 2025-11-03 07:25:47,347 middleware 86172 139110624253632 [d562b5e5] ERROR: 401 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 07:25:47,427 middleware 86172 139110624253632 [8f2db0e1] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 07:25:47,450 middleware 86172 139110624253632 [8f2db0e1] 200 POST /api/v1/auth/token/refresh/ - 0.024s
+INFO 2025-11-03 07:25:47,519 middleware 86172 139110624253632 [6fedc6e8] POST /api/v1/auth/login/ - User: Anonymous
+WARNING 2025-11-03 07:25:48,671 middleware 86172 139110624253632 PERFORMANCE: POST /api/v1/auth/login/ - Time: 1.151s, DB Queries: 7
+INFO 2025-11-03 07:25:48,673 middleware 86172 139110624253632 [6fedc6e8] 200 POST /api/v1/auth/login/ - 1.154s
+INFO 2025-11-03 07:42:57,641 middleware 95914 129392992048832 [cf198436] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-03 07:42:57,812 middleware 95914 129392992048832 [cf198436] 200 POST /api/v1/auth/logout/ - 0.172s
+INFO 2025-11-03 07:43:37,732 middleware 95914 129392992048832 [3640e4a0] POST /api/v1/auth/login/ - User: Anonymous
+WARNING 2025-11-03 07:43:38,766 middleware 95914 129392992048832 PERFORMANCE: POST /api/v1/auth/login/ - Time: 1.024s, DB Queries: 6
+INFO 2025-11-03 07:43:38,766 middleware 95914 129392992048832 [3640e4a0] 200 POST /api/v1/auth/login/ - 1.035s
+INFO 2025-11-03 10:19:33,941 middleware 156825 126117598447296 [5de85030] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 10:19:34,079 middleware 156825 126117598447296 [5de85030] 401 POST /api/v1/auth/login/ - 0.138s
+ERROR 2025-11-03 10:19:34,079 middleware 156825 126117598447296 [5de85030] ERROR: 401 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 10:19:34,108 middleware 156825 126117598447296 [aedad0a2] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 10:19:34,161 middleware 156825 126117598447296 [aedad0a2] 200 POST /api/v1/auth/token/refresh/ - 0.054s
+INFO 2025-11-03 10:19:34,194 middleware 156825 126117598447296 [0cd291ee] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 10:19:35,165 middleware 156825 126117598447296 [0cd291ee] 200 POST /api/v1/auth/login/ - 0.971s
+INFO 2025-11-03 10:19:42,623 middleware 156825 126117598447296 [1e4323a9] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-11-03 10:19:42,669 middleware 156825 126117598447296 [1e4323a9] 200 GET /api/v1/auth/dashboard/overview/ - 0.046s
+INFO 2025-11-03 10:20:32,347 middleware 156825 126117598447296 [8d5a3d34] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-03 10:20:32,386 middleware 156825 126117598447296 [8d5a3d34] 200 POST /api/v1/auth/logout/ - 0.039s
+INFO 2025-11-03 10:21:21,327 middleware 156825 126117598447296 [5890fbda] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 10:21:22,311 middleware 156825 126117598447296 [5890fbda] 400 POST /api/v1/auth/login/ - 0.985s
+ERROR 2025-11-03 10:21:22,311 middleware 156825 126117598447296 [5890fbda] ERROR: 400 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 10:22:02,276 middleware 156825 126117598447296 [17fe15bc] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 10:22:03,145 middleware 156825 126117598447296 [17fe15bc] 200 POST /api/v1/auth/login/ - 0.870s
+INFO 2025-11-03 10:22:15,183 middleware 156825 126117598447296 [4d0e4108] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 10:22:15,200 middleware 156825 126117598447296 [4d0e4108] 200 POST /api/v1/auth/token/refresh/ - 0.017s
+INFO 2025-11-03 10:22:15,239 middleware 156825 126117598447296 [21a4f921] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 10:22:15,254 middleware 156825 126117598447296 [21a4f921] 200 POST /api/v1/auth/token/refresh/ - 0.015s
+INFO 2025-11-03 10:22:15,256 middleware 156825 126117588743872 [cea45a5f] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 10:22:15,269 middleware 156825 126117588743872 [cea45a5f] 200 POST /api/v1/auth/token/refresh/ - 0.015s
+INFO 2025-11-03 10:30:24,758 middleware 156825 126117598447296 [3cef6041] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-03 10:30:25,080 middleware 156825 126117598447296 [3cef6041] 200 POST /api/v1/auth/logout/ - 0.328s
+INFO 2025-11-03 10:53:14,572 middleware 173256 126920608437952 [c1c9aa9f] POST /api/v1/auth/login/ - User: Anonymous
+WARNING 2025-11-03 10:53:15,630 middleware 173256 126920608437952 PERFORMANCE: POST /api/v1/auth/login/ - Time: 1.043s, DB Queries: 6
+INFO 2025-11-03 10:53:15,633 middleware 173256 126920608437952 [c1c9aa9f] 200 POST /api/v1/auth/login/ - 1.064s
+INFO 2025-11-03 10:53:24,295 middleware 173256 126920590341824 [01c47603] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 10:53:24,303 middleware 173256 126920608437952 [aa0a756c] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 10:53:24,306 middleware 173256 126920598734528 [90ac2098] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 10:53:24,321 middleware 173256 126920590341824 [01c47603] 200 POST /api/v1/auth/token/refresh/ - 0.026s
+INFO 2025-11-03 10:53:24,327 middleware 173256 126920608437952 [aa0a756c] 200 POST /api/v1/auth/token/refresh/ - 0.024s
+INFO 2025-11-03 10:53:24,330 middleware 173256 126920598734528 [90ac2098] 200 POST /api/v1/auth/token/refresh/ - 0.024s
+INFO 2025-11-03 10:53:33,848 middleware 173256 126920598734528 [eb8323d4] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 10:53:33,855 middleware 173256 126920598734528 [eb8323d4] 200 POST /api/v1/auth/token/refresh/ - 0.007s
+INFO 2025-11-03 10:56:21,272 middleware 173256 126920377235136 [121440e2] GET /api/docs/ - User: Anonymous
+INFO 2025-11-03 10:56:21,722 middleware 173256 126920377235136 [121440e2] 200 GET /api/docs/ - 0.450s
+INFO 2025-11-03 10:56:28,566 middleware 173256 126920377235136 [c6e70d6c] GET /api/schema/ - User: Anonymous
+WARNING 2025-11-03 10:56:33,991 middleware 173256 126920377235136 PERFORMANCE: GET /api/schema/ - Time: 5.424s, DB Queries: 0
+INFO 2025-11-03 10:56:33,992 middleware 173256 126920377235136 [c6e70d6c] 200 GET /api/schema/ - 5.426s
+WARNING 2025-11-03 10:56:33,995 middleware 173256 126920377235136 [c6e70d6c] SLOW REQUEST: GET /api/schema/ took 5.426s
+INFO 2025-11-03 11:04:55,264 middleware 179475 125602277086912 [85481061] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-03 11:04:55,431 middleware 179475 125602277086912 [85481061] 200 POST /api/v1/auth/logout/ - 0.174s
+INFO 2025-11-03 11:05:52,445 middleware 179475 125602277086912 [104fef02] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 11:05:53,433 middleware 179475 125602277086912 [104fef02] 200 POST /api/v1/auth/login/ - 0.988s
+INFO 2025-11-03 11:06:01,579 middleware 179475 125602259515072 [f8dcd934] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 11:06:01,584 middleware 179475 125602277086912 [3fc654c4] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 11:06:01,590 middleware 179475 125602267907776 [9369bdf2] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 11:06:01,613 middleware 179475 125602277086912 [3fc654c4] 200 POST /api/v1/auth/token/refresh/ - 0.030s
+INFO 2025-11-03 11:06:01,615 middleware 179475 125602259515072 [f8dcd934] 200 POST /api/v1/auth/token/refresh/ - 0.036s
+INFO 2025-11-03 11:06:01,617 middleware 179475 125602267907776 [9369bdf2] 200 POST /api/v1/auth/token/refresh/ - 0.028s
+INFO 2025-11-03 11:18:01,770 middleware 179475 125602277086912 [df616a6b] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 11:18:01,862 middleware 179475 125602277086912 [df616a6b] 200 POST /api/v1/auth/token/refresh/ - 0.093s
+INFO 2025-11-03 21:12:38,654 middleware 20854 123258776839872 [65209c48] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 21:12:38,685 middleware 20854 123258776839872 [65209c48] 401 POST /api/v1/auth/login/ - 0.032s
+ERROR 2025-11-03 21:12:38,686 middleware 20854 123258776839872 [65209c48] ERROR: 401 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 21:12:38,726 middleware 20854 123258776839872 [6eb44619] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 21:12:38,733 middleware 20854 123258776839872 [6eb44619] 200 POST /api/v1/auth/token/refresh/ - 0.007s
+INFO 2025-11-03 21:12:38,759 middleware 20854 123258776839872 [20d6b904] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 21:12:39,538 middleware 20854 123258776839872 [20d6b904] 200 POST /api/v1/auth/login/ - 0.779s
+INFO 2025-11-03 21:12:45,928 middleware 20854 123258776839872 [9f9908bf] GET /api/v1/auth/dashboard/overview/ - User: Anonymous
+INFO 2025-11-03 21:12:45,956 middleware 20854 123258776839872 [9f9908bf] 200 GET /api/v1/auth/dashboard/overview/ - 0.028s
+INFO 2025-11-03 21:13:06,432 middleware 20854 123258759005888 [051ecb7c] GET /api/v1/tenants/company/ - User: Anonymous
+INFO 2025-11-03 21:13:06,461 middleware 20854 123258750613184 [aed43033] GET /api/v1/tenants/invitations/ - User: Anonymous
+INFO 2025-11-03 21:13:06,488 middleware 20854 123258759005888 [051ecb7c] 200 GET /api/v1/tenants/company/ - 0.062s
+INFO 2025-11-03 21:13:06,511 middleware 20854 123258776839872 [a52a47bf] GET /api/v1/tenants/company/ - User: Anonymous
+INFO 2025-11-03 21:13:06,521 middleware 20854 123258750613184 [aed43033] 200 GET /api/v1/tenants/invitations/ - 0.060s
+INFO 2025-11-03 21:13:06,548 middleware 20854 123258759005888 [fdecef41] GET /api/v1/tenants/invitations/ - User: Anonymous
+INFO 2025-11-03 21:13:06,554 middleware 20854 123258776839872 [a52a47bf] 200 GET /api/v1/tenants/company/ - 0.043s
+INFO 2025-11-03 21:13:06,584 middleware 20854 123258759005888 [fdecef41] 200 GET /api/v1/tenants/invitations/ - 0.036s
+INFO 2025-11-03 21:13:23,903 middleware 20854 123258776839872 [b740f48a] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-03 21:13:23,969 middleware 20854 123258776839872 [b740f48a] 200 POST /api/v1/auth/logout/ - 0.068s
+INFO 2025-11-03 21:14:27,219 middleware 20854 123258776839872 [abfeb0bb] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 21:14:27,777 middleware 20854 123258776839872 [abfeb0bb] 400 POST /api/v1/auth/login/ - 0.558s
+ERROR 2025-11-03 21:14:27,777 middleware 20854 123258776839872 [abfeb0bb] ERROR: 400 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 21:15:04,616 middleware 20854 123258776839872 [8c14defc] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 21:15:05,311 middleware 20854 123258776839872 [8c14defc] 200 POST /api/v1/auth/login/ - 0.698s
+INFO 2025-11-03 21:15:13,299 middleware 20854 123258750613184 [7126d635] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 21:15:13,303 middleware 20854 123258750613184 [7126d635] 200 POST /api/v1/auth/token/refresh/ - 0.004s
+INFO 2025-11-03 21:15:13,334 middleware 20854 123258750613184 [e6e83b83] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 21:15:13,348 middleware 20854 123258750613184 [e6e83b83] 200 POST /api/v1/auth/token/refresh/ - 0.013s
+INFO 2025-11-03 21:15:13,364 middleware 20854 123258776839872 [e4c16966] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 21:15:13,372 middleware 20854 123258776839872 [e4c16966] 200 POST /api/v1/auth/token/refresh/ - 0.008s
+INFO 2025-11-03 21:31:32,552 middleware 30924 138746735347392 [4d29c058] POST /api/v1/auth/login/ - User: Anonymous
+WARNING 2025-11-03 21:31:33,744 middleware 30924 138746735347392 PERFORMANCE: POST /api/v1/auth/login/ - Time: 1.189s, DB Queries: 6
+INFO 2025-11-03 21:31:33,747 middleware 30924 138746735347392 [4d29c058] 200 POST /api/v1/auth/login/ - 1.194s
+INFO 2025-11-03 21:31:42,581 middleware 30924 138746743740096 [3611317a] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 21:31:42,589 middleware 30924 138746735347392 [bd9f49e2] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 21:31:42,595 middleware 30924 138746725643968 [6052e6e6] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 21:31:42,641 middleware 30924 138746743740096 [3611317a] 200 POST /api/v1/auth/token/refresh/ - 0.060s
+INFO 2025-11-03 21:31:42,643 middleware 30924 138746735347392 [bd9f49e2] 200 POST /api/v1/auth/token/refresh/ - 0.055s
+INFO 2025-11-03 21:31:42,645 middleware 30924 138746725643968 [6052e6e6] 200 POST /api/v1/auth/token/refresh/ - 0.050s
+INFO 2025-11-03 21:42:11,472 middleware 36868 132184743859904 [6491e25a] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-03 21:42:11,507 middleware 36868 132184743859904 [6491e25a] 200 POST /api/v1/auth/logout/ - 0.035s
+INFO 2025-11-03 21:42:52,668 middleware 36868 132184743859904 [34f6c9e2] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-03 21:42:53,399 middleware 36868 132184743859904 [34f6c9e2] 200 POST /api/v1/auth/login/ - 0.731s
+INFO 2025-11-03 21:42:59,987 middleware 36868 132184656570048 [c960cc29] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 21:42:59,989 middleware 36868 132184743859904 [34b5fbf5] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 21:42:59,991 middleware 36868 132184664962752 [56ca39ab] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-03 21:43:00,002 middleware 36868 132184656570048 [c960cc29] 200 POST /api/v1/auth/token/refresh/ - 0.015s
+INFO 2025-11-03 21:43:00,007 middleware 36868 132184664962752 [56ca39ab] 200 POST /api/v1/auth/token/refresh/ - 0.016s
+INFO 2025-11-03 21:43:00,009 middleware 36868 132184743859904 [34b5fbf5] 200 POST /api/v1/auth/token/refresh/ - 0.020s
+INFO 2025-11-04 07:02:45,032 middleware 111240 124918968600256 [8bc24428] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-04 07:02:45,083 middleware 111240 124918968600256 [8bc24428] 401 POST /api/v1/auth/login/ - 0.050s
+ERROR 2025-11-04 07:02:45,083 middleware 111240 124918968600256 [8bc24428] ERROR: 401 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-04 07:02:45,105 middleware 111240 124918968600256 [08f93daf] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 07:02:45,129 middleware 111240 124918968600256 [08f93daf] 200 POST /api/v1/auth/token/refresh/ - 0.025s
+INFO 2025-11-04 07:02:45,193 middleware 111240 124918968600256 [73e4aaa4] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-04 07:02:45,898 middleware 111240 124918968600256 [73e4aaa4] 200 POST /api/v1/auth/login/ - 0.705s
+INFO 2025-11-04 07:02:53,104 middleware 111240 124918950766272 [58b05a77] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 07:02:53,112 middleware 111240 124918950766272 [58b05a77] 200 POST /api/v1/auth/token/refresh/ - 0.008s
+INFO 2025-11-04 07:02:53,116 middleware 111240 124918959158976 [7d3f09f1] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 07:02:53,123 middleware 111240 124918959158976 [7d3f09f1] 200 POST /api/v1/auth/token/refresh/ - 0.007s
+INFO 2025-11-04 07:02:53,139 middleware 111240 124918959158976 [ca3a1d7d] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 07:02:53,143 middleware 111240 124918959158976 [ca3a1d7d] 200 POST /api/v1/auth/token/refresh/ - 0.004s
+INFO 2025-11-04 07:07:43,212 middleware 111240 124918968600256 [024a40f7] GET /api/docs/ - User: Anonymous
+INFO 2025-11-04 07:07:43,376 middleware 111240 124918968600256 [024a40f7] 200 GET /api/docs/ - 0.164s
+INFO 2025-11-04 07:07:44,626 middleware 111240 124918968600256 [65360bd1] GET /api/schema/ - User: Anonymous
+WARNING 2025-11-04 07:07:46,976 middleware 111240 124918968600256 PERFORMANCE: GET /api/schema/ - Time: 2.349s, DB Queries: 0
+INFO 2025-11-04 07:07:46,977 middleware 111240 124918968600256 [65360bd1] 200 GET /api/schema/ - 2.351s
+WARNING 2025-11-04 07:07:46,978 middleware 111240 124918968600256 [65360bd1] SLOW REQUEST: GET /api/schema/ took 2.351s
+INFO 2025-11-04 07:08:10,083 middleware 111240 124918519822016 [4f79a159] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-04 07:08:10,101 middleware 111240 124918519822016 [4f79a159] 200 POST /api/v1/auth/logout/ - 0.018s
+INFO 2025-11-04 07:09:36,443 middleware 111240 124918968600256 [41424374] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-04 07:09:37,150 middleware 111240 124918968600256 [41424374] 200 POST /api/v1/auth/login/ - 0.708s
+INFO 2025-11-04 07:10:51,268 middleware 111240 124918968600256 [d661cf79] GET /api/v1/platform-admin/system-health/ - User: warumanu254@gmail.com (ID: 85f95827-abe1-4a5f-b280-9e05d9e9393b)
+INFO 2025-11-04 07:10:51,286 middleware 111240 124918968600256 [d661cf79] 200 GET /api/v1/platform-admin/system-health/ - 0.018s
+INFO 2025-11-04 07:11:22,041 middleware 111240 124918968600256 [b235457b] GET /api/v1/platform-admin/analytics/overview/ - User: warumanu254@gmail.com (ID: 85f95827-abe1-4a5f-b280-9e05d9e9393b)
+WARNING 2025-11-04 07:11:22,141 middleware 111240 124918968600256 PERFORMANCE: GET /api/v1/platform-admin/analytics/overview/ - Time: 0.100s, DB Queries: 27
+INFO 2025-11-04 07:11:22,142 middleware 111240 124918968600256 [b235457b] 200 GET /api/v1/platform-admin/analytics/overview/ - 0.101s
+INFO 2025-11-04 07:12:26,113 middleware 111240 124918968600256 [cafbc8cb] GET /api/v1/platform-admin/notifications/ - User: warumanu254@gmail.com (ID: 85f95827-abe1-4a5f-b280-9e05d9e9393b)
+INFO 2025-11-04 07:12:26,125 middleware 111240 124918968600256 [cafbc8cb] 200 GET /api/v1/platform-admin/notifications/ - 0.012s
+INFO 2025-11-04 11:01:04,635 middleware 196329 136683299268288 [e245b864] POST /api/v1/auth/login/ - User: Anonymous
+WARNING 2025-11-04 11:01:05,658 middleware 196329 136683299268288 PERFORMANCE: POST /api/v1/auth/login/ - Time: 1.020s, DB Queries: 6
+INFO 2025-11-04 11:01:05,662 middleware 196329 136683299268288 [e245b864] 200 POST /api/v1/auth/login/ - 1.027s
+INFO 2025-11-04 11:01:14,179 middleware 196329 136683307660992 [5da7d837] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 11:01:14,181 middleware 196329 136683299268288 [48366eba] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 11:01:14,193 middleware 196329 136683290089152 [e593a919] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 11:01:14,208 middleware 196329 136683307660992 [5da7d837] 200 POST /api/v1/auth/token/refresh/ - 0.030s
+INFO 2025-11-04 11:01:14,220 middleware 196329 136683290089152 [e593a919] 200 POST /api/v1/auth/token/refresh/ - 0.027s
+INFO 2025-11-04 11:01:14,226 middleware 196329 136683299268288 [48366eba] 200 POST /api/v1/auth/token/refresh/ - 0.045s
+INFO 2025-11-04 11:10:22,709 middleware 196329 136683299268288 [7a7e55ed] GET /api/docs/ - User: Anonymous
+INFO 2025-11-04 11:10:22,919 middleware 196329 136683299268288 [7a7e55ed] 200 GET /api/docs/ - 0.210s
+INFO 2025-11-04 11:10:24,134 middleware 196329 136683299268288 [5139d4c1] GET /api/schema/ - User: Anonymous
+WARNING 2025-11-04 11:10:27,131 middleware 196329 136683299268288 PERFORMANCE: GET /api/schema/ - Time: 2.995s, DB Queries: 0
+INFO 2025-11-04 11:10:27,131 middleware 196329 136683299268288 [5139d4c1] 200 GET /api/schema/ - 2.997s
+WARNING 2025-11-04 11:10:27,132 middleware 196329 136683299268288 [5139d4c1] SLOW REQUEST: GET /api/schema/ took 2.997s
+INFO 2025-11-04 11:11:17,816 middleware 196329 136683299268288 [b7283e45] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-04 11:11:18,445 middleware 196329 136683299268288 [b7283e45] 200 POST /api/v1/auth/login/ - 0.629s
+INFO 2025-11-04 11:13:18,136 middleware 196329 136683274094272 [bdab3859] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 11:13:18,154 middleware 196329 136683290089152 [c267a111] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 11:13:18,159 middleware 196329 136683307660992 [9dec9260] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 11:13:18,160 middleware 196329 136683274094272 [bdab3859] 200 POST /api/v1/auth/token/refresh/ - 0.024s
+INFO 2025-11-04 11:13:18,180 middleware 196329 136683290089152 [c267a111] 200 POST /api/v1/auth/token/refresh/ - 0.032s
+INFO 2025-11-04 11:13:18,198 middleware 196329 136683307660992 [9dec9260] 200 POST /api/v1/auth/token/refresh/ - 0.040s
+INFO 2025-11-04 11:14:08,021 middleware 196329 136683274094272 [bdc54c3e] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-04 11:14:08,064 middleware 196329 136683274094272 [bdc54c3e] 200 POST /api/v1/auth/logout/ - 0.043s
+INFO 2025-11-04 11:14:22,411 middleware 196329 136683307660992 [b294179c] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 11:14:22,421 middleware 196329 136683307660992 [b294179c] 200 POST /api/v1/auth/token/refresh/ - 0.010s
+INFO 2025-11-04 11:14:22,432 middleware 196329 136683274094272 [0c9c7f17] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 11:14:22,434 middleware 196329 136683290089152 [cdbf277b] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 11:14:22,447 middleware 196329 136683274094272 [0c9c7f17] 200 POST /api/v1/auth/token/refresh/ - 0.022s
+INFO 2025-11-04 11:14:22,471 middleware 196329 136683290089152 [cdbf277b] 200 POST /api/v1/auth/token/refresh/ - 0.036s
+INFO 2025-11-04 13:20:35,396 middleware 196329 136683299268288 [14adf581] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-04 13:20:36,235 middleware 196329 136683299268288 [14adf581] 400 POST /api/v1/auth/login/ - 0.839s
+ERROR 2025-11-04 13:20:36,236 middleware 196329 136683299268288 [14adf581] ERROR: 400 POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-04 13:20:55,888 middleware 196329 136683299268288 [ee330d7e] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-04 13:20:56,626 middleware 196329 136683299268288 [ee330d7e] 200 POST /api/v1/auth/login/ - 0.738s
+INFO 2025-11-04 13:21:03,767 middleware 196329 136683274094272 [3bb893f9] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 13:21:03,777 middleware 196329 136683290089152 [319b985a] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 13:21:03,790 middleware 196329 136683274094272 [3bb893f9] 200 POST /api/v1/auth/token/refresh/ - 0.023s
+INFO 2025-11-04 13:21:03,796 middleware 196329 136683290089152 [319b985a] 200 POST /api/v1/auth/token/refresh/ - 0.020s
+INFO 2025-11-04 13:21:03,801 middleware 196329 136683299268288 [fe40a7d5] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 13:21:03,810 middleware 196329 136683299268288 [fe40a7d5] 200 POST /api/v1/auth/token/refresh/ - 0.009s
+INFO 2025-11-04 14:04:01,999 middleware 264173 129388901295808 [96f2088c] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-04 14:04:02,201 middleware 264173 129388901295808 [96f2088c] 200 POST /api/v1/auth/logout/ - 0.202s
+INFO 2025-11-04 14:04:46,183 middleware 264173 129388901295808 [db6005a8] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-04 14:04:46,818 middleware 264173 129388901295808 [db6005a8] 200 POST /api/v1/auth/login/ - 0.634s
+INFO 2025-11-04 14:04:56,278 middleware 264173 129388892903104 [20f039ac] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:04:56,335 middleware 264173 129388901295808 [a28c15bc] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:04:56,336 middleware 264173 129388909688512 [a56752ef] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:04:56,346 middleware 264173 129388892903104 [20f039ac] 200 POST /api/v1/auth/token/refresh/ - 0.067s
+INFO 2025-11-04 14:04:56,371 middleware 264173 129388909688512 [a56752ef] 200 POST /api/v1/auth/token/refresh/ - 0.035s
+INFO 2025-11-04 14:04:56,365 middleware 264173 129388901295808 [a28c15bc] 200 POST /api/v1/auth/token/refresh/ - 0.043s
+INFO 2025-11-04 14:05:10,042 middleware 264173 129388892903104 [15bb404e] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:10,049 middleware 264173 129388892903104 [15bb404e] 200 POST /api/v1/auth/token/refresh/ - 0.007s
+INFO 2025-11-04 14:05:10,051 middleware 264173 129388901295808 [ac4001b7] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:10,062 middleware 264173 129388901295808 [ac4001b7] 200 POST /api/v1/auth/token/refresh/ - 0.012s
+INFO 2025-11-04 14:05:23,160 middleware 264173 129388892903104 [deb40c01] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:23,166 middleware 264173 129388901295808 [adb3c3be] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:23,167 middleware 264173 129388909688512 [ba17082e] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:23,175 middleware 264173 129388892903104 [deb40c01] 200 POST /api/v1/auth/token/refresh/ - 0.018s
+INFO 2025-11-04 14:05:23,185 middleware 264173 129388901295808 [adb3c3be] 200 POST /api/v1/auth/token/refresh/ - 0.019s
+INFO 2025-11-04 14:05:23,189 middleware 264173 129388909688512 [ba17082e] 200 POST /api/v1/auth/token/refresh/ - 0.023s
+INFO 2025-11-04 14:05:38,338 middleware 264173 129388901295808 [ee4f1c48] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:38,346 middleware 264173 129388901295808 [ee4f1c48] 200 POST /api/v1/auth/token/refresh/ - 0.008s
+INFO 2025-11-04 14:05:38,353 middleware 264173 129388892903104 [f825d429] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:38,355 middleware 264173 129388909688512 [71b31bd9] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:38,367 middleware 264173 129388892903104 [f825d429] 200 POST /api/v1/auth/token/refresh/ - 0.014s
+INFO 2025-11-04 14:05:38,375 middleware 264173 129388909688512 [71b31bd9] 200 POST /api/v1/auth/token/refresh/ - 0.020s
+INFO 2025-11-04 14:05:56,441 middleware 264173 129388901295808 [5963d68a] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:56,448 middleware 264173 129388901295808 [5963d68a] 200 POST /api/v1/auth/token/refresh/ - 0.006s
+INFO 2025-11-04 14:05:56,454 middleware 264173 129388884510400 [36905731] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:56,474 middleware 264173 129388884510400 [36905731] 200 POST /api/v1/auth/token/refresh/ - 0.021s
+INFO 2025-11-04 14:05:56,486 middleware 264173 129388867724992 [39f2c02b] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:56,505 middleware 264173 129388909688512 [d48084fb] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:56,523 middleware 264173 129388867724992 [39f2c02b] 200 POST /api/v1/auth/token/refresh/ - 0.037s
+INFO 2025-11-04 14:05:56,543 middleware 264173 129388892903104 [1a9d7ea7] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:56,544 middleware 264173 129388909688512 [d48084fb] 200 POST /api/v1/auth/token/refresh/ - 0.039s
+INFO 2025-11-04 14:05:56,583 middleware 264173 129388892903104 [1a9d7ea7] 200 POST /api/v1/auth/token/refresh/ - 0.051s
+INFO 2025-11-04 14:05:56,623 middleware 264173 129388909688512 [348a9c7d] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:05:56,643 middleware 264173 129388909688512 [348a9c7d] 200 POST /api/v1/auth/token/refresh/ - 0.021s
+INFO 2025-11-04 14:06:11,839 middleware 264173 129388876117696 [10ff1f8e] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:06:11,840 middleware 264173 129388909688512 [c9b8ffd6] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:06:11,857 middleware 264173 129388909688512 [c9b8ffd6] 200 POST /api/v1/auth/token/refresh/ - 0.017s
+INFO 2025-11-04 14:06:11,864 middleware 264173 129388876117696 [10ff1f8e] 200 POST /api/v1/auth/token/refresh/ - 0.025s
+INFO 2025-11-04 14:06:11,891 middleware 264173 129388867724992 [7bd96568] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:06:11,900 middleware 264173 129388867724992 [7bd96568] 200 POST /api/v1/auth/token/refresh/ - 0.009s
+INFO 2025-11-04 14:06:32,022 middleware 264173 129388867724992 [fbbd2547] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:06:32,031 middleware 264173 129388867724992 [fbbd2547] 200 POST /api/v1/auth/token/refresh/ - 0.008s
+INFO 2025-11-04 14:06:38,694 middleware 264173 129388876117696 [f85805bc] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:06:38,699 middleware 264173 129388876117696 [f85805bc] 200 POST /api/v1/auth/token/refresh/ - 0.005s
+INFO 2025-11-04 14:06:38,749 middleware 264173 129388867724992 [f2a78a3c] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:06:38,763 middleware 264173 129388867724992 [f2a78a3c] 200 POST /api/v1/auth/token/refresh/ - 0.014s
+INFO 2025-11-04 14:06:50,334 middleware 264173 129388876117696 [d29d6815] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:06:50,345 middleware 264173 129388867724992 [9cdd2aca] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:06:50,359 middleware 264173 129388909688512 [ce6bc20c] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:06:50,363 middleware 264173 129388909688512 [ce6bc20c] 200 POST /api/v1/auth/token/refresh/ - 0.004s
+INFO 2025-11-04 14:06:50,365 middleware 264173 129388876117696 [d29d6815] 200 POST /api/v1/auth/token/refresh/ - 0.031s
+INFO 2025-11-04 14:06:50,367 middleware 264173 129388867724992 [9cdd2aca] 200 POST /api/v1/auth/token/refresh/ - 0.022s
+INFO 2025-11-04 14:09:34,411 middleware 264173 129388876117696 [aeb52352] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:09:34,413 middleware 264173 129388909688512 [5606cbac] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:09:34,435 middleware 264173 129388867724992 [59f689c3] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:09:34,584 middleware 264173 129388876117696 [aeb52352] 200 POST /api/v1/auth/token/refresh/ - 0.173s
+INFO 2025-11-04 14:09:34,584 middleware 264173 129388867724992 [59f689c3] 200 POST /api/v1/auth/token/refresh/ - 0.174s
+INFO 2025-11-04 14:09:34,589 middleware 264173 129388909688512 [5606cbac] 200 POST /api/v1/auth/token/refresh/ - 0.176s
+INFO 2025-11-04 14:09:53,474 middleware 264173 129388859332288 [640b5a5a] GET /api/docs/ - User: Anonymous
+INFO 2025-11-04 14:09:53,759 middleware 264173 129388859332288 [640b5a5a] 200 GET /api/docs/ - 0.285s
+INFO 2025-11-04 14:09:54,941 middleware 264173 129388859332288 [e484d53d] GET /api/schema/ - User: Anonymous
+WARNING 2025-11-04 14:09:58,710 middleware 264173 129388859332288 PERFORMANCE: GET /api/schema/ - Time: 3.768s, DB Queries: 0
+INFO 2025-11-04 14:09:58,711 middleware 264173 129388859332288 [e484d53d] 200 GET /api/schema/ - 3.770s
+WARNING 2025-11-04 14:09:58,711 middleware 264173 129388859332288 [e484d53d] SLOW REQUEST: GET /api/schema/ took 3.770s
+INFO 2025-11-04 14:11:03,820 middleware 264173 129388859332288 [7e71ee3b] POST /api/v1/auth/login/ - User: Anonymous
+INFO 2025-11-04 14:11:04,597 middleware 264173 129388859332288 [7e71ee3b] 200 POST /api/v1/auth/login/ - 0.777s
+INFO 2025-11-04 14:12:09,505 middleware 264173 129388909688512 [ddc1a6b1] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:12:09,506 middleware 264173 129388867724992 [559fe3b4] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:12:09,511 middleware 264173 129388876117696 [8505ad0d] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:12:09,540 middleware 264173 129388909688512 [ddc1a6b1] 200 POST /api/v1/auth/token/refresh/ - 0.036s
+INFO 2025-11-04 14:12:09,546 middleware 264173 129388876117696 [8505ad0d] 200 POST /api/v1/auth/token/refresh/ - 0.035s
+INFO 2025-11-04 14:12:09,550 middleware 264173 129388867724992 [559fe3b4] 200 POST /api/v1/auth/token/refresh/ - 0.049s
+INFO 2025-11-04 14:12:15,446 middleware 264173 129388876117696 [5b055899] POST /api/v1/auth/logout/ - User: Anonymous
+INFO 2025-11-04 14:12:15,462 middleware 264173 129388876117696 [5b055899] 200 POST /api/v1/auth/logout/ - 0.016s
+INFO 2025-11-04 14:12:46,001 middleware 264173 129388867724992 [cf9cac23] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:12:46,005 middleware 264173 129388867724992 [cf9cac23] 200 POST /api/v1/auth/token/refresh/ - 0.004s
+INFO 2025-11-04 14:12:46,024 middleware 264173 129388867724992 [949b8efe] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:12:46,032 middleware 264173 129388867724992 [949b8efe] 200 POST /api/v1/auth/token/refresh/ - 0.008s
+INFO 2025-11-04 14:12:46,042 middleware 264173 129388909688512 [be93bddc] POST /api/v1/auth/token/refresh/ - User: Anonymous
+INFO 2025-11-04 14:12:46,051 middleware 264173 129388909688512 [be93bddc] 200 POST /api/v1/auth/token/refresh/ - 0.008s

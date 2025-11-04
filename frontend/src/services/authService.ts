@@ -1,22 +1,12 @@
-// services/authService.ts - Updated for Django Backend Compatibility
+// services/authService.ts 
 import { api } from './api'
 import { TokenManager } from '@/utils/auth/tokenManager'
-import type {
-  AuthResponse,
-  LoginCredentials,
-  RegisterCredentials,
-  ForgotPasswordRequest,
-  ResetPasswordRequest,
-  ChangePasswordRequest,
-  User,
-  UserProfile,
-  UpdateProfileRequest,
-} from '@/types/auth.types'
+import type { AuthResponse, LoginCredentials, RegisterCredentials, ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest, User, UserProfile, UpdateProfileRequest } from '@/types/auth.types'
 import type { ApiResponse } from './api'
 
 export class AuthService {
   /**
-   * Login user - FIXED: Extract tokens from nested tokens object
+   * Login user - Extract tokens from nested tokens object
    */
   static async login(credentials: LoginCredentials): Promise<ApiResponse<AuthResponse>> {
     try {
@@ -34,7 +24,10 @@ export class AuthService {
             })
           }
 
-          console.log('Login successful')
+          //  STORE USER DATA
+          TokenManager.setUser(response.data.user)
+
+          console.log('Login successful - User stored:', response.data.user.email)
           
           return {
             success: true,
@@ -64,7 +57,7 @@ export class AuthService {
         }
 
   /**
-   * Register new user - FIXED: Extract tokens from nested tokens object
+   * Register new user Extract tokens from nested tokens object
    */
   static async register(credentials: RegisterCredentials): Promise<ApiResponse<AuthResponse>> {
     try {
@@ -88,7 +81,10 @@ export class AuthService {
           })
         }
 
-        console.log('Registration successful')
+          // STORE USER DATA
+        TokenManager.setUser(response.data.user)
+
+        console.log('Registration successful - User stored:', response.data.user.email)
 
         return {
           success: true,

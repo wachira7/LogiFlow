@@ -1,5 +1,5 @@
-// utils/auth/tokenManager.ts - Fixed to support both localStorage and cookies
-import type { TokenPair } from '@/types/auth.types'
+// utils/auth/tokenManager.ts 
+import type { TokenPair, User } from '@/types/auth.types'
 
 const TOKEN_KEY = 'authToken'
 const REFRESH_TOKEN_KEY = 'refreshToken'
@@ -141,22 +141,77 @@ export class TokenManager {
    * Clear all authentication tokens from both localStorage and cookies
    */
   static clearTokens(): void {
+  try {
+    // Clear localStorage
+    localStorage.removeItem(TOKEN_KEY)
+    localStorage.removeItem(REFRESH_TOKEN_KEY)
+    localStorage.removeItem(TOKEN_EXPIRY_KEY)
+    localStorage.removeItem('user')  // ✅ ADD THIS
+    
+    // Clear cookies
+    this.clearCookie(TOKEN_KEY)
+    this.clearCookie(REFRESH_TOKEN_KEY)
+    this.clearCookie(TOKEN_EXPIRY_KEY)
+    this.clearCookie('user')
+    
+    console.log('✅ Tokens and user data cleared from localStorage and cookies')
+  } catch (error) {
+    console.error('❌ Failed to clear tokens:', error)
+  }
+}
+
+  /**
+ * Store user data in localStorage
+ */
+static setUser(user: User): void {
     try {
-      // Clear localStorage
-      localStorage.removeItem(TOKEN_KEY)
-      localStorage.removeItem(REFRESH_TOKEN_KEY)
-      localStorage.removeItem(TOKEN_EXPIRY_KEY)
-      
-      // Clear cookies
-      this.clearCookie(TOKEN_KEY)
-      this.clearCookie(REFRESH_TOKEN_KEY)
-      this.clearCookie(TOKEN_EXPIRY_KEY)
-      
-      console.log('✅ Tokens cleared from localStorage and cookies')
+      if (typeof window !== 'undefined') {
+        const userJson = JSON.stringify(user)
+        
+        // Store in localStorage
+        localStorage.setItem('user', userJson)
+        
+        // ✅ NEW: Also store in cookie for middleware
+        this.setCookie('user', encodeURIComponent(userJson), 7 * 24 * 60 * 60) // 7 days
+        
+        console.log('✅ User data stored in localStorage and cookies')
+      }
     } catch (error) {
-      console.error('❌ Failed to clear tokens:', error)
+      console.error('❌ Failed to store user data:', error)
     }
   }
+/**
+ * Get user data from localStorage
+ */
+static getUser(): User | null {
+  try {
+    if (typeof window !== 'undefined') {
+      const userStr = localStorage.getItem('user')
+      if (userStr) {
+        return JSON.parse(userStr) as User
+      }
+    }
+    return null
+  } catch (error) {
+    console.error('❌ Failed to get user data:', error)
+    return null
+  }
+}
+
+/**
+ * Clear user data from localStorage
+ */
+static clearUser(): void {
+  try {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('user')
+      this.clearCookie('user')
+      console.log('✅ User data cleared from localStorage')
+    }
+  } catch (error) {
+    console.error('❌ Failed to clear user data:', error)
+  }
+}
 
   /**
    * Clear cookie helper function
@@ -177,6 +232,8 @@ export class TokenManager {
     
     document.cookie = cookieOptions.join('; ')
   }
+
+
 
   /**
    * Get authorization header for API requests

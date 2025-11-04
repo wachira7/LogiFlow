@@ -4,17 +4,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { AuthService } from '@/services/authService'
 import { TokenManager } from '@/utils/auth/tokenManager'
-import type {
-  User,
-  Company,
-  LoginCredentials,
-  RegisterCredentials,
-  ForgotPasswordRequest,
-  ResetPasswordRequest,
-  ChangePasswordRequest,
-  AuthError,
-  UpdateProfileRequest,
-} from '@/types/auth.types'
+import type { User, Company, LoginCredentials, RegisterCredentials, ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest, AuthError, UpdateProfileRequest } from '@/types/auth.types'
+import { useRouter } from 'next/navigation'
 
 interface AuthState {
   user: User | null
@@ -44,6 +35,7 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  const router = useRouter()
   const [state, setState] = useState<AuthState>({
     user: null,
     company: undefined,
@@ -60,27 +52,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const initializeAuth = async () => {
     try {
       if (TokenManager.isAuthenticated()) {
-        const response = await AuthService.verifyAuth()
+        // ✅ TRY TO GET USER FROM LOCALSTORAGE FIRST
+        const storedUser = TokenManager.getUser()
         
-        if (response.success && response.data) {
+        if (storedUser) {
+          // User found in localStorage
           setState(prev => ({
             ...prev,
-            user: response.data ?? null,
+            user: storedUser,
             isAuthenticated: true,
             isLoading: false,
             error: null,
           }))
         } else {
-          // Token is invalid
-          TokenManager.clearTokens()
-          setState(prev => ({
-            ...prev,
-            user: null,
-            company: undefined,
-            isAuthenticated: false,
-            isLoading: false,
-            error: null,
-          }))
+          // No stored user, verify with API
+          const response = await AuthService.verifyAuth()
+          
+          if (response.success && response.data) {
+            setState(prev => ({
+              ...prev,
+              user: response.data ?? null,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            }))
+          } else {
+            // Token is invalid
+            TokenManager.clearTokens()
+            setState(prev => ({
+              ...prev,
+              user: null,
+              company: undefined,
+              isAuthenticated: false,
+              isLoading: false,
+              error: null,
+            }))
+          }
         }
       } else {
         setState(prev => ({
@@ -114,17 +121,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await AuthService.login(credentials)
 
       if (response.success && response.data) {
-        // Extract user from AuthResponse
         const user = response.data.user
         
         setState(prev => ({
           ...prev,
           user: user,
-          company: undefined, // We'll handle company data separately if needed
+          company: undefined,
           isAuthenticated: true,
           isLoading: false,
           error: null,
         }))
+
+        // ✅ IMMEDIATE REDIRECT WITH FALLBACK
+        if (user.is_platform_admin || user.role === 'platform_admin') {
+          console.log('🚀 Redirecting to platform-admin')
+          
+          // Try Next.js router
+          router.push('/platform-admin')
+          
+          // Fallback to window.location
+          setTimeout(() => {
+            window.location.href = '/platform-admin'
+          }, 300)
+        } else {
+          console.log('🚀 Redirecting to dashboard')
+          router.push('/dashboard')
+        }
+
         return true
       } else {
         setState(prev => ({
@@ -153,7 +176,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return false
     }
   }
-
   const register = async (credentials: RegisterCredentials): Promise<boolean> => {
     setState(prev => ({ ...prev, isLoading: true, error: null }))
 
@@ -172,6 +194,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           isLoading: false,
           error: null,
         }))
+
+        //ADD THIS REDIRECT LOGIC (platform admins shouldn't register, but just in case):
+      if (user.is_platform_admin || user.role === 'platform_admin') {
+        router.push('/platform-admin')
+      } else {
+        router.push('/dashboard')
+      }
+
         return true
       } else {
         setState(prev => ({

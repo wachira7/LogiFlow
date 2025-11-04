@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { useAuth, useAuthUtils } from '@/hooks/useAuth'
-import { LayoutDashboard, Package, Truck, Factory, Warehouse, BarChart3, CreditCard, Settings, Users, Building, ChevronDown, ChevronRight, X, Menu, ChevronLeft } from 'lucide-react'
+import { LayoutDashboard, Package, Truck, Factory, Warehouse, BarChart3, CreditCard, Settings, Users, Building, ChevronDown, ChevronRight, X, Menu, ChevronLeft, Shield, TrendingUp, Building2, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
@@ -129,11 +129,27 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarP
         { title: 'Settings', href: '/company/settings', icon: Settings },
       ],
     },
+
+    {
+      title: 'Platform Admin',
+      href: '/platform-admin',
+      icon: Shield,
+      roles: ['platform_admin'],  // Only platform admins can see this
+      children: [
+        { title: 'Dashboard', href: '/platform-admin', icon: LayoutDashboard },
+        { title: 'Analytics', href: '/platform-admin/analytics', icon: TrendingUp },
+        { title: 'Companies', href: '/platform-admin/companies', icon: Building2 },
+        { title: 'Subscriptions', href: '/platform-admin/subscriptions', icon: CreditCard }, 
+        { title: 'Settings', href: '/platform-admin/settings', icon: Settings },
+      ],
+    },
+
     {
       title: 'Settings',
       href: '/settings',
       icon: Settings,
       children: [
+        { title: 'Profile', href: '/profile', icon: User },
         { title: 'General', href: '/settings/general', icon: Settings },
         { title: 'Security', href: '/settings/security', icon: Settings },
         { title: 'Notifications', href: '/settings/notifications', icon: Settings },

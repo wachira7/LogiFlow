@@ -1,5 +1,5 @@
 # apps/platform_admin/views.py
-from rest_framework import viewsets, status, permissions
+from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
@@ -8,25 +8,20 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from django.utils import timezone
 from datetime import timedelta
-
+from utils.permissions import IsPlatformAdmin
 from .models import PlatformSettings, PlatformAuditLog, SystemHealth, PlatformNotification
 from .serializers import (
-    PlatformSettingsSerializer, PlatformAuditLogSerializer, 
-    SystemHealthSerializer, PlatformNotificationSerializer,
-    CompanyOverviewSerializer, PlatformAnalyticsSerializer,
-    SystemHealthDashboardSerializer, CompanyManagementSerializer
+    PlatformSettingsSerializer, 
+    PlatformAuditLogSerializer, 
+    SystemHealthSerializer, 
+    PlatformNotificationSerializer,  
+    CompanyManagementSerializer  
 )
+# Note: CompanyOverviewSerializer, PlatformAnalyticsSerializer, and 
+# SystemHealthDashboardSerializer are not used - views build dicts manually
 
-class IsPlatformAdmin(permissions.BasePermission):
-    """
-    Custom permission to only allow platform administrators.
-    """
-    def has_permission(self, request, view):
-        return (
-            request.user and 
-            request.user.is_authenticated and 
-            getattr(request.user, 'is_platform_admin', False)
-        )
+# REMOVED: Duplicate IsPlatformAdmin class definition
+
 
 class PlatformSettingsViewSet(viewsets.ModelViewSet):
     """ViewSet for Platform Settings management."""
@@ -466,3 +461,71 @@ Administrator: {admin_user.get_full_name()} ({admin_user.email})
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Failed to send notification for company {company.name} action {action}: {str(e)}")
+
+
+class PlatformNotificationViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Platform Notifications management.
+    Allows platform admins to create, view, update, and delete notifications.
+    """
+    serializer_class = PlatformNotificationSerializer
+    permission_classes = [IsPlatformAdmin]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['notification_type', 'priority', 'is_active', 'is_global']
+    search_fields = ['title', 'message']
+    ordering_fields = ['created_at', 'priority', 'scheduled_for']
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        """Get all platform notifications."""
+        return PlatformNotification.objects.select_related(
+            'created_by'
+        ).prefetch_related('target_companies', 'target_users')
+
+    def perform_create(self, serializer):
+        """Set the created_by user when creating a notification."""
+        serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def mark_sent(self, request, pk=None):
+        """Mark a notification as sent."""
+        notification = self.get_object()
+        notification.is_sent = True
+        notification.sent_at = timezone.now()
+        notification.save()
+        
+        return Response({
+            'message': 'Notification marked as sent',
+            'sent_at': notification.sent_at
+        })
+
+    @action(detail=True, methods=['post'])
+    def send_now(self, request, pk=None):
+        """Send a notification immediately."""
+        notification = self.get_object()
+        
+        # TODO: Implement actual notification sending logic
+        # This could integrate with email, SMS, push notifications, etc.
+        
+        notification.is_sent = True
+        notification.sent_at = timezone.now()
+        notification.save()
+        
+        return Response({
+            'message': f'Notification "{notification.title}" sent successfully',
+            'sent_at': notification.sent_at
+        })
+
+    @action(detail=False, methods=['get'])
+    def active(self, request):
+        """Get all active notifications."""
+        queryset = self.get_queryset().filter(is_active=True)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def pending(self, request):
+        """Get all pending (not sent) notifications."""
+        queryset = self.get_queryset().filter(is_sent=False, is_active=True)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

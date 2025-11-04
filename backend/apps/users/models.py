@@ -92,3 +92,23 @@ class User(AbstractUser):
         if self.is_driver:
             roles.append('Driver')
         return roles
+    
+    @property
+    def role(self):
+        """Get the primary role of the user for JWT tokens."""
+        if self.is_platform_admin:
+            return 'platform_admin'
+        elif self.is_company_owner:
+            return 'company_owner'
+        elif self.is_warehouse_manager:
+            return 'warehouse_manager'
+        elif self.is_production_manager:
+            return 'production_manager'
+        elif self.is_logistics_coordinator:
+            return 'logistics_coordinator'
+        elif self.is_inventory_manager:
+            return 'inventory_manager'
+        elif self.is_driver:
+            return 'driver'
+        else:
+            return 'user'

@@ -1,13 +1,14 @@
-// src/middleware.ts 
+// src/middleware.ts - FIXED VERSION
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Define public routes that don't require authentication
+//  PUBLIC ROUTES - No auth required
 const publicRoutes = [
   '/',
   '/auth/login',
   '/auth/register',
   '/auth/forgot-password',
+  '/auth/reset-password',
   '/terms',
   '/privacy',
   '/contact',
@@ -15,7 +16,7 @@ const publicRoutes = [
   '/about',
 ]
 
-// Define protected routes that require authentication
+// ✅ PROTECTED ROUTES - Auth required (regular users)
 const protectedRoutes = [
   '/dashboard',
   '/inventory',
@@ -29,12 +30,12 @@ const protectedRoutes = [
   '/company',
 ]
 
-// Define admin-only routes
-const adminRoutes = [
+// ✅ PLATFORM ADMIN ROUTES - Auth + platform admin role required
+const platformAdminRoutes = [
   '/platform-admin',
 ]
 
-// Helper function to check if a path matches any route pattern
+// Helper: Check if path matches route pattern
 function matchesRoute(pathname: string, routes: string[]): boolean {
   return routes.some(route => {
     if (route === pathname) return true
@@ -46,25 +47,42 @@ function matchesRoute(pathname: string, routes: string[]): boolean {
   })
 }
 
-// Helper function to check if user has valid token from cookies
-function hasValidToken(request: NextRequest): boolean {
-  const authToken = request.cookies.get('authToken')?.value
-  const tokenExpiry = request.cookies.get('tokenExpiry')?.value
-  
-  if (!authToken) return false
-
+// Helper: Get user data from localStorage (via request headers)
+function getUserFromRequest(request: NextRequest): { isPlatformAdmin: boolean; role: string } | null {
   try {
-    // Check if token is expired
-    if (tokenExpiry) {
-      const expiryTime = parseInt(tokenExpiry, 10)
-      const currentTime = Date.now()
-      
-      if (currentTime >= expiryTime) {
-        return false
+    // Try to get user data from cookie
+    const userCookie = request.cookies.get('user')?.value
+    if (userCookie) {
+      const user = JSON.parse(decodeURIComponent(userCookie))
+      return {
+        isPlatformAdmin: user.is_platform_admin || false,
+        role: user.role || 'user'
       }
     }
 
-    // Basic token validation - decode JWT payload
+    // Fallback: Try to decode JWT token
+    const authToken = request.cookies.get('authToken')?.value
+    if (authToken) {
+      const payload = JSON.parse(atob(authToken.split('.')[1]))
+      return {
+        isPlatformAdmin: payload.is_platform_admin || false,
+        role: payload.role || 'user'
+      }
+    }
+
+    return null
+  } catch (error) {
+    console.error('Error parsing user from request:', error)
+    return null
+  }
+}
+
+// Helper: Check if user has valid token
+function hasValidToken(request: NextRequest): boolean {
+  const authToken = request.cookies.get('authToken')?.value
+  if (!authToken) return false
+
+  try {
     const payload = JSON.parse(atob(authToken.split('.')[1]))
     const currentTime = Date.now() / 1000
     
@@ -79,92 +97,93 @@ function hasValidToken(request: NextRequest): boolean {
   }
 }
 
-// Helper function to get user role from token
-function getUserRole(request: NextRequest): string | null {
-  const authToken = request.cookies.get('authToken')?.value
-  
-  if (!authToken) return null
-
-  try {
-    const payload = JSON.parse(atob(authToken.split('.')[1]))
-    return payload.role || 'user'
-  } catch {
-    return null
-  }
-}
-
-// Helper function to clear auth cookies
+// Helper: Clear auth cookies
 function clearAuthCookies(response: NextResponse): void {
-  response.cookies.set('authToken', '', {
-    path: '/',
-    expires: new Date(0),
-    httpOnly: false, // We need to clear client-side cookies too
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
-  })
-  
-  response.cookies.set('refreshToken', '', {
+  const cookieOptions = {
     path: '/',
     expires: new Date(0),
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
-  })
-  
-  response.cookies.set('tokenExpiry', '', {
-    path: '/',
-    expires: new Date(0),
-    httpOnly: false,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict'
-  })
+    sameSite: 'strict' as const
+  }
+
+  response.cookies.set('authToken', '', cookieOptions)
+  response.cookies.set('refreshToken', '', cookieOptions)
+  response.cookies.set('tokenExpiry', '', cookieOptions)
+  response.cookies.set('user', '', cookieOptions)
 }
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isAuthenticated = hasValidToken(request)
-  const userRole = getUserRole(request)
+  const userData = getUserFromRequest(request)
 
-  // Allow public routes for everyone
+  console.log('🔐 Middleware Check:', {
+    pathname,
+    isAuthenticated,
+    isPlatformAdmin: userData?.isPlatformAdmin,
+    role: userData?.role
+  })
+
+  // ✅ ALLOW PUBLIC ROUTES
   if (matchesRoute(pathname, publicRoutes)) {
-    // If authenticated user tries to access auth pages, redirect to dashboard
+    // Redirect authenticated users away from auth pages
     if (isAuthenticated && pathname.startsWith('/auth/')) {
+      if (userData?.isPlatformAdmin || userData?.role === 'platform_admin') {
+        return NextResponse.redirect(new URL('/platform-admin', request.url))
+      }
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
     return NextResponse.next()
   }
 
-  // Check admin routes
-  if (matchesRoute(pathname, adminRoutes)) {
+  // ✅ PLATFORM ADMIN ROUTES
+  if (matchesRoute(pathname, platformAdminRoutes)) {
+    console.log('🛡️ Platform Admin Route Check')
+    
     if (!isAuthenticated) {
-      // Clear any invalid cookies
-      const response = NextResponse.redirect(new URL('/auth/login?redirect=' + encodeURIComponent(pathname), request.url))
+      console.log('❌ Not authenticated - redirecting to login')
+      const response = NextResponse.redirect(
+        new URL('/auth/login?redirect=' + encodeURIComponent(pathname), request.url)
+      )
       clearAuthCookies(response)
       return response
     }
-    
-    if (userRole !== 'admin') {
+
+    if (!userData?.isPlatformAdmin && userData?.role !== 'platform_admin') {
+      console.log('❌ Not platform admin - redirecting to dashboard')
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
-    
+
+    console.log('✅ Platform admin authenticated - allowing access')
     return NextResponse.next()
   }
 
-  // Check protected routes
+  // ✅ PROTECTED ROUTES (Regular Users)
   if (matchesRoute(pathname, protectedRoutes)) {
+    console.log('🏠 Protected Route Check')
+    
     if (!isAuthenticated) {
-      // Clear any invalid cookies and redirect to login
-      const response = NextResponse.redirect(new URL('/auth/login?redirect=' + encodeURIComponent(pathname), request.url))
+      console.log('❌ Not authenticated - redirecting to login')
+      const response = NextResponse.redirect(
+        new URL('/auth/login?redirect=' + encodeURIComponent(pathname), request.url)
+      )
       clearAuthCookies(response)
       return response
     }
-    
+
+    // ✅ REDIRECT PLATFORM ADMIN TO THEIR DASHBOARD
+    if (userData?.isPlatformAdmin || userData?.role === 'platform_admin') {
+      console.log('🚀 Platform admin accessing regular route - redirecting to /platform-admin')
+      return NextResponse.redirect(new URL('/platform-admin', request.url))
+    }
+
+    console.log('✅ Regular user authenticated - allowing access')
     return NextResponse.next()
   }
 
-  // Handle API routes
+  // ✅ API ROUTES
   if (pathname.startsWith('/api/')) {
-    // Allow public API endpoints
     const publicApiRoutes = [
       '/api/auth/login',
       '/api/auth/register',
@@ -178,7 +197,6 @@ export function middleware(request: NextRequest) {
       return NextResponse.next()
     }
     
-    // Protected API endpoints require authentication
     if (!isAuthenticated) {
       return NextResponse.json(
         { error: 'Unauthorized', message: 'Authentication required' },
@@ -186,52 +204,36 @@ export function middleware(request: NextRequest) {
       )
     }
     
-    // Admin-only API endpoints
-    const adminApiRoutes = [
-      '/api/admin',
-      '/api/platform-admin',
-    ]
-    
-    if (matchesRoute(pathname, adminApiRoutes) && userRole !== 'admin') {
-      return NextResponse.json(
-        { error: 'Forbidden', message: 'Admin access required' },
-        { status: 403 }
-      )
+    // Platform admin API routes
+    const adminApiRoutes = ['/api/platform-admin']
+    if (matchesRoute(pathname, adminApiRoutes)) {
+      if (!userData?.isPlatformAdmin && userData?.role !== 'platform_admin') {
+        return NextResponse.json(
+          { error: 'Forbidden', message: 'Platform admin access required' },
+          { status: 403 }
+        )
+      }
     }
     
     return NextResponse.next()
   }
 
-  // For any other routes not explicitly handled, allow them through
-  // This includes static files, _next files, etc.
+  // ✅ STATIC FILES - Always allow
   if (
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/static/') ||
-    pathname.includes('.') // Files with extensions (images, fonts, etc.)
+    pathname.includes('.') // Files with extensions
   ) {
     return NextResponse.next()
   }
 
-  // Default: redirect unknown protected routes to login
-  if (!isAuthenticated) {
-    const response = NextResponse.redirect(new URL('/auth/login?redirect=' + encodeURIComponent(pathname), request.url))
-    clearAuthCookies(response)
-    return response
-  }
-
+  // ✅ DEFAULT - For unknown routes
+  console.log('❓ Unknown route:', pathname)
   return NextResponse.next()
 }
 
-// Configure which paths the middleware runs on
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder files
-     */
     '/((?!_next/static|_next/image|favicon.ico|public|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

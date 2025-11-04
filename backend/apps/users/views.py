@@ -26,7 +26,8 @@ def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
     refresh['user_id'] = str(user.id)  # Convert UUID to string
     refresh['email'] = user.email
-    refresh['role'] = getattr(user, 'role', 'user')
+    refresh['role'] = user.role  # Now uses the @property
+    refresh['is_platform_admin'] = user.is_platform_admin  
     # Add company_id if user has a company
     if hasattr(user, 'company') and user.company:
         refresh['company_id'] = str(user.company.id)

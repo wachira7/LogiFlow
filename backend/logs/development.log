@@ -39243,3 +39243,951 @@ INFO 2025-10-20 06:42:54,985 basehttp 66967 133822641329856 "GET /api/v1/tenants
 INFO 2025-10-20 06:42:55,062 basehttp 66967 133822658115264 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
 INFO 2025-10-20 06:42:55,068 basehttp 66967 133822649722560 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
 INFO 2025-10-20 06:43:30,024 basehttp 66967 133822649722560 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-10-29 01:25:58,402 autoreload 14621 138500246928256 Watching for file changes with StatReloader
+INFO 2025-10-29 01:27:17,865 basehttp 14621 138500129150656 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-10-29 01:27:17,916 log 14621 138500129150656 Unauthorized: /api/v1/auth/login/
+WARNING 2025-10-29 01:27:17,918 basehttp 14621 138500129150656 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-10-29 01:27:17,930 basehttp 14621 138500129150656 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+WARNING 2025-10-29 01:27:17,947 log 14621 138500129150656 Unauthorized: /api/v1/auth/token/refresh/
+WARNING 2025-10-29 01:27:17,948 basehttp 14621 138500129150656 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 401 138
+INFO 2025-10-29 01:27:49,165 basehttp 14621 138500129150656 "POST /api/v1/auth/login/ HTTP/1.1" 200 1548
+INFO 2025-10-29 01:27:54,143 basehttp 14621 138500129150656 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-10-29 01:27:54,179 basehttp 14621 138500129150656 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-10-29 01:28:41,942 basehttp 14621 138500129150656 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-10-29 01:28:41,989 basehttp 14621 138500129150656 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+WARNING 2025-10-29 01:29:46,665 log 14621 138500129150656 Bad Request: /api/v1/auth/login/
+WARNING 2025-10-29 01:29:46,666 basehttp 14621 138500129150656 "POST /api/v1/auth/login/ HTTP/1.1" 400 124
+INFO 2025-10-29 01:30:56,811 basehttp 14621 138500129150656 "POST /api/v1/auth/login/ HTTP/1.1" 200 1360
+WARNING 2025-10-29 01:30:57,470 log 14621 138500129150656 Bad Request: /api/v1/auth/dashboard/overview/
+WARNING 2025-10-29 01:30:57,477 basehttp 14621 138500129150656 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 400 42
+INFO 2025-10-29 01:31:44,695 basehttp 14621 138500129150656 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-10-29 01:31:44,760 basehttp 14621 138500129150656 "GET /api/v1/auth/profile/ HTTP/1.1" 200 514
+INFO 2025-10-29 01:31:44,793 basehttp 14621 138500119709376 "GET /api/v1/auth/profile/ HTTP/1.1" 200 514
+INFO 2025-10-29 01:31:44,827 basehttp 14621 138500129150656 "GET /api/v1/auth/profile/ HTTP/1.1" 200 514
+WARNING 2025-10-29 01:31:45,096 log 14621 138500129150656 Bad Request: /api/v1/auth/dashboard/overview/
+WARNING 2025-10-29 01:31:45,097 basehttp 14621 138500129150656 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 400 42
+INFO 2025-10-29 01:32:43,338 basehttp 14621 138500129150656 "GET /api/v1/auth/profile/ HTTP/1.1" 200 514
+INFO 2025-10-29 01:32:43,396 basehttp 14621 138500129150656 "GET /api/v1/auth/profile/ HTTP/1.1" 200 514
+INFO 2025-10-29 01:32:43,460 basehttp 14621 138500119709376 "GET /api/v1/auth/profile/ HTTP/1.1" 200 514
+WARNING 2025-10-29 01:32:43,720 log 14621 138500119709376 Bad Request: /api/v1/auth/dashboard/overview/
+WARNING 2025-10-29 01:32:43,722 basehttp 14621 138500119709376 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 400 42
+INFO 2025-10-29 01:32:56,913 basehttp 14621 138500119709376 "OPTIONS /api/v1/tenants/company/ HTTP/1.1" 200 2
+INFO 2025-10-29 01:32:56,915 basehttp 14621 138500129150656 "OPTIONS /api/v1/tenants/settings/ HTTP/1.1" 200 2
+INFO 2025-10-29 01:32:56,923 basehttp 14621 138500111054528 "OPTIONS /api/v1/tenants/invitations/ HTTP/1.1" 200 2
+INFO 2025-10-29 01:32:56,930 basehttp 14621 138500102661824 "OPTIONS /api/v1/tenants/company/ HTTP/1.1" 200 2
+INFO 2025-10-29 01:32:56,938 basehttp 14621 138500129150656 "OPTIONS /api/v1/tenants/settings/ HTTP/1.1" 200 2
+INFO 2025-10-29 01:32:56,944 basehttp 14621 138500129150656 "OPTIONS /api/v1/tenants/invitations/ HTTP/1.1" 200 2
+INFO 2025-10-29 01:32:57,004 basehttp 14621 138500129150656 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-10-29 01:32:57,012 basehttp 14621 138500102661824 "GET /api/v1/tenants/company/ HTTP/1.1" 200 195
+INFO 2025-10-29 01:32:57,051 basehttp 14621 138500111054528 "GET /api/v1/tenants/company/ HTTP/1.1" 200 195
+INFO 2025-10-29 01:32:57,061 basehttp 14621 138500102661824 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+ERROR 2025-10-29 01:32:57,165 log 14621 138500119709376 Internal Server Error: /api/v1/tenants/settings/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 916, in get_or_create
+    return self.get(**kwargs), False
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 637, in get
+    raise self.model.DoesNotExist(
+apps.tenants.models.CompanySetting.DoesNotExist: CompanySetting matching query does not exist.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.IntegrityError: NOT NULL constraint failed: company_settings.company_id
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/generics.py", line 256, in get
+    return self.retrieve(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 54, in retrieve
+    instance = self.get_object()
+  File "/home/wachira/Development/LogiFlow/backend/apps/tenants/views.py", line 210, in get_object
+    settings, created = CompanySetting.objects.get_or_create(company=company)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 923, in get_or_create
+    return self.create(**params), True
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/backend/apps/tenants/models.py", line 185, in save
+    super().save(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.IntegrityError: NOT NULL constraint failed: company_settings.company_id
+ERROR 2025-10-29 01:32:57,173 basehttp 14621 138500119709376 "GET /api/v1/tenants/settings/ HTTP/1.1" 500 36540
+ERROR 2025-10-29 01:32:57,281 log 14621 138500102661824 Internal Server Error: /api/v1/tenants/settings/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 916, in get_or_create
+    return self.get(**kwargs), False
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 637, in get
+    raise self.model.DoesNotExist(
+apps.tenants.models.CompanySetting.DoesNotExist: CompanySetting matching query does not exist.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.IntegrityError: NOT NULL constraint failed: company_settings.company_id
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/generics.py", line 256, in get
+    return self.retrieve(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 54, in retrieve
+    instance = self.get_object()
+  File "/home/wachira/Development/LogiFlow/backend/apps/tenants/views.py", line 210, in get_object
+    settings, created = CompanySetting.objects.get_or_create(company=company)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 923, in get_or_create
+    return self.create(**params), True
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/backend/apps/tenants/models.py", line 185, in save
+    super().save(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.IntegrityError: NOT NULL constraint failed: company_settings.company_id
+ERROR 2025-10-29 01:32:57,284 basehttp 14621 138500102661824 "GET /api/v1/tenants/settings/ HTTP/1.1" 500 36540
+WARNING 2025-10-29 01:33:11,203 log 14621 138500102661824 Bad Request: /api/v1/auth/dashboard/overview/
+WARNING 2025-10-29 01:33:11,204 basehttp 14621 138500102661824 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 400 42
+INFO 2025-10-29 01:33:31,293 basehttp 14621 138500102661824 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-10-29 01:34:16,323 basehttp 14621 138500102661824 "POST /api/v1/auth/login/ HTTP/1.1" 200 1360
+WARNING 2025-10-29 01:34:17,004 log 14621 138500102661824 Bad Request: /api/v1/auth/dashboard/overview/
+WARNING 2025-10-29 01:34:17,014 basehttp 14621 138500102661824 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 400 42
+INFO 2025-10-29 01:35:08,617 basehttp 14621 138500102661824 "GET /api/v1/auth/profile/ HTTP/1.1" 200 514
+INFO 2025-10-29 01:35:08,749 basehttp 14621 138500102661824 "GET /api/v1/auth/profile/ HTTP/1.1" 200 514
+INFO 2025-10-29 01:35:08,763 basehttp 14621 138500119709376 "GET /api/v1/auth/profile/ HTTP/1.1" 200 514
+WARNING 2025-10-29 01:35:09,076 log 14621 138500119709376 Bad Request: /api/v1/auth/dashboard/overview/
+WARNING 2025-10-29 01:35:09,077 basehttp 14621 138500119709376 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 400 42
+INFO 2025-10-29 02:36:55,950 autoreload 46517 137354060651392 Watching for file changes with StatReloader
+WARNING 2025-10-29 02:39:41,754 log 46517 137353942783680 Unauthorized: /api/v1/auth/login/
+WARNING 2025-10-29 02:39:41,767 basehttp 46517 137353942783680 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-10-29 02:39:41,845 basehttp 46517 137353942783680 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-10-29 02:39:42,988 basehttp 46517 137353942783680 "POST /api/v1/auth/login/ HTTP/1.1" 200 1360
+WARNING 2025-10-29 02:39:46,397 log 46517 137353942783680 Bad Request: /api/v1/auth/dashboard/overview/
+WARNING 2025-10-29 02:39:46,400 basehttp 46517 137353942783680 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 400 42
+INFO 2025-10-29 02:40:42,833 basehttp 46517 137353942783680 "PATCH /api/v1/auth/profile/ HTTP/1.1" 200 574
+WARNING 2025-10-29 02:41:01,337 log 46517 137353942783680 Bad Request: /api/v1/auth/dashboard/overview/
+WARNING 2025-10-29 02:41:01,338 basehttp 46517 137353942783680 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 400 42
+INFO 2025-10-29 03:44:18,710 autoreload 75486 136116999142272 Watching for file changes with StatReloader
+INFO 2025-11-01 12:03:08,531 autoreload 15972 124051481267072 Watching for file changes with StatReloader
+INFO 2025-11-01 12:04:25,895 basehttp 15972 124051363190464 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-11-01 12:04:26,171 log 15972 124051354797760 Unauthorized: /api/v1/auth/login/
+WARNING 2025-11-01 12:04:26,173 basehttp 15972 124051354797760 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-11-01 12:04:26,178 basehttp 15972 124051354797760 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-01 12:04:26,203 basehttp 15972 124051354797760 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-01 12:04:26,927 basehttp 15972 124051354797760 "POST /api/v1/auth/login/ HTTP/1.1" 200 1548
+INFO 2025-11-01 12:04:30,229 basehttp 15972 124051354797760 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-11-01 12:04:30,322 basehttp 15972 124051354797760 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-01 12:05:02,549 basehttp 15972 124051354797760 "OPTIONS /api/v1/payments/plans/?params=%5Bobject+Object%5D HTTP/1.1" 200 2
+INFO 2025-11-01 12:05:02,584 basehttp 15972 124051363190464 "OPTIONS /api/v1/payments/payment-methods/ HTTP/1.1" 200 2
+INFO 2025-11-01 12:05:02,592 basehttp 15972 124051137754816 "OPTIONS /api/v1/payments/plans/ HTTP/1.1" 200 2
+INFO 2025-11-01 12:05:02,589 basehttp 15972 124051354797760 "OPTIONS /api/v1/payments/subscriptions/ HTTP/1.1" 200 2
+INFO 2025-11-01 12:05:02,597 basehttp 15972 124051129362112 "OPTIONS /api/v1/payments/subscriptions/?params=%5Bobject+Object%5D HTTP/1.1" 200 2
+INFO 2025-11-01 12:05:02,789 basehttp 15972 124051129362112 "GET /api/v1/payments/plans/?params=%5Bobject+Object%5D HTTP/1.1" 200 6747
+INFO 2025-11-01 12:05:02,846 basehttp 15972 124051354797760 "GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 100
+INFO 2025-11-01 12:05:02,860 basehttp 15972 124051137754816 "GET /api/v1/payments/plans/ HTTP/1.1" 200 6747
+INFO 2025-11-01 12:05:02,898 basehttp 15972 124051363190464 "GET /api/v1/payments/subscriptions/ HTTP/1.1" 200 1064
+INFO 2025-11-01 12:05:02,901 basehttp 15972 124051120969408 "GET /api/v1/payments/subscriptions/?params=%5Bobject+Object%5D HTTP/1.1" 200 1064
+INFO 2025-11-01 12:05:16,648 basehttp 15972 124051120969408 "GET /api/v1/payments/subscriptions/ HTTP/1.1" 200 1064
+INFO 2025-11-01 12:05:35,487 basehttp 15972 124051120969408 "GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 100
+INFO 2025-11-01 12:05:40,071 basehttp 15972 124051120969408 "OPTIONS /api/v1/payments/transactions/?params=%5Bobject+Object%5D HTTP/1.1" 200 2
+INFO 2025-11-01 12:05:40,152 basehttp 15972 124051363190464 "GET /api/v1/payments/transactions/?params=%5Bobject+Object%5D HTTP/1.1" 200 1459
+INFO 2025-11-01 12:06:05,727 basehttp 15972 124051363190464 "GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 100
+INFO 2025-11-01 12:06:15,308 basehttp 15972 124051363190464 "OPTIONS /api/v1/payments/subscriptions/dashboard/ HTTP/1.1" 200 2
+INFO 2025-11-01 12:06:15,311 basehttp 15972 124051137754816 "OPTIONS /api/v1/payments/transactions/revenue_report/ HTTP/1.1" 200 2
+INFO 2025-11-01 12:06:15,430 basehttp 15972 124051129362112 "GET /api/v1/payments/transactions/revenue_report/ HTTP/1.1" 200 332
+INFO 2025-11-01 12:06:15,431 basehttp 15972 124051354797760 "GET /api/v1/payments/subscriptions/dashboard/ HTTP/1.1" 200 197
+INFO 2025-11-01 12:06:40,525 basehttp 15972 124051129362112 "GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 100
+INFO 2025-11-01 12:06:40,556 basehttp 15972 124051354797760 "GET /api/v1/payments/subscriptions/ HTTP/1.1" 200 1064
+INFO 2025-11-01 12:06:40,560 basehttp 15972 124051137754816 "GET /api/v1/payments/subscriptions/?params=%5Bobject+Object%5D HTTP/1.1" 200 1064
+INFO 2025-11-01 12:06:50,339 basehttp 15972 124051137754816 "GET /api/v1/payments/transactions/revenue_report/ HTTP/1.1" 200 332
+INFO 2025-11-01 12:06:50,362 basehttp 15972 124051354797760 "GET /api/v1/payments/subscriptions/dashboard/ HTTP/1.1" 200 197
+INFO 2025-11-01 12:06:54,437 basehttp 15972 124051137754816 "GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 100
+INFO 2025-11-01 12:06:54,437 basehttp 15972 124051354797760 "GET /api/v1/payments/subscriptions/ HTTP/1.1" 200 1064
+INFO 2025-11-01 12:06:54,449 basehttp 15972 124051129362112 "GET /api/v1/payments/subscriptions/?params=%5Bobject+Object%5D HTTP/1.1" 200 1064
+INFO 2025-11-01 12:06:55,379 basehttp 15972 124051137754816 "GET /api/v1/payments/transactions/revenue_report/ HTTP/1.1" 200 332
+INFO 2025-11-01 12:06:55,389 basehttp 15972 124051129362112 "GET /api/v1/payments/subscriptions/dashboard/ HTTP/1.1" 200 197
+INFO 2025-11-01 12:06:56,759 basehttp 15972 124051129362112 "GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 100
+INFO 2025-11-01 12:06:57,946 basehttp 15972 124051129362112 "GET /api/v1/payments/transactions/?params=%5Bobject+Object%5D HTTP/1.1" 200 1459
+INFO 2025-11-01 12:06:59,181 basehttp 15972 124051129362112 "GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 100
+INFO 2025-11-01 12:07:01,882 basehttp 15972 124051129362112 "GET /api/v1/payments/subscriptions/ HTTP/1.1" 200 1064
+INFO 2025-11-01 12:07:02,993 basehttp 15972 124051137754816 "GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 100
+INFO 2025-11-01 12:07:03,039 basehttp 15972 124051354797760 "GET /api/v1/payments/subscriptions/?params=%5Bobject+Object%5D HTTP/1.1" 200 1064
+INFO 2025-11-01 12:07:03,044 basehttp 15972 124051129362112 "GET /api/v1/payments/subscriptions/ HTTP/1.1" 200 1064
+INFO 2025-11-01 12:07:04,097 basehttp 15972 124051129362112 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-01 12:07:48,137 basehttp 15972 124051129362112 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-01 12:08:19,490 basehttp 15972 124051129362112 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-11-01 12:08:19,514 basehttp 15972 124051354797760 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+WARNING 2025-11-01 12:08:59,293 log 15972 124051354797760 Bad Request: /api/v1/auth/login/
+WARNING 2025-11-01 12:08:59,293 basehttp 15972 124051354797760 "POST /api/v1/auth/login/ HTTP/1.1" 400 124
+INFO 2025-11-01 12:10:47,392 basehttp 15972 124051354797760 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+WARNING 2025-11-01 12:10:48,058 log 15972 124051354797760 Bad Request: /api/v1/auth/dashboard/overview/
+WARNING 2025-11-01 12:10:48,062 basehttp 15972 124051354797760 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 400 42
+INFO 2025-11-01 12:18:49,372 autoreload 24735 134114196388736 Watching for file changes with StatReloader
+INFO 2025-11-01 12:21:50,576 basehttp 24735 134114079397568 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-11-01 12:24:21,155 basehttp 24735 134114079397568 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+WARNING 2025-11-01 12:24:25,092 log 24735 134114079397568 Bad Request: /api/v1/auth/dashboard/overview/
+WARNING 2025-11-01 12:24:25,099 basehttp 24735 134114079397568 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 400 42
+INFO 2025-11-01 15:44:23,342 autoreload 98104 125333506055040 Watching for file changes with StatReloader
+INFO 2025-11-01 15:47:23,550 basehttp 98104 125333319710400 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-11-01 15:47:24,608 basehttp 98104 125333311317696 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-01 17:20:59,232 autoreload 135402 140469226494848 Watching for file changes with StatReloader
+INFO 2025-11-01 17:23:41,936 basehttp 135402 140469042144960 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:24:18,346 basehttp 135402 140469042144960 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:25:20,255 basehttp 135402 140469042144960 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:27:34,620 basehttp 135402 140469042144960 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:32:40,386 autoreload 141176 129998701124480 Watching for file changes with StatReloader
+WARNING 2025-11-01 17:34:38,366 log 141176 129998515857088 Unauthorized: /api/v1/auth/login/
+WARNING 2025-11-01 17:34:38,377 basehttp 141176 129998515857088 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-11-01 17:34:38,398 basehttp 141176 129998515857088 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:34:38,518 basehttp 141176 129998506940096 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-01 17:34:39,877 basehttp 141176 129998506940096 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-01 17:40:41,049 autoreload 145588 126925467061120 Watching for file changes with StatReloader
+INFO 2025-11-01 17:41:44,916 basehttp 145588 126925276182208 "OPTIONS /api/v1/tenants/company/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:41:44,922 basehttp 145588 126925259396800 "OPTIONS /api/v1/tenants/invitations/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:41:44,923 basehttp 145588 126925267789504 "OPTIONS /api/v1/tenants/settings/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:41:44,934 basehttp 145588 126925234218688 "OPTIONS /api/v1/tenants/invitations/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:41:44,934 basehttp 145588 126925251004096 "OPTIONS /api/v1/tenants/company/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:41:44,935 basehttp 145588 126925242611392 "OPTIONS /api/v1/tenants/settings/ HTTP/1.1" 200 2
+INFO 2025-11-01 17:41:45,097 basehttp 145588 126925276182208 "GET /api/v1/tenants/company/ HTTP/1.1" 200 195
+INFO 2025-11-01 17:41:45,135 basehttp 145588 126925225825984 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-01 17:41:45,159 basehttp 145588 126925242611392 "GET /api/v1/tenants/company/ HTTP/1.1" 200 195
+INFO 2025-11-01 17:41:45,176 basehttp 145588 126925276182208 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+ERROR 2025-11-01 17:41:45,335 log 145588 126925267789504 Internal Server Error: /api/v1/tenants/settings/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 916, in get_or_create
+    return self.get(**kwargs), False
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 637, in get
+    raise self.model.DoesNotExist(
+apps.tenants.models.CompanySetting.DoesNotExist: CompanySetting matching query does not exist.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.IntegrityError: NOT NULL constraint failed: company_settings.company_id
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/generics.py", line 256, in get
+    return self.retrieve(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 54, in retrieve
+    instance = self.get_object()
+  File "/home/wachira/Development/LogiFlow/backend/apps/tenants/views.py", line 210, in get_object
+    settings, created = CompanySetting.objects.get_or_create(company=company)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 923, in get_or_create
+    return self.create(**params), True
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/backend/apps/tenants/models.py", line 185, in save
+    super().save(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.IntegrityError: NOT NULL constraint failed: company_settings.company_id
+ERROR 2025-11-01 17:41:45,349 basehttp 145588 126925267789504 "GET /api/v1/tenants/settings/ HTTP/1.1" 500 36540
+ERROR 2025-11-01 17:41:45,562 log 145588 126925276182208 Internal Server Error: /api/v1/tenants/settings/
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 916, in get_or_create
+    return self.get(**kwargs), False
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 637, in get
+    raise self.model.DoesNotExist(
+apps.tenants.models.CompanySetting.DoesNotExist: CompanySetting matching query does not exist.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+sqlite3.IntegrityError: NOT NULL constraint failed: company_settings.company_id
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/views/generic/base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/generics.py", line 256, in get
+    return self.retrieve(request, *args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/rest_framework/mixins.py", line 54, in retrieve
+    instance = self.get_object()
+  File "/home/wachira/Development/LogiFlow/backend/apps/tenants/views.py", line 210, in get_object
+    settings, created = CompanySetting.objects.get_or_create(company=company)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 923, in get_or_create
+    return self.create(**params), True
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 658, in create
+    obj.save(force_insert=True, using=self.db)
+  File "/home/wachira/Development/LogiFlow/backend/apps/tenants/models.py", line 185, in save
+    super().save(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 814, in save
+    self.save_base(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 877, in save_base
+    updated = self._save_table(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1020, in _save_table
+    results = self._do_insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/base.py", line 1061, in _do_insert
+    return manager._insert(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/query.py", line 1805, in _insert
+    return query.get_compiler(using=using).execute_sql(returning_fields)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/models/sql/compiler.py", line 1822, in execute_sql
+    cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 102, in execute
+    return super().execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+  File "/home/wachira/Development/LogiFlow/venv/lib/python3.8/site-packages/django/db/backends/sqlite3/base.py", line 328, in execute
+    return super().execute(query, params)
+django.db.utils.IntegrityError: NOT NULL constraint failed: company_settings.company_id
+ERROR 2025-11-01 17:41:45,566 basehttp 145588 126925276182208 "GET /api/v1/tenants/settings/ HTTP/1.1" 500 36540
+INFO 2025-11-01 18:40:30,936 autoreload 168580 124743887805312 Watching for file changes with StatReloader
+INFO 2025-11-01 18:43:57,793 basehttp 168580 124743701231296 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-11-01 18:43:59,305 basehttp 168580 124743692838592 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-01 19:15:46,377 autoreload 183300 132163257527168 Watching for file changes with StatReloader
+INFO 2025-11-01 19:16:40,729 basehttp 183300 132163139786432 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-11-01 19:16:40,971 basehttp 183300 132163055908544 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-11-01 19:17:39,912 basehttp 183300 132163055908544 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-03 07:24:00,378 autoreload 86172 139110818028416 Watching for file changes with StatReloader
+INFO 2025-11-03 07:25:47,070 basehttp 86172 139110632646336 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-11-03 07:25:47,369 log 86172 139110624253632 Unauthorized: /api/v1/auth/login/
+WARNING 2025-11-03 07:25:47,375 basehttp 86172 139110624253632 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-11-03 07:25:47,415 basehttp 86172 139110624253632 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-03 07:25:47,453 basehttp 86172 139110624253632 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 07:25:48,693 basehttp 86172 139110624253632 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-03 07:42:01,367 autoreload 95914 129393185655680 Watching for file changes with StatReloader
+INFO 2025-11-03 07:42:57,592 basehttp 95914 129393000441536 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-11-03 07:42:57,821 basehttp 95914 129392992048832 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-11-03 07:43:38,787 basehttp 95914 129392992048832 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-03 10:17:58,220 autoreload 156825 126117723908992 Watching for file changes with StatReloader
+INFO 2025-11-03 10:19:33,847 basehttp 156825 126117606840000 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-11-03 10:19:34,091 log 156825 126117598447296 Unauthorized: /api/v1/auth/login/
+WARNING 2025-11-03 10:19:34,092 basehttp 156825 126117598447296 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-11-03 10:19:34,100 basehttp 156825 126117598447296 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-03 10:19:34,167 basehttp 156825 126117598447296 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 10:19:35,183 basehttp 156825 126117598447296 "POST /api/v1/auth/login/ HTTP/1.1" 200 1548
+INFO 2025-11-03 10:19:42,599 basehttp 156825 126117598447296 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-11-03 10:19:42,671 basehttp 156825 126117598447296 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-03 10:20:32,303 basehttp 156825 126117598447296 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-11-03 10:20:32,396 basehttp 156825 126117598447296 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+WARNING 2025-11-03 10:21:22,313 log 156825 126117598447296 Bad Request: /api/v1/auth/login/
+WARNING 2025-11-03 10:21:22,314 basehttp 156825 126117598447296 "POST /api/v1/auth/login/ HTTP/1.1" 400 124
+INFO 2025-11-03 10:22:03,164 basehttp 156825 126117598447296 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-03 10:22:14,957 basehttp 156825 126117598447296 "OPTIONS /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 200 2
+INFO 2025-11-03 10:22:14,966 basehttp 156825 126117606840000 "OPTIONS /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 200 2
+INFO 2025-11-03 10:22:14,971 basehttp 156825 126117588743872 "OPTIONS /api/v1/platform-admin/system-health/ HTTP/1.1" 200 2
+WARNING 2025-11-03 10:22:14,987 log 156825 126117588743872 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 10:22:14,992 basehttp 156825 126117588743872 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 10:22:15,059 log 156825 126117598447296 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 10:22:15,062 log 156825 126117588743872 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 10:22:15,082 basehttp 156825 126117588743872 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-03 10:22:15,090 basehttp 156825 126117598447296 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-03 10:22:15,202 basehttp 156825 126117598447296 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 10:22:15,261 basehttp 156825 126117598447296 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 10:22:15,271 basehttp 156825 126117588743872 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+WARNING 2025-11-03 10:22:15,316 log 156825 126117588743872 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 10:22:15,317 basehttp 156825 126117588743872 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 10:22:15,353 log 156825 126117598447296 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 10:22:15,356 log 156825 126117606840000 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 10:22:15,368 basehttp 156825 126117606840000 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-03 10:22:15,365 basehttp 156825 126117598447296 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-03 10:30:25,099 basehttp 156825 126117598447296 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-11-03 10:51:42,114 autoreload 173256 126920725379968 Watching for file changes with StatReloader
+INFO 2025-11-03 10:53:15,652 basehttp 173256 126920608437952 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+WARNING 2025-11-03 10:53:23,964 log 173256 126920598734528 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 10:53:23,964 log 173256 126920608437952 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 10:53:23,969 basehttp 173256 126920608437952 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 10:53:23,965 log 173256 126920590341824 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 10:53:23,979 basehttp 173256 126920590341824 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-03 10:53:23,967 basehttp 173256 126920598734528 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+INFO 2025-11-03 10:53:24,329 basehttp 173256 126920590341824 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 10:53:24,332 basehttp 173256 126920598734528 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 10:53:24,333 basehttp 173256 126920608437952 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+WARNING 2025-11-03 10:53:24,582 log 173256 126920608437952 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 10:53:24,589 basehttp 173256 126920608437952 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-03 10:53:24,607 log 173256 126920590341824 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 10:53:24,611 log 173256 126920598734528 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 10:53:24,613 basehttp 173256 126920590341824 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-03 10:53:24,616 basehttp 173256 126920598734528 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 10:53:33,792 log 173256 126920598734528 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 10:53:33,797 basehttp 173256 126920598734528 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-03 10:53:33,857 basehttp 173256 126920598734528 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+WARNING 2025-11-03 10:53:33,883 log 173256 126920598734528 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 10:53:33,885 basehttp 173256 126920598734528 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-03 10:56:21,723 basehttp 173256 126920377235136 "GET /api/docs/ HTTP/1.1" 200 4645
+INFO 2025-11-03 10:56:34,004 basehttp 173256 126920377235136 "GET /api/schema/ HTTP/1.1" 200 599436
+INFO 2025-11-03 11:04:09,270 autoreload 179475 125602395155328 Watching for file changes with StatReloader
+INFO 2025-11-03 11:04:55,433 basehttp 179475 125602277086912 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-11-03 11:05:53,465 basehttp 179475 125602277086912 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+WARNING 2025-11-03 11:06:01,318 log 179475 125602277086912 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 11:06:01,319 log 179475 125602267907776 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 11:06:01,325 basehttp 179475 125602267907776 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-03 11:06:01,327 basehttp 179475 125602277086912 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 11:06:01,324 log 179475 125602259515072 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 11:06:01,337 basehttp 179475 125602259515072 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-03 11:06:01,632 basehttp 179475 125602259515072 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 11:06:01,635 basehttp 179475 125602277086912 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 11:06:01,642 basehttp 179475 125602267907776 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+WARNING 2025-11-03 11:06:01,730 log 179475 125602267907776 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 11:06:01,735 basehttp 179475 125602267907776 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-03 11:06:01,734 log 179475 125602277086912 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 11:06:01,738 basehttp 179475 125602277086912 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 11:06:01,819 log 179475 125602277086912 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 11:06:01,820 basehttp 179475 125602277086912 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-03 11:18:01,737 log 179475 125602277086912 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 11:18:01,753 basehttp 179475 125602277086912 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-03 11:18:01,867 basehttp 179475 125602277086912 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+WARNING 2025-11-03 11:18:01,937 log 179475 125602277086912 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 11:18:01,939 basehttp 179475 125602277086912 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-03 11:25:13,148 autoreload 179475 125602395155328 /home/wachira/Development/LogiFlow/backend/utils/permissions.py changed, reloading.
+INFO 2025-11-03 11:25:18,306 autoreload 188715 132780207434624 Watching for file changes with StatReloader
+INFO 2025-11-03 21:11:07,350 autoreload 20854 123258961959808 Watching for file changes with StatReloader
+INFO 2025-11-03 21:12:38,631 basehttp 20854 123258776839872 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-11-03 21:12:38,689 log 20854 123258776839872 Unauthorized: /api/v1/auth/login/
+WARNING 2025-11-03 21:12:38,690 basehttp 20854 123258776839872 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-11-03 21:12:38,708 basehttp 20854 123258776839872 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:12:38,735 basehttp 20854 123258776839872 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 21:12:39,561 basehttp 20854 123258776839872 "POST /api/v1/auth/login/ HTTP/1.1" 200 1548
+INFO 2025-11-03 21:12:45,911 basehttp 20854 123258776839872 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:12:45,961 basehttp 20854 123258776839872 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-03 21:13:06,373 basehttp 20854 123258776839872 "OPTIONS /api/v1/tenants/company/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:13:06,390 basehttp 20854 123258776839872 "OPTIONS /api/v1/tenants/invitations/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:13:06,451 basehttp 20854 123258767398592 "OPTIONS /api/v1/tenants/invitations/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:13:06,454 basehttp 20854 123258776839872 "OPTIONS /api/v1/tenants/company/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:13:06,494 basehttp 20854 123258759005888 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
+INFO 2025-11-03 21:13:06,527 basehttp 20854 123258750613184 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-03 21:13:06,560 basehttp 20854 123258776839872 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
+INFO 2025-11-03 21:13:06,589 basehttp 20854 123258759005888 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-03 21:13:23,884 basehttp 20854 123258759005888 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:13:23,996 basehttp 20854 123258776839872 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+WARNING 2025-11-03 21:14:27,778 log 20854 123258776839872 Bad Request: /api/v1/auth/login/
+WARNING 2025-11-03 21:14:27,778 basehttp 20854 123258776839872 "POST /api/v1/auth/login/ HTTP/1.1" 400 124
+INFO 2025-11-03 21:15:05,328 basehttp 20854 123258776839872 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-03 21:15:13,179 basehttp 20854 123258776839872 "OPTIONS /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:15:13,183 basehttp 20854 123258750613184 "OPTIONS /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 200 2
+WARNING 2025-11-03 21:15:13,204 log 20854 123258776839872 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 21:15:13,209 log 20854 123258759005888 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+INFO 2025-11-03 21:15:13,210 basehttp 20854 123258750613184 "OPTIONS /api/v1/platform-admin/system-health/ HTTP/1.1" 200 2
+WARNING 2025-11-03 21:15:13,213 basehttp 20854 123258759005888 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:15:13,215 basehttp 20854 123258776839872 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:15:13,246 log 20854 123258750613184 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 21:15:13,247 basehttp 20854 123258750613184 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-03 21:15:13,306 basehttp 20854 123258750613184 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 21:15:13,350 basehttp 20854 123258750613184 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 21:15:13,380 basehttp 20854 123258776839872 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+WARNING 2025-11-03 21:15:13,425 log 20854 123258750613184 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 21:15:13,431 basehttp 20854 123258750613184 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:15:13,460 log 20854 123258759005888 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 21:15:13,462 basehttp 20854 123258759005888 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:15:13,471 log 20854 123258776839872 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 21:15:13,473 basehttp 20854 123258776839872 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-03 21:30:07,985 autoreload 30924 138746861616000 Watching for file changes with StatReloader
+INFO 2025-11-03 21:31:32,457 basehttp 30924 138746743740096 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:31:33,778 basehttp 30924 138746735347392 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-03 21:31:42,342 basehttp 30924 138746735347392 "OPTIONS /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:31:42,353 basehttp 30924 138746735347392 "OPTIONS /api/v1/platform-admin/system-health/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:31:42,355 basehttp 30924 138746743740096 "OPTIONS /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 200 2
+WARNING 2025-11-03 21:31:42,427 log 30924 138746743740096 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 21:31:42,427 log 30924 138746735347392 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 21:31:42,427 log 30924 138746725643968 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 21:31:42,430 basehttp 30924 138746743740096 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:31:42,434 basehttp 30924 138746725643968 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:31:42,435 basehttp 30924 138746735347392 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+INFO 2025-11-03 21:31:42,499 basehttp 30924 138746725643968 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:31:42,500 basehttp 30924 138746735347392 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:31:42,539 basehttp 30924 138746743740096 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:31:42,647 basehttp 30924 138746743740096 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 21:31:42,663 basehttp 30924 138746725643968 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 21:31:42,664 basehttp 30924 138746735347392 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+WARNING 2025-11-03 21:31:42,880 log 30924 138746743740096 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 21:31:42,883 basehttp 30924 138746743740096 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:31:42,883 log 30924 138746725643968 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 21:31:42,882 log 30924 138746735347392 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 21:31:42,890 basehttp 30924 138746725643968 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:31:42,900 basehttp 30924 138746735347392 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-03 21:41:29,091 autoreload 36868 132184861707136 Watching for file changes with StatReloader
+INFO 2025-11-03 21:42:11,435 basehttp 36868 132184743859904 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-11-03 21:42:11,509 basehttp 36868 132184743859904 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-11-03 21:42:53,426 basehttp 36868 132184743859904 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+WARNING 2025-11-03 21:42:59,939 log 36868 132184664962752 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 21:42:59,940 log 36868 132184743859904 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 21:42:59,941 log 36868 132184656570048 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 21:42:59,941 basehttp 36868 132184664962752 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:42:59,945 basehttp 36868 132184656570048 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:42:59,945 basehttp 36868 132184743859904 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-03 21:43:00,013 basehttp 36868 132184656570048 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 21:43:00,021 basehttp 36868 132184743859904 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-03 21:43:00,021 basehttp 36868 132184664962752 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+WARNING 2025-11-03 21:43:00,141 log 36868 132184743859904 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-03 21:43:00,148 log 36868 132184656570048 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-03 21:43:00,159 basehttp 36868 132184656570048 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:43:00,155 log 36868 132184664962752 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-03 21:43:00,158 basehttp 36868 132184743859904 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-03 21:43:00,175 basehttp 36868 132184664962752 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-04 07:01:11,040 autoreload 111240 124919094664064 Watching for file changes with StatReloader
+INFO 2025-11-04 07:02:45,006 basehttp 111240 124918976992960 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-11-04 07:02:45,087 log 111240 124918968600256 Unauthorized: /api/v1/auth/login/
+WARNING 2025-11-04 07:02:45,088 basehttp 111240 124918968600256 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-11-04 07:02:45,097 basehttp 111240 124918968600256 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-04 07:02:45,173 basehttp 111240 124918968600256 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-04 07:02:45,923 basehttp 111240 124918968600256 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-04 07:02:52,971 basehttp 111240 124918968600256 "OPTIONS /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 200 2
+INFO 2025-11-04 07:02:52,988 basehttp 111240 124918968600256 "OPTIONS /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 200 2
+WARNING 2025-11-04 07:02:52,991 log 111240 124918976992960 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 07:02:53,007 basehttp 111240 124918976992960 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 07:02:52,997 basehttp 111240 124918968600256 "OPTIONS /api/v1/platform-admin/system-health/ HTTP/1.1" 200 2
+WARNING 2025-11-04 07:02:53,004 log 111240 124918959158976 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 07:02:53,026 basehttp 111240 124918959158976 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 07:02:53,037 log 111240 124918950766272 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 07:02:53,039 basehttp 111240 124918950766272 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-04 07:02:53,124 basehttp 111240 124918950766272 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-04 07:02:53,128 basehttp 111240 124918959158976 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+INFO 2025-11-04 07:02:53,145 basehttp 111240 124918959158976 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 798
+WARNING 2025-11-04 07:02:53,173 log 111240 124918950766272 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 07:02:53,174 basehttp 111240 124918950766272 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 07:02:53,193 log 111240 124918950766272 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 07:02:53,195 basehttp 111240 124918950766272 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 07:02:53,338 log 111240 124918950766272 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 07:02:53,338 basehttp 111240 124918950766272 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-04 07:07:43,377 basehttp 111240 124918968600256 "GET /api/docs/ HTTP/1.1" 200 4645
+INFO 2025-11-04 07:07:46,982 basehttp 111240 124918968600256 "GET /api/schema/ HTTP/1.1" 200 599436
+INFO 2025-11-04 07:08:10,054 basehttp 111240 124918519822016 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-11-04 07:08:10,104 basehttp 111240 124918519822016 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-11-04 07:09:37,170 basehttp 111240 124918968600256 "POST /api/v1/auth/login/ HTTP/1.1" 200 1370
+INFO 2025-11-04 07:10:51,288 basehttp 111240 124918968600256 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 200 100
+INFO 2025-11-04 07:11:22,147 basehttp 111240 124918968600256 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 200 668
+INFO 2025-11-04 07:12:26,127 basehttp 111240 124918968600256 "GET /api/v1/platform-admin/notifications/ HTTP/1.1" 200 100
+INFO 2025-11-04 10:59:47,203 autoreload 196329 136683492576128 Watching for file changes with StatReloader
+INFO 2025-11-04 11:01:04,529 basehttp 196329 136683307660992 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-11-04 11:01:05,690 basehttp 196329 136683299268288 "POST /api/v1/auth/login/ HTTP/1.1" 200 1361
+INFO 2025-11-04 11:01:13,983 basehttp 196329 136683299268288 "OPTIONS /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 200 2
+INFO 2025-11-04 11:01:13,992 basehttp 196329 136683307660992 "OPTIONS /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 200 2
+INFO 2025-11-04 11:01:13,999 basehttp 196329 136683299268288 "OPTIONS /api/v1/platform-admin/system-health/ HTTP/1.1" 200 2
+WARNING 2025-11-04 11:01:14,026 log 196329 136683299268288 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 11:01:14,033 log 196329 136683307660992 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 11:01:14,036 basehttp 196329 136683307660992 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:01:14,041 basehttp 196329 136683299268288 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:01:14,063 log 196329 136683290089152 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 11:01:14,067 basehttp 196329 136683290089152 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-04 11:01:14,158 basehttp 196329 136683290089152 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-04 11:01:14,162 basehttp 196329 136683299268288 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-04 11:01:14,212 basehttp 196329 136683307660992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 11:01:14,233 basehttp 196329 136683299268288 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 11:01:14,234 basehttp 196329 136683290089152 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 11:01:14,346 log 196329 136683290089152 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 11:01:14,347 basehttp 196329 136683290089152 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:01:14,352 log 196329 136683299268288 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 11:01:14,354 basehttp 196329 136683299268288 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:01:14,371 log 196329 136683307660992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 11:01:14,373 basehttp 196329 136683307660992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:05:29,385 log 196329 136683307660992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 11:05:29,387 basehttp 196329 136683307660992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 11:10:22,921 basehttp 196329 136683299268288 "GET /api/docs/ HTTP/1.1" 200 4645
+INFO 2025-11-04 11:10:27,133 basehttp 196329 136683299268288 "GET /api/schema/ HTTP/1.1" 200 599436
+INFO 2025-11-04 11:11:18,464 basehttp 196329 136683299268288 "POST /api/v1/auth/login/ HTTP/1.1" 200 1361
+WARNING 2025-11-04 11:13:18,005 log 196329 136683290089152 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 11:13:18,011 basehttp 196329 136683290089152 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:13:18,035 log 196329 136683307660992 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 11:13:18,040 basehttp 196329 136683307660992 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:13:18,061 log 196329 136683274094272 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 11:13:18,065 basehttp 196329 136683274094272 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-04 11:13:18,186 basehttp 196329 136683274094272 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 11:13:18,201 basehttp 196329 136683290089152 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 11:13:18,226 basehttp 196329 136683307660992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 11:13:18,286 log 196329 136683307660992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 11:13:18,291 basehttp 196329 136683307660992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:13:18,307 log 196329 136683274094272 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 11:13:18,308 basehttp 196329 136683274094272 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:13:18,314 log 196329 136683290089152 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 11:13:18,320 basehttp 196329 136683290089152 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-04 11:14:07,986 basehttp 196329 136683290089152 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-11-04 11:14:08,084 basehttp 196329 136683274094272 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+WARNING 2025-11-04 11:14:22,072 log 196329 136683274094272 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 11:14:22,073 basehttp 196329 136683274094272 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:14:22,083 log 196329 136683307660992 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 11:14:22,085 basehttp 196329 136683307660992 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:14:22,314 log 196329 136683307660992 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 11:14:22,317 basehttp 196329 136683307660992 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-04 11:14:22,438 basehttp 196329 136683307660992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 11:14:22,462 basehttp 196329 136683274094272 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 11:14:22,481 basehttp 196329 136683290089152 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 11:14:22,522 log 196329 136683290089152 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 11:14:22,524 basehttp 196329 136683290089152 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:14:22,538 log 196329 136683274094272 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 11:14:22,543 basehttp 196329 136683274094272 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:14:22,541 log 196329 136683307660992 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 11:14:22,545 basehttp 196329 136683307660992 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 11:22:07,900 log 196329 136683299268288 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 11:22:07,903 basehttp 196329 136683299268288 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 13:20:35,346 basehttp 196329 136683299268288 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-11-04 13:20:36,238 log 196329 136683299268288 Bad Request: /api/v1/auth/login/
+WARNING 2025-11-04 13:20:36,238 basehttp 196329 136683299268288 "POST /api/v1/auth/login/ HTTP/1.1" 400 124
+INFO 2025-11-04 13:20:56,645 basehttp 196329 136683299268288 "POST /api/v1/auth/login/ HTTP/1.1" 200 1361
+INFO 2025-11-04 13:21:03,639 basehttp 196329 136683299268288 "OPTIONS /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 200 2
+INFO 2025-11-04 13:21:03,648 basehttp 196329 136683290089152 "OPTIONS /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 200 2
+WARNING 2025-11-04 13:21:03,655 log 196329 136683290089152 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 13:21:03,664 basehttp 196329 136683290089152 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 13:21:03,665 basehttp 196329 136683299268288 "OPTIONS /api/v1/platform-admin/system-health/ HTTP/1.1" 200 2
+WARNING 2025-11-04 13:21:03,669 log 196329 136683274094272 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 13:21:03,672 basehttp 196329 136683274094272 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 13:21:03,703 log 196329 136683290089152 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 13:21:03,708 basehttp 196329 136683290089152 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-04 13:21:03,739 basehttp 196329 136683274094272 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-04 13:21:03,799 basehttp 196329 136683274094272 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 13:21:03,808 basehttp 196329 136683290089152 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 13:21:03,813 basehttp 196329 136683299268288 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 13:21:03,973 log 196329 136683290089152 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 13:21:03,976 log 196329 136683274094272 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 13:21:03,983 log 196329 136683299268288 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 13:21:03,984 basehttp 196329 136683274094272 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 13:21:03,986 basehttp 196329 136683299268288 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 13:21:03,988 basehttp 196329 136683290089152 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:03:03,747 autoreload 264173 129389096655744 Watching for file changes with StatReloader
+INFO 2025-11-04 14:04:01,822 basehttp 264173 129388909688512 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-11-04 14:04:02,210 basehttp 264173 129388901295808 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+INFO 2025-11-04 14:04:46,835 basehttp 264173 129388901295808 "POST /api/v1/auth/login/ HTTP/1.1" 200 1361
+WARNING 2025-11-04 14:04:56,071 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 14:04:56,073 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 14:04:56,076 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:04:56,077 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:04:56,098 log 264173 129388901295808 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:04:56,105 basehttp 264173 129388901295808 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:04:56,369 basehttp 264173 129388892903104 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:04:56,406 basehttp 264173 129388901295808 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:04:56,410 basehttp 264173 129388909688512 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:04:56,484 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 14:04:56,488 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:04:56,493 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:04:56,490 log 264173 129388901295808 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 14:04:56,494 basehttp 264173 129388901295808 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:04:56,492 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:09,984 log 264173 129388901295808 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:09,988 basehttp 264173 129388901295808 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:10,002 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:10,007 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:05:10,055 basehttp 264173 129388892903104 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:05:10,071 basehttp 264173 129388901295808 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:05:10,123 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:10,126 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:10,207 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:10,209 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:22,963 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:22,966 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:23,063 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:23,064 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:23,071 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:23,072 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:05:23,198 basehttp 264173 129388892903104 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:05:23,199 basehttp 264173 129388909688512 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:05:23,199 basehttp 264173 129388901295808 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:05:23,360 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:23,364 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:23,380 log 264173 129388901295808 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:23,384 basehttp 264173 129388901295808 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:23,434 log 264173 129388901295808 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:23,434 basehttp 264173 129388901295808 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:38,112 log 264173 129388901295808 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:38,115 basehttp 264173 129388901295808 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:38,226 log 264173 129388901295808 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:38,227 basehttp 264173 129388901295808 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:38,239 log 264173 129388901295808 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:38,239 basehttp 264173 129388901295808 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:05:38,373 basehttp 264173 129388901295808 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:05:38,378 basehttp 264173 129388909688512 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:05:38,379 basehttp 264173 129388892903104 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:05:38,475 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:38,476 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:38,489 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:38,491 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:38,507 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:38,523 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:56,376 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:56,377 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:56,392 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 14:05:56,393 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:56,397 log 264173 129388892903104 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 14:05:56,404 basehttp 264173 129388892903104 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:56,416 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:56,417 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:56,420 log 264173 129388901295808 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 14:05:56,421 basehttp 264173 129388901295808 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:05:56,459 basehttp 264173 129388901295808 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:05:56,481 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/system-health/
+INFO 2025-11-04 14:05:56,522 basehttp 264173 129388884510400 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:05:56,524 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:56,573 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/analytics/overview/
+INFO 2025-11-04 14:05:56,574 basehttp 264173 129388909688512 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:05:56,604 basehttp 264173 129388867724992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:05:56,604 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:56,626 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 14:05:56,627 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:05:56,630 basehttp 264173 129388892903104 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:05:56,655 basehttp 264173 129388909688512 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:05:56,663 log 264173 129388884510400 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 14:05:56,666 basehttp 264173 129388884510400 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:56,690 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 14:05:56,702 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:56,721 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:05:56,724 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:05:56,762 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 14:05:56,767 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:11,638 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 14:06:11,650 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:11,662 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 14:06:11,678 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:11,680 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:11,682 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:06:11,875 basehttp 264173 129388909688512 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:06:11,887 basehttp 264173 129388876117696 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:06:11,913 basehttp 264173 129388867724992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:06:12,023 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:12,027 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:12,056 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 14:06:12,064 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:12,149 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 14:06:12,150 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:31,917 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:31,922 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:06:32,037 basehttp 264173 129388867724992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:06:32,055 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:32,056 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:38,566 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:38,567 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:38,607 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:38,612 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:06:38,706 basehttp 264173 129388876117696 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:06:38,772 basehttp 264173 129388867724992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:06:38,816 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:38,818 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:38,893 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:38,894 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:50,162 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:50,164 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:50,246 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:50,247 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:50,260 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:50,261 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:06:50,375 basehttp 264173 129388909688512 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:06:50,377 basehttp 264173 129388867724992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:06:50,379 basehttp 264173 129388876117696 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:06:50,557 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:50,565 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:50,579 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:50,580 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:06:50,630 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:06:50,631 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:09:34,058 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:09:34,082 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:09:34,111 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:09:34,116 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:09:34,187 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:09:34,190 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:09:34,596 basehttp 264173 129388876117696 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:09:34,599 basehttp 264173 129388909688512 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:09:34,599 basehttp 264173 129388867724992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:09:34,802 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:09:34,814 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:09:34,830 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:09:34,830 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:09:34,879 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:09:34,893 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:09:53,763 basehttp 264173 129388859332288 "GET /api/docs/ HTTP/1.1" 200 4645
+INFO 2025-11-04 14:09:58,714 basehttp 264173 129388859332288 "GET /api/schema/ HTTP/1.1" 200 599436
+INFO 2025-11-04 14:11:04,613 basehttp 264173 129388859332288 "POST /api/v1/auth/login/ HTTP/1.1" 200 1361
+WARNING 2025-11-04 14:12:09,317 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:12:09,321 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:12:09,407 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:12:09,408 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:12:09,419 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:12:09,420 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:12:09,551 basehttp 264173 129388909688512 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:12:09,553 basehttp 264173 129388876117696 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:12:09,559 basehttp 264173 129388867724992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:12:09,782 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:12:09,792 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:12:09,807 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:12:09,816 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:12:09,919 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:12:09,920 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:12:15,463 basehttp 264173 129388876117696 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
+WARNING 2025-11-04 14:12:45,919 log 264173 129388876117696 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:12:45,928 basehttp 264173 129388876117696 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:12:45,923 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 14:12:45,932 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:12:45,927 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 14:12:45,938 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+INFO 2025-11-04 14:12:46,006 basehttp 264173 129388867724992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:12:46,035 basehttp 264173 129388867724992 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+INFO 2025-11-04 14:12:46,055 basehttp 264173 129388909688512 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 790
+WARNING 2025-11-04 14:12:46,133 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/analytics/overview/
+WARNING 2025-11-04 14:12:46,139 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/analytics/overview/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:12:46,221 log 264173 129388867724992 Unauthorized: /api/v1/platform-admin/system-health/dashboard/
+WARNING 2025-11-04 14:12:46,226 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/system-health/
+WARNING 2025-11-04 14:12:46,227 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
+WARNING 2025-11-04 14:12:46,230 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
