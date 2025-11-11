@@ -310,7 +310,7 @@ export function CompanyProfile({ company, isLoading, onUpdate }: CompanyProfileP
               
               <div>
                 <Label className="text-sm font-medium">Team Size</Label>
-                <p className="text-sm text-muted-foreground mt-1">{company.user_count} members</p>
+                <p className="text-sm text-muted-foreground mt-1">{company.users_count} members</p>
               </div>
               
               {company.description && (

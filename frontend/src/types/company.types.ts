@@ -10,12 +10,17 @@ export interface Company {
   logo?: string
   website?: string
   phone?: string
-  address?: string               
+  address?: string
+  description?: string
+  city?: string
+  state?: string
+  country?: string
+  postal_code?: string
   company_size?: string           
   timezone: string                
   created_at: string
   updated_at: string
-  users_count: number             
+  users_count: number  // Also note: change user_count to users_count in CompanyProfile.tsx line 313
   subscription_status?: 'active' | 'inactive' | 'trial' | 'suspended'
   subscription_plan?: string     
   is_active: boolean              
