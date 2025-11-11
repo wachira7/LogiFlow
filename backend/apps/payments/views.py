@@ -29,6 +29,7 @@ from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
 from .providers.mpesa import MPesaService
 from .providers.crypto import CryptoService 
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -578,30 +579,7 @@ class MPesaTimeoutView(View):
                 'ResultDesc': f'Error: {str(e)}'
             }, status=500)        
         
-# 1. Update test_crypto_connection view:
-@api_view(['GET'])
-@api_permission_classes([IsAuthenticated])
-def test_crypto_connection(request):
-    """Test Crypto API connection."""
-    try:
-        crypto_service = CryptoService()
-        
-        # Test connection to NOWPayments
-        connection_test = crypto_service.test_connection()
-        
-        return Response({
-            'message': 'Crypto connection successful!',
-            'connection_test_passed': connection_test,
-            'test_passed': True,
-            'supported_currencies': crypto_service.get_supported_currencies(),
-            'provider': 'NOWPayments'  # ← Changed from 'Coinbase Commerce'
-        })
-        
-    except Exception as e:
-        return Response({
-            'error': f'Crypto connection failed: {str(e)}',
-            'test_passed': False
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 # 2. Update create_crypto_payment view response:
 @extend_schema(
@@ -616,17 +594,28 @@ def test_crypto_connection(request):
                 "payment_address": {"type": "string"},
                 "pay_currency": {"type": "string"},
                 "pay_amount": {"type": "string"},
-                "amount": {"type": "number"},
-                "currency": {"type": "string"}
+                "price_amount": {"type": "number"},
+                "price_currency": {"type": "string"},
+                "expires_at": {"type": "string"},
+                "status": {"type": "string"}
+            }
+        },
+        400: {
+            "type": "object",
+            "properties": {
+                "error": {"type": "string"},
+                "details": {"type": "object"}
             }
         }
     },
-    description="Create crypto payment"
+    description="Create crypto payment with NOWPayments"
 )
 @api_view(['POST'])
 @api_permission_classes([IsAuthenticated])
 def create_crypto_payment(request):
-    """Create a crypto payment."""
+    """
+    ✅ IMPROVED: Create a crypto payment using normalized responses.
+    """
     try:
         # Validate request data using serializer
         serializer = CryptoPaymentSerializer(data=request.data)
@@ -646,6 +635,8 @@ def create_crypto_payment(request):
         
         # Create crypto payment with NOWPayments
         crypto_service = CryptoService()
+        
+        # ✅ Use normalized response from improved service
         payment = crypto_service.create_payment(
             amount=float(amount),
             currency=currency,
@@ -656,51 +647,62 @@ def create_crypto_payment(request):
             company=request.user.company
         )
         
-        logger.info(f"NOWPayments response: {payment}")
+        logger.info(f"✅ Created crypto payment: {payment['payment_id']}")
         
+        # ✅ Return normalized response - no more field inconsistencies!
         return Response({
             'message': 'Crypto payment created successfully',
-            'payment_id': payment.get('payment_id') or payment.get('id'),  # Try both fields
-            'payment_url': payment.get('payment_url') or payment.get('invoice_url'),  # Try both fields
-            'payment_address': payment.get('pay_address') or payment.get('payment_address'),
-            'pay_currency': payment.get('pay_currency'),
-            'pay_amount': payment.get('pay_amount'),
-            'amount': float(amount),
-            'currency': currency,
-            'expires_at': payment.get('expires_at') or payment.get('expiration_estimate_date'),
-            'status': payment.get('payment_status', 'waiting')
+            'payment_id': payment['payment_id'],
+            'payment_url': payment['payment_url'],
+            'payment_address': payment['pay_address'],
+            'pay_currency': payment['pay_currency'],
+            'pay_amount': payment['pay_amount'],
+            'price_amount': float(amount),
+            'price_currency': currency,
+            'expires_at': payment['expiration_estimate_date'],
+            'status': payment['payment_status'] or 'waiting',
+            'order_id': payment['order_id']
         })
         
+    except ValueError as e:
+        # Validation errors (e.g., invalid amount)
+        logger.error(f"Validation error: {str(e)}")
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
+        
     except Exception as e:
+        # Other errors (API errors, connection issues, etc.)
         logger.error(f"Crypto payment creation failed: {str(e)}")
         return Response({
-            'error': f'Failed to create crypto payment: {str(e)}'
+            'error': str(e)
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-       
-# 3. Update check_crypto_status view:
+
+
 @extend_schema(
     request=CryptoStatusCheckSerializer,
     responses={
         200: {
             "type": "object",
             "properties": {
-                "payment_status": {
-                    "type": "object",
-                    "properties": {
-                        "id": {"type": "string"},
-                        "status": {"type": "string"},
-                        "pay_currency": {"type": "string"},
-                        "pay_amount": {"type": "number"},
-                        "amount": {"type": "number"},
-                        "currency": {"type": "string"},
-                        "created_at": {"type": "string"},
-                        "updated_at": {"type": "string"}
-                    }
-                },
-                "payment_id": {"type": "string"}
+                "payment_id": {"type": "string"},
+                "status": {"type": "string"},
+                "payment_address": {"type": "string"},
+                "pay_currency": {"type": "string"},
+                "pay_amount": {"type": "string"},
+                "price_amount": {"type": "string"},
+                "price_currency": {"type": "string"},
+                "created_at": {"type": "string"},
+                "updated_at": {"type": "string"}
             }
         },
         400: {
+            "type": "object",
+            "properties": {
+                "error": {"type": "string"}
+            }
+        },
+        404: {
             "type": "object",
             "properties": {
                 "error": {"type": "string"}
@@ -712,7 +714,9 @@ def create_crypto_payment(request):
 @api_view(['POST'])
 @api_permission_classes([IsAuthenticated])
 def check_crypto_status(request):
-    """Check crypto payment status."""
+    """
+    ✅ IMPROVED: Check crypto payment status using normalized responses.
+    """
     try:
         # Validate request data using serializer
         serializer = CryptoStatusCheckSerializer(data=request.data)
@@ -725,63 +729,122 @@ def check_crypto_status(request):
         payment_id = serializer.validated_data['payment_id']
         
         crypto_service = CryptoService()
+        
+        # ✅ Use normalized response
         payment = crypto_service.get_payment_status(payment_id)
         
+        logger.info(f"✅ Retrieved payment status: {payment_id} - {payment['payment_status']}")
+        
+        # ✅ Return normalized, consistent response
         return Response({
-            'payment_status': {
-                'id': payment.get('id'),
-                'status': payment.get('payment_status'),
-                'pay_currency': payment.get('pay_currency'),
-                'pay_amount': payment.get('pay_amount'),
-                'amount': payment.get('price_amount'),
-                'currency': payment.get('price_currency'),
-                'created_at': payment.get('created_at'),
-                'updated_at': payment.get('updated_at')
-            },
-            'payment_id': payment_id
+            'payment_id': payment['payment_id'],
+            'status': payment['payment_status'],
+            'payment_address': payment['pay_address'],
+            'pay_currency': payment['pay_currency'],
+            'pay_amount': payment['pay_amount'],
+            'price_amount': payment['price_amount'],
+            'price_currency': payment['price_currency'],
+            'created_at': payment['created_at'],
+            'updated_at': payment['updated_at'],
+            'order_id': payment['order_id']
         })
         
     except Exception as e:
-        logger.error(f"Crypto status check failed: {str(e)}")
+        error_message = str(e)
+        logger.error(f"Crypto status check failed: {error_message}")
+        
+        # Return appropriate status code
+        if 'not found' in error_message.lower():
+            return Response({
+                'error': error_message
+            }, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({
+                'error': error_message
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@api_permission_classes([IsAuthenticated])
+def test_crypto_connection(request):
+    """
+    ✅ IMPROVED: Test Crypto API connection with better feedback.
+    """
+    try:
+        crypto_service = CryptoService()
+        
+        # Test connection
+        connection_test = crypto_service.test_connection()
+        
+        if not connection_test:
+            return Response({
+                'error': 'Failed to connect to NOWPayments API',
+                'test_passed': False,
+                'suggestion': 'Please check your API credentials in settings'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Get supported currencies
+        try:
+            supported_currencies = crypto_service.get_supported_currencies()
+            currencies_count = len(supported_currencies)
+        except:
+            supported_currencies = []
+            currencies_count = 0
+        
         return Response({
-            'error': f'Failed to check crypto status: {str(e)}'
+            'message': 'Crypto connection successful!',
+            'test_passed': True,
+            'provider': 'NOWPayments',
+            'environment': settings.NOWPAYMENTS_ENVIRONMENT,
+            'supported_currencies_count': currencies_count,
+            'sample_currencies': supported_currencies[:10] if supported_currencies else []
+        })
+        
+    except Exception as e:
+        logger.error(f"Crypto connection test failed: {str(e)}")
+        return Response({
+            'error': f'Crypto connection failed: {str(e)}',
+            'test_passed': False
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# 4. Update CryptoCallbackView:
+
 @method_decorator(csrf_exempt, name='dispatch')
 class CryptoCallbackView(View):
-    """Handle Crypto payment callbacks."""
+    """
+    ✅ IMPROVED: Handle Crypto payment callbacks with better logging.
+    """
     
     def post(self, request):
         """Handle NOWPayments IPN webhook."""
         try:
-            # Get signature from headers for NOWPayments
+            # Get signature from headers
             signature = request.META.get('HTTP_X_NOWPAYMENTS_SIG', '')
             
             # Get raw payload
             payload = request.body
             
-            logger.info(f"Received NOWPayments webhook with signature: {signature[:20] if signature else 'None'}...")
+            logger.info(f"📥 Received NOWPayments webhook")
+            logger.debug(f"Signature present: {bool(signature)}")
             
-            # Process the callback
+            # Process the callback using improved service
             crypto_service = CryptoService()
             success = crypto_service.handle_webhook(payload, signature)
             
             if success:
-                logger.info("NOWPayments callback processed successfully")
+                logger.info("✅ NOWPayments webhook processed successfully")
                 return JsonResponse({
                     'status': 'success',
                     'message': 'IPN processed successfully'
                 })
             else:
-                logger.warning("NOWPayments callback processing failed")
+                logger.warning("⚠️ NOWPayments webhook processing failed")
                 return JsonResponse({
                     'status': 'error',
                     'message': 'IPN processing failed'
                 }, status=400)
                 
         except Exception as e:
-            logger.error(f"Error processing NOWPayments callback: {str(e)}")
+            logger.error(f"❌ Error processing NOWPayments webhook: {str(e)}")
             return JsonResponse({
                 'status': 'error',
                 'message': f'Error: {str(e)}'
@@ -790,7 +853,32 @@ class CryptoCallbackView(View):
     def get(self, request):
         """Handle GET request (for testing)."""
         return JsonResponse({
-            'message': 'Crypto callback endpoint is active',
-            'endpoint': 'POST to this URL for NOWPayments IPN',
-            'provider': 'NOWPayments'  # ← Updated provider name
-        })        
+            'message': 'NOWPayments webhook endpoint is active',
+            'endpoint': 'POST to this URL for IPN callbacks',
+            'provider': 'NOWPayments',
+            'note': 'Webhook signature verification is enabled'
+        })
+
+
+# ✅ NEW: Additional utility endpoint for getting supported currencies
+@api_view(['GET'])
+@api_permission_classes([IsAuthenticated])
+def get_supported_crypto_currencies(request):
+    """
+    Get list of supported cryptocurrencies from NOWPayments.
+    """
+    try:
+        crypto_service = CryptoService()
+        currencies = crypto_service.get_supported_currencies()
+        
+        return Response({
+            'currencies': currencies,
+            'count': len(currencies)
+        })
+        
+    except Exception as e:
+        logger.error(f"Failed to get supported currencies: {str(e)}")
+        return Response({
+            'error': 'Failed to retrieve supported currencies',
+            'fallback_currencies': ['btc', 'eth', 'usdt', 'ltc', 'bch']
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

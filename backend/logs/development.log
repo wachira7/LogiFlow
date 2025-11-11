@@ -40191,3 +40191,145 @@ WARNING 2025-11-04 14:12:46,221 log 264173 129388867724992 Unauthorized: /api/v1
 WARNING 2025-11-04 14:12:46,226 log 264173 129388909688512 Unauthorized: /api/v1/platform-admin/system-health/
 WARNING 2025-11-04 14:12:46,227 basehttp 264173 129388909688512 "GET /api/v1/platform-admin/system-health/ HTTP/1.1" 401 95
 WARNING 2025-11-04 14:12:46,230 basehttp 264173 129388867724992 "GET /api/v1/platform-admin/system-health/dashboard/ HTTP/1.1" 401 95
+INFO 2025-11-10 15:20:49,515 autoreload 112737 136415712729984 Watching for file changes with StatReloader
+INFO 2025-11-10 15:22:13,599 basehttp 112737 136415594665664 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+INFO 2025-11-10 15:22:14,953 basehttp 112737 136415586272960 "POST /api/v1/auth/login/ HTTP/1.1" 200 1548
+INFO 2025-11-10 15:22:22,842 basehttp 112737 136415586272960 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-11-10 15:22:22,971 basehttp 112737 136415586272960 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 15:23:00,759 basehttp 112737 136415586272960 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-11-10 15:23:00,850 basehttp 112737 136415586272960 "PATCH /api/v1/auth/profile/ HTTP/1.1" 200 627
+INFO 2025-11-10 15:23:00,898 basehttp 112737 136415586272960 "GET /api/v1/auth/profile/ HTTP/1.1" 200 577
+INFO 2025-11-10 15:23:07,591 basehttp 112737 136415586272960 "PATCH /api/v1/auth/profile/ HTTP/1.1" 200 627
+INFO 2025-11-10 15:23:07,673 basehttp 112737 136415586272960 "GET /api/v1/auth/profile/ HTTP/1.1" 200 577
+INFO 2025-11-10 15:30:21,593 basehttp 112737 136415586272960 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 15:30:30,746 basehttp 112737 136415586272960 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 15:31:22,930 basehttp 112737 136415586272960 "OPTIONS /api/v1/payments/plans/?params=%5Bobject+Object%5D HTTP/1.1" 200 2
+INFO 2025-11-10 15:31:22,933 basehttp 112737 136415594665664 "OPTIONS /api/v1/payments/subscriptions/ HTTP/1.1" 200 2
+INFO 2025-11-10 15:31:22,973 basehttp 112737 136415586272960 "OPTIONS /api/v1/payments/plans/ HTTP/1.1" 200 2
+INFO 2025-11-10 15:31:22,983 basehttp 112737 136415594665664 "OPTIONS /api/v1/payments/payment-methods/ HTTP/1.1" 200 2
+INFO 2025-11-10 15:31:22,990 basehttp 112737 136415576569536 "OPTIONS /api/v1/payments/subscriptions/?params=%5Bobject+Object%5D HTTP/1.1" 200 2
+INFO 2025-11-10 15:31:23,581 basehttp 112737 136415568176832 "GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 100
+INFO 2025-11-10 15:31:23,607 basehttp 112737 136415586272960 "GET /api/v1/payments/plans/?params=%5Bobject+Object%5D HTTP/1.1" 200 6747
+INFO 2025-11-10 15:31:23,613 basehttp 112737 136415576569536 "GET /api/v1/payments/subscriptions/ HTTP/1.1" 200 1061
+INFO 2025-11-10 15:31:23,616 basehttp 112737 136415594665664 "GET /api/v1/payments/plans/ HTTP/1.1" 200 6747
+INFO 2025-11-10 15:31:23,617 basehttp 112737 136415559784128 "GET /api/v1/payments/subscriptions/?params=%5Bobject+Object%5D HTTP/1.1" 200 1061
+INFO 2025-11-10 15:31:32,858 basehttp 112737 136415559784128 "GET /api/v1/payments/subscriptions/ HTTP/1.1" 200 1061
+INFO 2025-11-10 15:31:44,191 basehttp 112737 136415559784128 "GET /api/v1/payments/payment-methods/ HTTP/1.1" 200 100
+INFO 2025-11-10 15:31:49,236 basehttp 112737 136415559784128 "OPTIONS /api/v1/payments/transactions/?params=%5Bobject+Object%5D HTTP/1.1" 200 2
+INFO 2025-11-10 15:31:49,438 basehttp 112737 136415576569536 "GET /api/v1/payments/transactions/?params=%5Bobject+Object%5D HTTP/1.1" 200 1459
+INFO 2025-11-10 20:39:04,395 autoreload 55133 131455088700288 Watching for file changes with StatReloader
+INFO 2025-11-10 20:40:45,377 basehttp 55133 131454970615488 "OPTIONS /api/v1/auth/login/ HTTP/1.1" 200 2
+WARNING 2025-11-10 20:40:46,455 log 55133 131454962222784 Unauthorized: /api/v1/auth/login/
+WARNING 2025-11-10 20:40:46,461 basehttp 55133 131454962222784 "POST /api/v1/auth/login/ HTTP/1.1" 401 256
+INFO 2025-11-10 20:40:46,509 basehttp 55133 131454962222784 "OPTIONS /api/v1/auth/token/refresh/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:40:46,614 basehttp 55133 131454962222784 "POST /api/v1/auth/token/refresh/ HTTP/1.1" 200 923
+INFO 2025-11-10 20:40:47,755 basehttp 55133 131454962222784 "POST /api/v1/auth/login/ HTTP/1.1" 200 1548
+INFO 2025-11-10 20:40:55,424 basehttp 55133 131454962222784 "OPTIONS /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:40:55,484 basehttp 55133 131454962222784 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 20:41:49,182 basehttp 55133 131454962222784 "OPTIONS /api/v1/auth/profile/avatar/ HTTP/1.1" 200 2
+WARNING 2025-11-10 20:41:49,256 log 55133 131454962222784 Not Found: /api/v1/auth/profile/avatar/
+WARNING 2025-11-10 20:41:49,256 basehttp 55133 131454962222784 "POST /api/v1/auth/profile/avatar/ HTTP/1.1" 404 5460
+INFO 2025-11-10 20:42:11,596 basehttp 55133 131454962222784 "OPTIONS /api/v1/auth/profile/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:42:11,716 basehttp 55133 131454970615488 "PATCH /api/v1/auth/profile/ HTTP/1.1" 200 627
+INFO 2025-11-10 20:42:11,760 basehttp 55133 131454970615488 "GET /api/v1/auth/profile/ HTTP/1.1" 200 577
+WARNING 2025-11-10 20:42:20,747 log 55133 131454970615488 Not Found: /api/v1/auth/profile/avatar/
+WARNING 2025-11-10 20:42:20,749 basehttp 55133 131454970615488 "POST /api/v1/auth/profile/avatar/ HTTP/1.1" 404 5460
+INFO 2025-11-10 20:43:25,182 basehttp 55133 131454970615488 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 20:43:30,975 basehttp 55133 131454970615488 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+WARNING 2025-11-10 20:43:58,449 log 55133 131454970615488 Not Found: /api/v1/auth/profile/avatar/
+WARNING 2025-11-10 20:43:58,454 basehttp 55133 131454970615488 "POST /api/v1/auth/profile/avatar/ HTTP/1.1" 404 5460
+INFO 2025-11-10 20:44:05,332 basehttp 55133 131454970615488 "PATCH /api/v1/auth/profile/ HTTP/1.1" 200 627
+INFO 2025-11-10 20:44:46,316 basehttp 55133 131454970615488 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 20:45:07,643 basehttp 55133 131454970615488 "OPTIONS /api/v1/payments/test-stripe/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:45:07,660 basehttp 55133 131454962222784 "OPTIONS /api/v1/payments/test-mpesa/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:45:07,660 basehttp 55133 131454951995072 "OPTIONS /api/v1/payments/test-crypto/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:45:07,661 basehttp 55133 131454943602368 "OPTIONS /api/v1/payments/test-stripe/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:45:07,682 basehttp 55133 131454951995072 "OPTIONS /api/v1/payments/test-crypto/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:45:07,683 basehttp 55133 131454962222784 "OPTIONS /api/v1/payments/test-mpesa/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:45:07,844 crypto 55133 131454962222784 ✅ CryptoService initialized - Environment: production
+INFO 2025-11-10 20:45:08,492 mpesa 55133 131454951995072 Successfully obtained M-Pesa access token
+INFO 2025-11-10 20:45:08,498 basehttp 55133 131454951995072 "GET /api/v1/payments/test-mpesa/ HTTP/1.1" 200 136
+INFO 2025-11-10 20:45:08,767 crypto 55133 131454962222784 ✅ NOWPayments connection test successful
+INFO 2025-11-10 20:45:08,858 stripe 55133 131454943602368 Created Stripe customer cus_TOpcNfDKYZvhEi for user jackma@gmail.com
+INFO 2025-11-10 20:45:08,910 mpesa 55133 131454970615488 Successfully obtained M-Pesa access token
+INFO 2025-11-10 20:45:08,926 basehttp 55133 131454970615488 "GET /api/v1/payments/test-mpesa/ HTTP/1.1" 200 136
+INFO 2025-11-10 20:45:09,290 basehttp 55133 131454943602368 "GET /api/v1/payments/test-stripe/ HTTP/1.1" 200 109
+INFO 2025-11-10 20:45:10,088 crypto 55133 131454962222784 ✅ Retrieved 239 supported currencies
+INFO 2025-11-10 20:45:10,101 basehttp 55133 131454962222784 "GET /api/v1/payments/test-crypto/ HTTP/1.1" 200 241
+INFO 2025-11-10 20:45:10,120 crypto 55133 131454943602368 ✅ CryptoService initialized - Environment: production
+INFO 2025-11-10 20:45:10,177 stripe 55133 131454970615488 Created Stripe customer cus_TOpcW7LjaCn1Da for user jackma@gmail.com
+INFO 2025-11-10 20:45:10,635 basehttp 55133 131454970615488 "GET /api/v1/payments/test-stripe/ HTTP/1.1" 200 109
+INFO 2025-11-10 20:45:10,802 crypto 55133 131454943602368 ✅ NOWPayments connection test successful
+INFO 2025-11-10 20:45:11,454 crypto 55133 131454943602368 ✅ Retrieved 239 supported currencies
+INFO 2025-11-10 20:45:11,463 basehttp 55133 131454943602368 "GET /api/v1/payments/test-crypto/ HTTP/1.1" 200 241
+INFO 2025-11-10 20:46:24,949 basehttp 55133 131454943602368 "PATCH /api/v1/auth/profile/ HTTP/1.1" 200 627
+INFO 2025-11-10 20:46:25,039 basehttp 55133 131454943602368 "GET /api/v1/auth/profile/ HTTP/1.1" 200 577
+INFO 2025-11-10 20:46:35,145 basehttp 55133 131454943602368 "PATCH /api/v1/auth/profile/ HTTP/1.1" 200 627
+INFO 2025-11-10 20:46:35,219 basehttp 55133 131454943602368 "GET /api/v1/auth/profile/ HTTP/1.1" 200 577
+INFO 2025-11-10 20:46:40,190 crypto 55133 131454962222784 ✅ CryptoService initialized - Environment: production
+INFO 2025-11-10 20:46:40,713 mpesa 55133 131454970615488 Successfully obtained M-Pesa access token
+INFO 2025-11-10 20:46:40,726 basehttp 55133 131454970615488 "GET /api/v1/payments/test-mpesa/ HTTP/1.1" 200 136
+INFO 2025-11-10 20:46:40,904 crypto 55133 131454962222784 ✅ NOWPayments connection test successful
+INFO 2025-11-10 20:46:41,030 stripe 55133 131454943602368 Created Stripe customer cus_TOpeoP3aI7KF6M for user jackma@gmail.com
+INFO 2025-11-10 20:46:41,138 mpesa 55133 131454951995072 Successfully obtained M-Pesa access token
+INFO 2025-11-10 20:46:41,151 basehttp 55133 131454951995072 "GET /api/v1/payments/test-mpesa/ HTTP/1.1" 200 136
+INFO 2025-11-10 20:46:41,521 basehttp 55133 131454943602368 "GET /api/v1/payments/test-stripe/ HTTP/1.1" 200 109
+INFO 2025-11-10 20:46:41,569 crypto 55133 131454962222784 ✅ Retrieved 239 supported currencies
+INFO 2025-11-10 20:46:41,588 basehttp 55133 131454962222784 "GET /api/v1/payments/test-crypto/ HTTP/1.1" 200 241
+INFO 2025-11-10 20:46:41,610 crypto 55133 131454943602368 ✅ CryptoService initialized - Environment: production
+INFO 2025-11-10 20:46:42,290 crypto 55133 131454943602368 ✅ NOWPayments connection test successful
+INFO 2025-11-10 20:46:42,416 stripe 55133 131454951995072 Created Stripe customer cus_TOpe2YY6YFaHQt for user jackma@gmail.com
+INFO 2025-11-10 20:46:42,863 basehttp 55133 131454951995072 "GET /api/v1/payments/test-stripe/ HTTP/1.1" 200 109
+INFO 2025-11-10 20:46:42,918 crypto 55133 131454943602368 ✅ Retrieved 239 supported currencies
+INFO 2025-11-10 20:46:42,921 basehttp 55133 131454943602368 "GET /api/v1/payments/test-crypto/ HTTP/1.1" 200 241
+INFO 2025-11-10 20:46:44,708 basehttp 55133 131454943602368 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 20:46:56,692 basehttp 55133 131454943602368 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 20:47:20,200 basehttp 55133 131454943602368 "OPTIONS /api/v1/tenants/company/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:47:20,215 basehttp 55133 131454951995072 "OPTIONS /api/v1/tenants/invitations/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:47:20,243 basehttp 55133 131454970615488 "OPTIONS /api/v1/tenants/invitations/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:47:20,308 basehttp 55133 131454962222784 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
+INFO 2025-11-10 20:47:20,323 basehttp 55133 131454951995072 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-10 20:47:20,349 basehttp 55133 131454970615488 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
+INFO 2025-11-10 20:47:20,362 basehttp 55133 131454962222784 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-10 20:47:35,681 basehttp 55133 131454962222784 "OPTIONS /api/v1/tenants/company/logo/ HTTP/1.1" 200 2
+WARNING 2025-11-10 20:47:35,780 log 55133 131454970615488 Bad Request: /api/v1/tenants/company/logo/
+WARNING 2025-11-10 20:47:35,790 basehttp 55133 131454970615488 "POST /api/v1/tenants/company/logo/ HTTP/1.1" 400 177
+INFO 2025-11-10 20:48:00,552 basehttp 55133 131454951995072 "OPTIONS /api/v1/tenants/settings/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:48:00,719 basehttp 55133 131454970615488 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
+INFO 2025-11-10 20:48:00,723 basehttp 55133 131454951995072 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-10 20:48:00,778 basehttp 55133 131454962222784 "GET /api/v1/tenants/settings/ HTTP/1.1" 200 519
+INFO 2025-11-10 20:48:00,839 basehttp 55133 131454970615488 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-10 20:48:00,845 basehttp 55133 131454943602368 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
+INFO 2025-11-10 20:48:00,848 basehttp 55133 131454951995072 "GET /api/v1/tenants/settings/ HTTP/1.1" 200 519
+INFO 2025-11-10 20:48:17,520 basehttp 55133 131454970615488 "PATCH /api/v1/tenants/settings/ HTTP/1.1" 200 519
+INFO 2025-11-10 20:48:36,168 basehttp 55133 131454970615488 "PATCH /api/v1/tenants/settings/ HTTP/1.1" 200 519
+INFO 2025-11-10 20:48:56,175 basehttp 55133 131454970615488 "PATCH /api/v1/tenants/settings/ HTTP/1.1" 200 519
+INFO 2025-11-10 20:49:02,965 basehttp 55133 131454970615488 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 20:49:18,683 basehttp 55133 131454970615488 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
+INFO 2025-11-10 20:49:18,722 basehttp 55133 131454951995072 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-10 20:49:18,739 basehttp 55133 131454943602368 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
+INFO 2025-11-10 20:49:18,767 basehttp 55133 131454970615488 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-10 20:49:35,914 basehttp 55133 131454943602368 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-10 20:49:35,919 basehttp 55133 131454970615488 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
+INFO 2025-11-10 20:49:35,959 basehttp 55133 131454951995072 "GET /api/v1/tenants/invitations/ HTTP/1.1" 200 100
+INFO 2025-11-10 20:49:35,964 basehttp 55133 131454943602368 "GET /api/v1/tenants/company/ HTTP/1.1" 200 416
+INFO 2025-11-10 20:49:41,673 basehttp 55133 131454943602368 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 20:51:23,905 basehttp 55133 131454943602368 "OPTIONS /api/v1/inventory/products/stock_report/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:51:23,916 basehttp 55133 131454951995072 "OPTIONS /api/v1/inventory/products/low_stock/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:51:23,967 basehttp 55133 131454962222784 "OPTIONS /api/v1/inventory/products/low_stock/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:51:23,979 basehttp 55133 131454970615488 "OPTIONS /api/v1/inventory/products/stock_report/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:51:24,130 basehttp 55133 131454962222784 "GET /api/v1/inventory/products/low_stock/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:51:24,140 basehttp 55133 131454943602368 "GET /api/v1/inventory/products/stock_report/ HTTP/1.1" 200 107
+INFO 2025-11-10 20:51:24,171 basehttp 55133 131454970615488 "GET /api/v1/inventory/products/low_stock/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:51:24,197 basehttp 55133 131454962222784 "GET /api/v1/inventory/products/stock_report/ HTTP/1.1" 200 107
+INFO 2025-11-10 20:51:34,227 basehttp 55133 131454962222784 "GET /api/v1/auth/dashboard/overview/ HTTP/1.1" 200 1635
+INFO 2025-11-10 20:51:45,472 basehttp 55133 131454970615488 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:51:45,476 basehttp 55133 131454962222784 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:51:45,493 basehttp 55133 131454943602368 "OPTIONS /api/v1/inventory/categories/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:51:45,508 basehttp 55133 131454970615488 "OPTIONS /api/v1/inventory/categories/tree/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:51:45,681 basehttp 55133 131454943602368 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 982
+INFO 2025-11-10 20:51:45,684 basehttp 55133 131454970615488 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 1080
+INFO 2025-11-10 20:51:45,756 basehttp 55133 131454943602368 "GET /api/v1/inventory/categories/ HTTP/1.1" 200 1080
+INFO 2025-11-10 20:51:45,765 basehttp 55133 131454962222784 "GET /api/v1/inventory/categories/tree/ HTTP/1.1" 200 982
+INFO 2025-11-10 20:58:21,952 basehttp 55133 131454943602368 "OPTIONS /api/v1/auth/logout/ HTTP/1.1" 200 2
+INFO 2025-11-10 20:58:22,026 basehttp 55133 131454943602368 "POST /api/v1/auth/logout/ HTTP/1.1" 200 107
