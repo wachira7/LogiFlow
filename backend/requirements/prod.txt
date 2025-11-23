@@ -1,3 +1,4 @@
+#backend/requirements/prod.txt
 # Include base requirements
 -r base.txt
 
@@ -11,4 +12,4 @@ whitenoise>=6.5.0
 sentry-sdk>=1.28.0
 
 # Security
-django-security>=0.16.0
+#django-security>=0.16.0

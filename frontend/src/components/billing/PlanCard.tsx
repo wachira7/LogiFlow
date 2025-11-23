@@ -141,7 +141,7 @@ export function PlanCard({ plan, isPopular = false, currentPlan = false, onSelec
               
               return (
                 <li key={key} className="flex items-start gap-2">
-                  <Check className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                  <Check className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
                   <span className="text-sm">
                     {typeof value === 'string' ? value : featureName}
                   </span>

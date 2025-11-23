@@ -68,7 +68,7 @@ export function SubscriptionSummaryCard({ subscription, showActions = true }: Su
     <Card className="relative overflow-hidden">
       {/* Premium indicator for active subscriptions */}
       {subscription.status === 'ACTIVE' && (
-        <div className="absolute top-0 right-0 w-24 h-24 -mr-12 -mt-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full opacity-10" />
+        <div className="absolute top-0 right-0 w-24 h-24 -mr-12 -mt-12 bg-linear-to-br from-yellow-400 to-orange-500 rounded-full opacity-10" />
       )}
 
       <CardHeader>

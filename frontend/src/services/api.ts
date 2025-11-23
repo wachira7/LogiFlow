@@ -145,14 +145,16 @@ class ApiClient {
     }
   }
 
-  /**
-   * Make API request with automatic token refresh
-   */
+ /**
+ * Make API request with automatic token refresh
+ */
   private async makeRequest<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
+    
+    // ✅ GET FRESH HEADERS RIGHT BEFORE THE REQUEST
     const headers = this.getHeaders(options.headers as Record<string, string>)
 
     try {
@@ -167,11 +169,16 @@ class ApiClient {
         const refreshed = await this.refreshToken()
         
         if (refreshed) {
+          // ✅ WAIT A BIT FOR TOKEN TO BE STORED
+          await new Promise(resolve => setTimeout(resolve, 100))
+          
+          // ✅ GET COMPLETELY FRESH HEADERS WITH NEW TOKEN
+          const retryHeaders = this.getHeaders(options.headers as Record<string, string>)
+          
           // Retry with new token
-          const newHeaders = this.getHeaders(options.headers as Record<string, string>)
           response = await fetch(url, {
             ...options,
-            headers: newHeaders,
+            headers: retryHeaders, // ✅ USE NEW HEADERS
           })
         } else {
           // Refresh failed, clear tokens and redirect to login

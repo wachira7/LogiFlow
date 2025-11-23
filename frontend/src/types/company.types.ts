@@ -237,6 +237,7 @@ export const CURRENCIES = [
   { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
   { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
   { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
+  
 ] as const
 
 export const TIMEZONES = [

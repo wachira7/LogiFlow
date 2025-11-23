@@ -1,19 +1,24 @@
 // src/app/distribution/shipments/new/page.tsx
 'use client';
+import { Suspense } from 'react';
 import { ShipmentForm } from '@/components/distribution/ShipmentForm';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRouter, useSearchParams } from 'next/navigation';
-export default function NewShipmentPage() {
+
+function NewShipmentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId') || undefined;
+
   const handleBack = () => {
     router.push('/distribution/shipments');
   };
+
   const handleSuccess = () => {
     router.push('/distribution/shipments');
   };
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Page Header */}
@@ -38,5 +43,13 @@ export default function NewShipmentPage() {
         onCancel={handleBack} 
       />
     </div>
+  );
+}
+
+export default function NewShipmentPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <NewShipmentContent />
+    </Suspense>
   );
 }

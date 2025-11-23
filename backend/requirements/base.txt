@@ -1,4 +1,4 @@
-# requirements/base.txt
+# backend/requirements/base.txt
 
 # ============================================================================
 # CORE DJANGO & WEB FRAMEWORK

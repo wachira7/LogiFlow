@@ -259,10 +259,8 @@ if 'redis' in CACHE_BACKEND.lower():
     CACHES = {
         'default': {
             'BACKEND': CACHE_BACKEND,
-            'LOCATION': os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/1'),
-            'OPTIONS': {
-                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            }
+            'LOCATION': f'redis://{os.getenv("REDIS_HOST", "redis")}:{os.getenv("REDIS_PORT", "6379")}/1',
+            'OPTIONS': {}
         }
     }
 else:

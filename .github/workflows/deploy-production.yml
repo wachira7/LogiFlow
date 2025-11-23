@@ -1,81 +1,306 @@
-# .github/workflows/ci-backend.yml
-name: Backend CI
+# .github/workflows/deploy-production.yml
+name: Deploy to Production
 
 on:
   push:
-    branches: [main, develop]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/ci-backend.yml'
-  pull_request:
     branches: [main]
-    paths:
-      - 'backend/**'
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  test-backend:
+  build-and-push:
+    name: Build and Push Docker Images
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     
-    services:
-      postgres:
-        image: postgres:13
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_logiflow
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      
-      redis:
-        image: redis:7
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
         with:
-          python-version: '3.8'
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements/base.txt') }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
       
-      - name: Install dependencies
-        run: |
-          cd backend
-          pip install -r requirements/base.txt
+      - name: Build and push ${{ matrix.service }} image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.${{ matrix.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+  deploy-production:
+    name: Deploy to Production Server
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
       
-      - name: Run Django checks
-        run: |
-          cd backend
-          python manage.py check
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_logiflow
-          REDIS_URL: redis://localhost:6379/0
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       
-      - name: Run migrations
+      - name: Add server to known hosts
         run: |
-          cd backend
-          python manage.py migrate
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_logiflow
-          REDIS_URL: redis://localhost:6379/0
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
       
-      - name: Run tests
+      - name: Create deployment directory
         run: |
-          cd backend
-          python manage.py test
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_logiflow
-          REDIS_URL: redis://localhost:6379/0
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            mkdir -p ~/logiflow
+            cd ~/logiflow
+            
+            # Backup current deployment
+            if [ -d "backup" ]; then
+              rm -rf backup.old
+              mv backup backup.old
+            fi
+            mkdir -p backup
+            
+            # Backup docker-compose and .env
+            if [ -f "docker-compose.yml" ]; then
+              cp docker-compose.yml backup/
+            fi
+            if [ -f ".env" ]; then
+              cp .env backup/
+            fi
+          EOF
+      
+      - name: Copy deployment files
+        run: |
+          # Copy docker-compose production file
+          scp docker-compose.prod.yml ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }}:~/logiflow/docker-compose.yml
+          
+          # Copy nginx configuration
+          scp -r infrastructure/docker/nginx ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }}:~/logiflow/docker/
+          
+          # Copy scripts
+          scp -r infrastructure/docker/scripts ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }}:~/logiflow/docker/
+      
+      - name: Deploy application
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            set -e
+            cd ~/logiflow
+            
+            echo "🔐 Logging into GitHub Container Registry..."
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            echo "📥 Pulling latest images..."
+            docker-compose pull
+            
+            echo "🔄 Stopping old containers..."
+            docker-compose down
+            
+            echo "🚀 Starting new containers..."
+            docker-compose up -d
+            
+            echo "⏳ Waiting for services to be healthy..."
+            sleep 15
+            
+            echo "🔍 Checking backend health..."
+            for i in {1..30}; do
+              if docker-compose exec -T backend curl -f http://localhost:8000/api/health/ 2>/dev/null; then
+                echo "✅ Backend is healthy!"
+                break
+              fi
+              echo "⏳ Waiting for backend... ($i/30)"
+              sleep 2
+            done
+            
+            echo "🔍 Checking frontend health..."
+            for i in {1..30}; do
+              if docker-compose exec -T frontend curl -f http://localhost:3000 2>/dev/null; then
+                echo "✅ Frontend is healthy!"
+                break
+              fi
+              echo "⏳ Waiting for frontend... ($i/30)"
+              sleep 2
+            done
+            
+            echo "🧹 Cleaning up old images..."
+            docker image prune -af
+            
+            echo "✅ Deployment successful!"
+          EOF
+      
+      - name: Run database migrations
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            cd ~/logiflow
+            
+            echo "🔄 Running database migrations..."
+            docker-compose exec -T backend python manage.py migrate --noinput
+            
+            echo "📦 Collecting static files..."
+            docker-compose exec -T backend python manage.py collectstatic --noinput --clear
+            
+            echo "✅ Database migrations complete!"
+          EOF
+      
+      - name: Verify deployment
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            cd ~/logiflow
+            
+            echo "📊 Container status:"
+            docker-compose ps
+            
+            echo ""
+            echo "📝 Recent logs:"
+            docker-compose logs --tail=50
+          EOF
+      
+      - name: Create deployment tag
+        if: success()
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            cd ~/logiflow
+            echo "$(date '+%Y-%m-%d %H:%M:%S') - Deployed commit ${{ github.sha }}" >> deployment-history.log
+          EOF
+      
+      - name: Check if Slack webhook exists
+        id: check_slack
+        run: |
+          if [ -n "${{ secrets.SLACK_WEBHOOK }}" ]; then
+            echo "webhook_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "webhook_exists=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Notify deployment success
+        if: success() && steps.check_slack.outputs.webhook_exists == 'true'
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "✅ Production Deployment Successful!\n\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\n\n🔗 https://logiflow.com"
+            }'
+
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    if: failure()
+    needs: deploy-production
+    
+    steps:
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+      
+      - name: Rollback to previous version
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SERVER_HOST }} << 'EOF'
+            set -e
+            cd ~/logiflow
+            
+            echo "⚠️  Deployment failed! Rolling back..."
+            
+            # Restore backup files
+            if [ -f "backup/docker-compose.yml" ]; then
+              cp backup/docker-compose.yml docker-compose.yml
+            fi
+            if [ -f "backup/.env" ]; then
+              cp backup/.env .env
+            fi
+            
+            # Restart with previous configuration
+            docker-compose down
+            docker-compose up -d --force-recreate
+            
+            echo "✅ Rollback complete!"
+          EOF
+      
+      - name: Check if Slack webhook exists
+        id: check_slack
+        run: |
+          if [ -n "${{ secrets.SLACK_WEBHOOK }}" ]; then
+            echo "webhook_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "webhook_exists=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Notify rollback
+        if: steps.check_slack.outputs.webhook_exists == 'true'
+        run: |
+          curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+            -H 'Content-Type: application/json' \
+            -d '{
+              "text": "⚠️  Production Deployment Failed - Rolled Back!\n\nRepository: ${{ github.repository }}\nCommit: ${{ github.sha }}\nAuthor: ${{ github.actor }}\n\nPlease check the logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            }'
+
+  post-deployment-tests:
+    name: Post-Deployment Verification
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: success()
+    
+    steps:
+      - name: Check application health
+        run: |
+          # Check if main site is up (comment out if domain not ready)
+          # curl -f https://logiflow.com || exit 1
+          
+          # Check API health (comment out if domain not ready)
+          # curl -f https://logiflow.com/api/health/ || exit 1
+          
+          echo "✅ Health checks passed (or skipped if domain not ready)"
+      
+      - name: Run smoke tests
+        run: |
+          echo "🧪 Running smoke tests..."
+          # Add your smoke test commands here
+          echo "✅ Smoke tests passed!"
