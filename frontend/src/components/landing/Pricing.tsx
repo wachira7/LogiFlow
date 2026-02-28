@@ -1,12 +1,12 @@
 // frontend/src/components/landing/Pricing.tsx
 "use client";
 
-import { useEffect, useRef, useState } from "react"; // ✅ Added useState
+import { JSX, useEffect, useRef, useState } from "react"; 
 import { gsap } from "gsap";
-import { Check, Star, Zap, Crown, ArrowRight, Loader2 } from "lucide-react"; // ✅ Added Loader2
+import { Check, Star, Zap, Crown, ArrowRight, Loader2 } from "lucide-react"; 
 import Link from "next/link";
-import { Button } from "@/components/ui/button"; // ✅ Added Button import
-import { useToast } from "@/hooks/use-toast"; // ✅ Added useToast import
+import { Button } from "@/components/ui/button"; 
+import { useToast } from "@/hooks/use-toast"; 
 
 // Define proper interface for pricing plans
 interface PricingPlan {
@@ -117,7 +117,7 @@ export function Pricing() {
         },
       });
 
-      // Hover animations - Fix the type issue
+      // Hover animations for cards
       gsap.utils.toArray<HTMLElement>(".pricing-card").forEach((card) => {
         const tl = gsap.timeline({ paused: true });
 
@@ -132,7 +132,7 @@ export function Pricing() {
         card.addEventListener("mouseleave", () => tl.reverse());
       });
 
-      // Price number animations - Fix the type issue
+      // Price number animations when they come into view
       gsap.utils.toArray<HTMLElement>(".price-number").forEach((price) => {
         gsap.from(price, {
           textContent: 0,
@@ -169,7 +169,7 @@ export function Pricing() {
       }
 
       // Check authentication status
-      const authToken = localStorage.getItem("authToken");
+      const authToken = typeof window !== "undefined" ? localStorage.getItem("authToken") : null;
 
       if (!authToken) {
         // Store plan selection and redirect to auth
@@ -242,7 +242,7 @@ export function Pricing() {
   return (
     <div
       ref={pricingRef}
-      className="pricing-section py-20 bg-gradient-to-br from-background to-muted/20"
+      className="pricing-section py-20 bg-linear-to-br from-background to-muted/20"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
@@ -289,7 +289,7 @@ export function Pricing() {
               {/* Popular Badge */}
               {plan.popular && (
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                  <div className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                  <div className="bg-linear-to-r from-primary to-primary/80 text-primary-foreground px-6 py-2 rounded-full text-sm font-bold shadow-lg">
                     Most Popular
                   </div>
                 </div>
@@ -297,7 +297,7 @@ export function Pricing() {
 
               {/* Card Header */}
               <div
-                className={`bg-gradient-to-r ${plan.gradient} text-white p-8 text-center`}
+                className={`bg-linear-to-r ${plan.gradient} text-white p-8 text-center`}
               >
                 <div className="text-white/80 mb-4">{plan.icon}</div>
                 <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
@@ -323,7 +323,7 @@ export function Pricing() {
                 <ul className="space-y-4 mb-8">
                   {plan.features.map((feature, featureIndex) => (
                     <li key={featureIndex} className="flex items-start">
-                      <Check className="w-5 h-5 text-primary mr-3 mt-0.5 flex-shrink-0" />
+                      <Check className="w-5 h-5 text-primary mr-3 mt-0.5 shrink-0" />
                       <span className="text-foreground">{feature}</span>
                     </li>
                   ))}
@@ -334,7 +334,7 @@ export function Pricing() {
                       key={`limit-${limitIndex}`}
                       className="flex items-start opacity-60"
                     >
-                      <span className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 text-muted-foreground">
+                      <span className="w-5 h-5 mr-3 mt-0.5 shrink-0 text-muted-foreground">
                         •
                       </span>
                       <span className="text-muted-foreground text-sm">
@@ -349,7 +349,7 @@ export function Pricing() {
                   {plan.cta === "Contact Sales" ? (
                     <Link
                       href="/contact"
-                      className={`block w-full bg-gradient-to-r ${plan.gradient} text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transition-all duration-300 group`}
+                      className={`block w-full bg-linear-to-r ${plan.gradient} text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transition-all duration-300 group`}
                     >
                       {plan.cta}
                       <ArrowRight className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -388,7 +388,7 @@ export function Pricing() {
 
         {/* Enterprise Plus */}
         <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-muted to-muted/50 border border-border text-foreground rounded-2xl p-8 max-w-4xl mx-auto">
+          <div className="bg-linear-to-r from-muted to-muted/50 border border-border text-foreground rounded-2xl p-8 max-w-4xl mx-auto">
             <h3 className="text-2xl font-bold mb-4">Enterprise Plus</h3>
             <p className="text-muted-foreground mb-6">
               Need custom solutions for your industry? We offer tailored

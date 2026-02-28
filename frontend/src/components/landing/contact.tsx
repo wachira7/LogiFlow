@@ -9,14 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Mail, Phone, MapPin, Clock, Send, MessageSquare } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Mail, Phone, MapPin, Clock, Send, MessageSquare, Loader2 } from "lucide-react";
 
 const contactInfo = [
   {
@@ -55,12 +49,37 @@ export function Contact() {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission here
-    console.log("Form submitted:", formData);
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus("idle");
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/contact/`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to send");
+
+      setSubmitStatus("success");
+      setFormData({
+        name: "", email: "", company: "",
+        phone: "", inquiryType: "", message: "",
+      });
+    } catch {
+      setSubmitStatus("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -102,7 +121,7 @@ export function Contact() {
                 const Icon = info.icon;
                 return (
                   <div key={index} className="flex items-start space-x-4">
-                    <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg flex-shrink-0">
+                    <div className="flex items-center justify-center w-12 h-12 bg-primary/10 rounded-lg shrink-0">
                       <Icon className="w-6 h-6 text-primary" />
                     </div>
                     <div>
@@ -231,12 +250,32 @@ export function Contact() {
                   </div>
 
                   <Button
-                    type="submit"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                  >
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Message
+                     type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Send Message
+                        </>
+                      )}
                   </Button>
+                    {submitStatus === "success" && (
+                      <p className="text-center text-sm text-green-600 mt-2">
+                        ✅ Message sent! We&apos;ll get back to you soon!
+                      </p>
+                    )}
+                    {submitStatus === "error" && (
+                      <p className="text-center text-sm text-destructive mt-2">
+                        ❌ Failed to send. Please try again!
+                      </p>
+                    )}
                 </form>
               </CardContent>
             </Card>

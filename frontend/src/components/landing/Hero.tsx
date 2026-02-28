@@ -10,14 +10,14 @@ import Image from "next/image";
 
 export function Hero() {
   const heroRef = useRef<HTMLDivElement>(null);
-  // Use generic types for proper TypeScript typing
+  // Used generic types for proper TypeScript typing
   const badgeRef = useFadeInUp<HTMLDivElement>(0.2);
   const titleRef = useFadeInUp<HTMLHeadingElement>(0.4);
   const subtitleRef = useFadeInUp<HTMLParagraphElement>(0.6);
   const buttonsRef = useFadeInUp<HTMLDivElement>(0.8);
   const statsRef = useStaggerAnimation<HTMLDivElement>();
 
-  // Fix: Use generic type for lazy loading hook
+  // Used generic type for lazy loading hook
   const { elementRef: bgRef, isInView } = useLazyLoading<HTMLDivElement>({
     threshold: 0.1,
   });

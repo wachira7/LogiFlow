@@ -1,11 +1,11 @@
-// src/app/layout.tsx - Updated with AuthProvider
+// src/app/layout.tsx 
 import type React from "react";
 import type { Metadata, Viewport } from "next";
 import { Work_Sans, Open_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
-import { AuthProvider } from "@/context/AuthContext"; // Add AuthProvider
-import { Toaster } from "@/components/ui/toaster"; // Add Toaster for notifications
+import { AuthProvider } from "@/context/AuthContext"; 
+import { Toaster } from "@/components/ui/toaster"; 
 
 const workSans = Work_Sans({
   subsets: ["latin"],
@@ -192,7 +192,7 @@ export default function RootLayout({
             {/* Loading indicator for better UX */}
             <div
               id="loading-indicator"
-              className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-cta z-50 transform -translate-x-full transition-transform duration-300"
+              className="fixed top-0 left-0 right-0 h-1 bg-linear-to-r from-primary to-cta z-50 transform -translate-x-full transition-transform duration-300"
               aria-hidden="true"
             />
 

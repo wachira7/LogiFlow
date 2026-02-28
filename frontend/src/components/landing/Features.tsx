@@ -137,7 +137,7 @@ export function Features() {
               <div className="space-y-4">
                 {benefits.map((benefit, index) => (
                   <div key={index} className="flex items-start space-x-3">
-                    <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                    <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                     <span className="text-muted-foreground">{benefit}</span>
                   </div>
                 ))}

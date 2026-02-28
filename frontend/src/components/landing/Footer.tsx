@@ -75,11 +75,11 @@ export function Footer() {
               </div>
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4" />
-                <span>+1 (555) 123-4567</span>
+                <span>+254 705274244</span>
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4" />
-                <span>New York, NY 10001</span>
+                <span>Nairobi, Kenya</span>
               </div>
             </div>
           </div>
@@ -157,7 +157,7 @@ export function Footer() {
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between">
           <div className="flex flex-col items-center md:items-start space-y-3">
             <p className="text-muted-foreground text-sm">
-              © 2024 Logiflow. All rights reserved.
+              © 2025 Logiflow. All rights reserved.
             </p>
             <div className="flex items-center space-x-2">
               <span className="text-xs text-muted-foreground">Powered by</span>

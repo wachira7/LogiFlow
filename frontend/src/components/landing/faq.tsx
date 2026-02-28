@@ -98,7 +98,7 @@ export function FAQ() {
                 <motion.div
                   animate={{ rotate: openIndex === index ? 180 : 0 }}
                   transition={{ duration: 0.2 }}
-                  className="flex-shrink-0"
+                  className="shrink-0"
                 >
                   <ChevronDown className="h-5 w-5 text-muted-foreground" />
                 </motion.div>

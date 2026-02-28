@@ -1,0 +1,12 @@
+#files to ignore
+node_modules/
+dist/
+build/
+*.env
+*.log
+*.pyc
+__pycache__/
+.idea/
+.vscode/
+.DS_Store
+

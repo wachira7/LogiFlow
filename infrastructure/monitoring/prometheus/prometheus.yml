@@ -23,3 +23,9 @@ scrape_configs:
   - job_name: 'node'
     static_configs:
       - targets: ['node-exporter:9100']
+
+# FlixVideo Node.js Backend
+  - job_name: 'flixvideo-backend'
+    static_configs:
+      - targets: ['172.17.0.1:5000']
+    metrics_path: '/metrics'

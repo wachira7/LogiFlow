@@ -1,3 +1,4 @@
+// frontend/src/components/landing/Testimonials.tsx
 "use client";
 
 import { useState, useEffect } from "react";

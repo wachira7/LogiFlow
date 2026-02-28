@@ -184,17 +184,17 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarP
             onClick={() => toggleExpanded(item.title.toLowerCase())}
             className="flex items-center w-full"
           >
-            <item.icon className={cn('h-4 w-4 flex-shrink-0', !collapsed && (level === 0 ? 'mr-3' : 'mr-2'))} />
+            <item.icon className={cn('h-4 w-4 shrink-0', !collapsed && (level === 0 ? 'mr-3' : 'mr-2'))} />
             {!collapsed && (
               <>
                 <span className="flex-1 text-sm font-medium truncate">{item.title}</span>
                 {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                  <ChevronDown className="h-4 w-4 shrink-0" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                  <ChevronRight className="h-4 w-4 shrink-0" />
                 )}
                 {item.badge && (
-                  <Badge variant="secondary" className="ml-2 flex-shrink-0">
+                  <Badge variant="secondary" className="ml-2 shrink-0">
                     {item.badge}
                   </Badge>
                 )}
@@ -207,12 +207,12 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarP
             className="flex items-center w-full" 
             onClick={onClose}
           >
-            <item.icon className={cn('h-4 w-4 flex-shrink-0', !collapsed && (level === 0 ? 'mr-3' : 'mr-2'))} />
+            <item.icon className={cn('h-4 w-4 shrink-0', !collapsed && (level === 0 ? 'mr-3' : 'mr-2'))} />
             {!collapsed && (
               <>
                 <span className="text-sm font-medium truncate">{item.title}</span>
                 {item.badge && (
-                  <Badge variant="secondary" className="ml-auto flex-shrink-0">
+                  <Badge variant="secondary" className="ml-auto shrink-0">
                     {item.badge}
                   </Badge>
                 )}
@@ -279,7 +279,7 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarP
             collapsed ? 'justify-center p-2' : 'justify-between p-4'
           )}>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
                 <Package className="w-5 h-5 text-primary-foreground" />
               </div>
               {!collapsed && (
@@ -318,7 +318,7 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarP
           {!collapsed && (
             <div className="p-4 border-b">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
                   <span className="text-sm font-medium text-primary-foreground">
                     {getUserDisplayName().split(' ').map(n => n[0]).join('').toUpperCase()}
                   </span>
