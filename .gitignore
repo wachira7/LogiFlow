@@ -1,12 +1,23 @@
-#files to ignore
+# Environment files
+.env
+.env.*
+*.env
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Node
 node_modules/
 dist/
 build/
-*.env
+
+# Logs
 *.log
-*.pyc
-__pycache__/
+
+# IDE
 .idea/
 .vscode/
 .DS_Store
-
