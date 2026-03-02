@@ -1,7 +1,8 @@
 # apps/users/views.py
 from rest_framework import generics, status, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
@@ -218,6 +219,43 @@ def logout_view(request):
         clear_auth_cookies(response)
         
         return response
+
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def upload_avatar(request):
+    """Upload user avatar/profile picture."""
+    user = request.user
+    avatar_file = request.FILES.get('avatar')
+    
+    if not avatar_file:
+        return Response({
+            'error': 'No avatar file provided'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Validate file size (max 10MB)
+    if avatar_file.size > 10 * 1024 * 1024:
+        return Response({
+            'error': 'File size exceeds 10MB limit'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Validate file type
+    allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp','.bmp', '.tiff', '.tif', '.heic', '.heif','.avif', '.svg']
+    file_extension = '.' + avatar_file.name.split('.')[-1].lower()
+    if file_extension not in allowed_extensions:
+        return Response({
+            'error': 'Invalid file type. Only JPG, PNG, GIF, WEBP, BMP, TIFF, HEIC, HEIF, AVIF and SVG are allowed'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Save avatar
+    user.profile_picture = avatar_file
+    user.save()
+    user.refresh_from_db() # Ensure we have the latest data from the database-reloads the user instance to get the updated profile_picture URL(cloudinary URL after upload)
+
+    return Response({
+        'profile_picture': user.profile_picture.url if user.profile_picture else None,
+        'message': 'Avatar uploaded successfully'
+    })        
 
 
 class ProfileView(generics.RetrieveUpdateAPIView):

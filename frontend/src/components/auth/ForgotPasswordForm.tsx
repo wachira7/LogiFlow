@@ -7,7 +7,7 @@ import { ArrowLeft, Mail, Loader2, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { motion } from 'framer-motion'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAuthUtils } from '@/hooks/useAuth'
 
@@ -62,118 +62,90 @@ export function ForgotPasswordForm() {
 
   if (isSuccess) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted/20 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="space-y-1 text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            <CardTitle className="text-2xl font-bold text-green-600">Check your email</CardTitle>
-            <CardDescription>
-              We&apos;ve sent a password reset link to <strong>{email}</strong>
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert>
-              <Mail className="h-4 w-4" />
-              <AlertDescription>
-                If you don&apos;t see the email in your inbox, check your spam folder. 
-                The link will expire in 24 hours.
-              </AlertDescription>
-            </Alert>
-
-            <div className="space-y-2">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {
-                  setIsSuccess(false)
-                  setEmail('')
-                }}
-              >
-                Send another email
-              </Button>
-
-              <Link href="/auth/login" className="block">
-                <Button variant="ghost" className="w-full">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to login
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6 text-center">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          className="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg mx-auto"
+        >
+          <CheckCircle className="w-7 h-7 text-white" />
+        </motion.div>
+        <div>
+          <h1 className="font-serif font-bold text-2xl text-green-600">Check your email</h1>
+          <p className="text-muted-foreground mt-1">
+            We&apos;ve sent a reset link to <strong>{email}</strong>
+          </p>
+        </div>
+        <Alert>
+          <Mail className="h-4 w-4" />
+          <AlertDescription>
+            If you don&apos;t see it, check your spam folder. Link expires in 24 hours.
+          </AlertDescription>
+        </Alert>
+        <div className="space-y-2">
+          <Button variant="outline" className="w-full" onClick={() => { setIsSuccess(false); setEmail('') }}>
+            Send another email
+          </Button>
+          <Link href="/auth/login" className="block">
+            <Button variant="ghost" className="w-full">
+              <ArrowLeft className="mr-2 h-4 w-4" />Back to login
+            </Button>
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted/20 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-              <Mail className="w-6 h-6 text-primary-foreground" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl font-bold">Forgot your password?</CardTitle>
-          <CardDescription>
-            Enter your email address and we&apos;ll send you a link to reset your password.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email Field */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => handleInputChange(e.target.value)}
-                  className={`pl-10 ${errors.email ? 'border-destructive' : ''}`}
-                  disabled={isLoading}
-                />
-              </div>
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
-              )}
-            </div>
+    <div className="space-y-6">
+      <div className="text-center space-y-2">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 200, damping: 15 }}
+          className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-4"
+        >
+          <Mail className="w-7 h-7 text-primary-foreground" />
+        </motion.div>
+        <h1 className="font-serif font-bold text-2xl sm:text-3xl">Forgot password?</h1>
+        <p className="text-muted-foreground">
+          Enter your email and we&apos;ll send you a reset link
+        </p>
+      </div>
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full"
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email address"
+              value={email}
+              onChange={(e) => handleInputChange(e.target.value)}
+              className={`pl-10 h-11 ${errors.email ? 'border-destructive' : ''}`}
               disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending reset link...
-                </>
-              ) : (
-                'Send reset link'
-              )}
-            </Button>
-          </form>
-
-          {/* Back to Login Link */}
-          <div className="mt-6 text-center">
-            <Link
-              href="/auth/login"
-              className="text-sm text-muted-foreground hover:text-primary flex items-center justify-center"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to login
-            </Link>
+            />
           </div>
-        </CardContent>
-      </Card>
+          {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-11 bg-cta hover:bg-cta/90 text-cta-foreground font-semibold"
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Sending...</>
+          ) : 'Send reset link'}
+        </Button>
+      </form>
+
+      <Link href="/auth/login" className="flex items-center justify-center text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <ArrowLeft className="mr-2 h-4 w-4" />Back to login
+      </Link>
     </div>
   )
 }

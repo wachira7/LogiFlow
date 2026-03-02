@@ -361,7 +361,7 @@ export class AuthService {
    */
   static async uploadAvatar(file: File): Promise<ApiResponse<{ profile_picture: string }>> {
     try {
-      const response = await api.upload<{ profile_picture: string }>('/api/v1/auth/profile/avatar/', file)
+      const response = await api.upload<{ profile_picture: string }>('/api/v1/auth/profile/avatar/', file, 'avatar')
 
       if (response.success) {
         console.log('Avatar uploaded successfully')

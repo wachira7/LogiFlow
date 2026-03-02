@@ -199,7 +199,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (user.is_platform_admin || user.role === 'platform_admin') {
         router.push('/platform-admin')
       } else {
-        router.push('/dashboard')
+        router.push('/auth/company-setup')
       }
 
         return true
@@ -246,6 +246,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isLoading: false,
         error: null,
       })
+      router.push('/auth/login')
     }
   }
 

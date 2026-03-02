@@ -43,7 +43,7 @@ export function WelcomeCard() {
   const isNewUser = stats.days_active <= 1
 
   return (
-    <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+    <Card className="bg-linear-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="space-y-3">
@@ -111,11 +111,13 @@ export function WelcomeCard() {
             )}
           </div>
 
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             {company.logo ? (
               <Image
                 src={company.logo}
                 alt={`${company.name} logo`}
+                width={64}
+                height={64}
                 className="w-16 h-16 rounded-lg object-cover border"
               />
             ) : (

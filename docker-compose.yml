@@ -135,6 +135,7 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - PORT=3000
     depends_on:
       - backend
 

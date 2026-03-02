@@ -3,29 +3,14 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Menu,
-  X,
-  User,
-  LogOut,
-  Settings,
-  Building,
-  ChevronDown,
-} from "lucide-react";
+import { Menu, X, User, LogOut, Settings, Building, ChevronDown } from "lucide-react";
 import { gsap } from "gsap";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth, useAuthUtils } from "@/hooks/useAuth"; // Use your auth hooks
+import { useAuth, useAuthUtils } from "@/hooks/useAuth"; 
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -35,7 +20,7 @@ interface NavbarProps {
 export function Navbar({ onMenuClick, sidebarCollapsed }: NavbarProps = {}) {
   const [isOpen, setIsOpen] = useState(false);
   
-  // Use your AuthContext instead of local state
+  // Use of AuthContext instead of local state
   const { user, isAuthenticated, isLoading, company } = useAuth();
   const { logoutWithConfirmation, getUserInitials } = useAuthUtils();
 
@@ -97,7 +82,7 @@ export function Navbar({ onMenuClick, sidebarCollapsed }: NavbarProps = {}) {
   const navItems = isAuthenticated ? authenticatedNavItems : publicNavItems;
 
   return (
-    <nav className="nav-container sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+    <nav className="nav-container sticky top-0 z-50 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -209,12 +194,6 @@ export function Navbar({ onMenuClick, sidebarCollapsed }: NavbarProps = {}) {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
-                  </DropdownMenuItem>
                   {/*Profile Link */}
                   <DropdownMenuItem asChild>
                     <Link href="/profile">
@@ -304,7 +283,7 @@ export function Navbar({ onMenuClick, sidebarCollapsed }: NavbarProps = {}) {
           </div>
         </div>
 
-        {/* Mobile Navigation - Only show for landing page when not authenticated */}
+        {/* Mobile Navigation */}
         {isOpen && !isAuthenticated && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 bg-card border-t border-border">

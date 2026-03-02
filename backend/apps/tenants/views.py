@@ -1,6 +1,6 @@
 # backend/apps/tenants/views.py
 from rest_framework import generics, status, permissions
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.utils import timezone
@@ -34,6 +34,7 @@ class CompanyDetailView(generics.RetrieveUpdateAPIView):
 
 @api_view(['POST'])
 @permission_classes([IsCompanyOwnerOrAdmin])
+@parser_classes([MultiPartParser, FormParser])
 def upload_company_logo(request):
     """Upload company logo."""
     company = request.user.company
@@ -44,22 +45,24 @@ def upload_company_logo(request):
             'error': 'No logo file provided'
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    # Validate file size (max 2MB)
-    if logo_file.size > 2 * 1024 * 1024:
+    # Validate file size (max 10MB)
+    if logo_file.size > 10 * 1024 * 1024:
         return Response({
-            'error': 'File size exceeds 2MB limit'
+            'error': 'File size exceeds 10MB limit'
         }, status=status.HTTP_400_BAD_REQUEST)
     
     # Validate file type
-    allowed_types = ['image/jpeg', 'image/png', 'image/svg+xml']
-    if logo_file.content_type not in allowed_types:
+    allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp','.bmp', '.tiff', '.tif', '.heic', '.heif','.avif', '.svg']
+    file_extension = '.' + logo_file.name.split('.')[-1].lower()
+    if file_extension not in allowed_extensions:
         return Response({
-            'error': 'Invalid file type. Only JPG, PNG, and SVG are allowed'
+            'error': 'Invalid file type. Only JPG, PNG, GIF, WEBP, BMP, TIFF, HEIC, HEIF, AVIF and SVG are allowed'
         }, status=status.HTTP_400_BAD_REQUEST)
     
     # Save logo
     company.logo = logo_file
     company.save()
+    company.refresh_from_db() # Ensure we have the latest data from the database-reloads the company instance to get the updated logo URL(cloudinary URL after upload)
     
     return Response({
         'logo_url': company.logo.url if company.logo else None,

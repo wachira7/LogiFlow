@@ -32,7 +32,7 @@ class ContactFormView(APIView):
             # Email to LogiFlow team
             resend.Emails.send({
                 "from": "LogiFlow Contact <onboarding@resend.dev>",
-                "to": [contact_email],
+                "to": ["warumanu254@gmail.com"],
                 "subject": f"New Contact Form Submission - {inquiry_type or 'General'}",
                 "html": f"""
                     <h2>New Contact Form Submission</h2>
@@ -46,31 +46,33 @@ class ContactFormView(APIView):
                     <p>{message}</p>
                 """,
             })
-
-            # Auto-reply to sender
-            resend.Emails.send({
-                "from": "LogiFlow <onboarding@resend.dev>",
-                "to": [email],
-                "subject": "We received your message - LogiFlow",
-                "html": f"""
-                    <h2>Hi {name},</h2>
-                    <p>Thank you for reaching out to LogiFlow! We've received your message and will get back to you within 1 business day.</p>
-                    <p>Here's a copy of your message:</p>
-                    <blockquote style="border-left: 3px solid #ccc; padding-left: 16px; color: #555;">
-                        {message}
-                    </blockquote>
-                    <br/>
-                    <p>Best regards,<br/>The LogiFlow Team</p>
-                """,
-            })
-
-            return Response(
-                {"success": "Message sent successfully!"},
-                status=status.HTTP_200_OK,
-            )
-
         except Exception as e:
             return Response(
                 {"error": f"Failed to send message: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        # Auto-reply — don't fail the whole request if this fails
+        try:
+            resend.Emails.send({
+                "from": "LogiFlow <onboarding@resend.dev>",
+                "to": ["warumanu254@gmail.com"],  # dev only
+                "subject": f"Auto-reply: We received your message - LogiFlow",
+                "html": f"""
+                    <h2>Hi {name},</h2>
+                    <p>Thank you for reaching out! We'll get back to you within 1 business day.</p>
+                    <blockquote style="border-left: 3px solid #ccc; padding-left: 16px; color: #555;">
+                        {message}
+                    </blockquote>
+                    <p>Best regards,<br/>The LogiFlow Team</p>
+                """,
+            })
+        except Exception:
+            pass  # Auto-reply failure shouldn't affect success response
+
+        return Response(
+            {"success": "Message sent successfully!"},
+            status=status.HTTP_200_OK,
+        )
+
+     

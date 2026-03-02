@@ -11,7 +11,7 @@ class Company(TimeStampedModel):
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, max_length=100)
     domain = models.CharField(max_length=255, unique=True, null=True, blank=True)
-    logo = models.CharField(max_length=500, blank=True)
+    logo = models.ImageField(upload_to='logos/', blank=True, null=True)
     address = models.TextField(blank=True)
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField()

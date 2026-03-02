@@ -13,7 +13,7 @@ class User(AbstractUser):
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
-    profile_picture = models.CharField(max_length=500, blank=True)
+    profile_picture = models.ImageField(upload_to='avatars/', blank=True, null=True)
     
     # Company relationship - NULL for platform admins
     # Make this nullable initially to avoid circular dependency

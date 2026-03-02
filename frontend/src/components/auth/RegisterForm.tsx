@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { motion } from 'framer-motion'
 import { Progress } from '@/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuthUtils } from '@/hooks/useAuth'
@@ -210,20 +210,21 @@ export function RegisterForm() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-background to-muted/20 p-4">
-      <Card className="w-full max-w-lg">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
-              <User className="w-6 h-6 text-primary-foreground" />
-            </div>
+    <div className="space-y-6">
+          <div className="text-center space-y-2">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-4"
+            >
+              <User className="w-7 h-7 text-primary-foreground" />
+            </motion.div>
+            <h1 className="font-serif font-bold text-2xl sm:text-3xl text-foreground">
+              Create your account
+            </h1>
+            <p className="text-muted-foreground">Start your LogiFlow journey today</p>
           </div>
-          <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
-          <CardDescription>
-            Get started with your LogiFlow journey
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-4">
@@ -480,36 +481,32 @@ export function RegisterForm() {
             </div>
 
             {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                'Create account'
-              )}
-            </Button>
-          </form>
-
-          {/* Sign In Link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Already have an account?{' '}
-              <Link
-                href="/auth/login"
-                className="text-primary hover:underline font-medium"
+              <Button
+                type="submit"
+                className="w-full h-11 bg-cta hover:bg-cta/90 text-cta-foreground font-semibold"
+                disabled={isLoading}
               >
-                Sign in
-              </Link>
-            </p>
+                {isLoading ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating account...</>
+                ) : 'Create account'}
+              </Button>
+            </form>   
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Already have an account?</span>
+              </div>
+            </div>
+
+            {/* Sign in button */}
+            <Link href="/auth/login">
+              <Button variant="outline" className="w-full h-11 bg-transparent">
+                Sign in instead
+              </Button>
+            </Link>
           </div>
-        </CardContent>
-      </Card>
-    </div>
   )
 }

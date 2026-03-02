@@ -59,7 +59,7 @@ export function Contact() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/contact/`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/contact/`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -149,39 +149,39 @@ class ApiClient {
  * Make API request with automatic token refresh
  */
   private async makeRequest<T>(
-    endpoint: string,
-    options: RequestInit = {}
+  endpoint: string,
+  options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
     
-    // ✅ GET FRESH HEADERS RIGHT BEFORE THE REQUEST
-    const headers = this.getHeaders(options.headers as Record<string, string>)
+    // ✅ Don't set Content-Type for FormData — browser sets it with boundary
+    const isFormData = options.body instanceof FormData
+    
+    const headers = isFormData
+      ? { ...TokenManager.getAuthHeader(), ...(options.headers as Record<string, string>) }
+      : this.getHeaders(options.headers as Record<string, string>)
 
     try {
-      // First attempt
       let response = await fetch(url, {
         ...options,
         headers,
       })
 
-      // If unauthorized and we have a refresh token, try to refresh
       if (response.status === 401 && TokenManager.getRefreshToken()) {
         const refreshed = await this.refreshToken()
         
         if (refreshed) {
-          // ✅ WAIT A BIT FOR TOKEN TO BE STORED
           await new Promise(resolve => setTimeout(resolve, 100))
           
-          // ✅ GET COMPLETELY FRESH HEADERS WITH NEW TOKEN
-          const retryHeaders = this.getHeaders(options.headers as Record<string, string>)
+          const retryHeaders = isFormData
+            ? { ...TokenManager.getAuthHeader(), ...(options.headers as Record<string, string>) }
+            : this.getHeaders(options.headers as Record<string, string>)
           
-          // Retry with new token
           response = await fetch(url, {
             ...options,
-            headers: retryHeaders, // ✅ USE NEW HEADERS
+            headers: retryHeaders,
           })
         } else {
-          // Refresh failed, clear tokens and redirect to login
           TokenManager.clearTokens()
           if (typeof window !== 'undefined') {
             window.location.href = '/auth/login'
@@ -192,7 +192,6 @@ class ApiClient {
       return this.handleResponse<T>(response)
     } catch (error) {
       console.error(`❌ API request failed: ${endpoint}`, error)
-      
       return {
         data: undefined,
         error: error instanceof Error ? error.message : 'Network error occurred',
