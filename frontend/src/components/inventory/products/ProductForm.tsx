@@ -1,4 +1,4 @@
-// /src/components/inventory/products/ProductForm.tsx
+// src/components/inventory/products/ProductForm.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -20,6 +20,7 @@ interface ProductFormProps {
   onCancel?: () => void
 }
 
+// Only fields that exist in ProductCreateUpdateSerializer
 interface ProductFormData {
   name: string
   sku: string
@@ -31,13 +32,10 @@ interface ProductFormData {
   weight: string
   dimensions: string
   barcode: string
-  supplier_name: string
-  supplier_sku: string
-  track_stock: boolean
-  minimum_stock: string
-  maximum_stock: string
+  min_stock_level: string
+  max_stock_level: string
   reorder_point: string
-  notes: string
+  lead_time_days: string
   is_active: boolean
 }
 
@@ -54,38 +52,35 @@ const unitOptions = [
   { value: 'inch', label: 'Inch' },
   { value: 'cm', label: 'Centimeter' },
   { value: 'mm', label: 'Millimeter' },
-  
 ]
+
+const defaultFormData: ProductFormData = {
+  name: '',
+  sku: '',
+  description: '',
+  category_id: '',
+  cost_price: '',
+  unit_price: '',
+  unit_of_measure: '',
+  weight: '',
+  dimensions: '',
+  barcode: '',
+  min_stock_level: '',
+  max_stock_level: '',
+  reorder_point: '',
+  lead_time_days: '',
+  is_active: true,
+}
 
 export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps) {
   const { products, createProduct, updateProduct, isLoading } = useProducts()
-  const [formData, setFormData] = useState<ProductFormData>({
-    name: '',
-    sku: '',
-    description: '',
-    category_id: '',
-    cost_price: '',
-    unit_price: '',
-    unit_of_measure: '',
-    weight: '',
-    dimensions: '',
-    barcode: '',
-    supplier_name: '',
-    supplier_sku: '',
-    track_stock: true,
-    minimum_stock: '',
-    maximum_stock: '',
-    reorder_point: '',
-    notes: '',
-    is_active: true
-  })
+  const [formData, setFormData] = useState<ProductFormData>(defaultFormData)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const isEditing = !!productId
   const currentProduct = products.find(prod => prod.id === productId)
 
-  // Load existing product data for editing
   useEffect(() => {
     if (isEditing && currentProduct) {
       setFormData({
@@ -94,19 +89,16 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         description: currentProduct.description || '',
         category_id: currentProduct.category_id,
         cost_price: currentProduct.cost_price?.toString() || '',
-        unit_price: currentProduct.unit_price?.toString() || '', // Fixed: use selling_price consistently
+        unit_price: currentProduct.unit_price?.toString() || '',
         unit_of_measure: currentProduct.unit_of_measure || '',
         weight: currentProduct.weight?.toString() || '',
         dimensions: currentProduct.dimensions || '',
         barcode: currentProduct.barcode || '',
-        supplier_name: currentProduct.supplier_name || '',
-        supplier_sku: currentProduct.supplier_sku || '',
-        track_stock: currentProduct.track_stock ?? true,
-        minimum_stock: currentProduct.minimum_stock?.toString() || '',
-        maximum_stock: currentProduct.maximum_stock?.toString() || '',
+        min_stock_level: currentProduct.min_stock_level?.toString() || '',
+        max_stock_level: currentProduct.max_stock_level?.toString() || '',
         reorder_point: currentProduct.reorder_point?.toString() || '',
-        notes: currentProduct.notes || '',
-        is_active: currentProduct.is_active
+        lead_time_days: currentProduct.lead_time_days?.toString() || '',
+        is_active: currentProduct.is_active,
       })
     }
   }, [isEditing, currentProduct])
@@ -114,48 +106,26 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Product name is required'
-    }
+    if (!formData.name.trim()) newErrors.name = 'Product name is required'
+    if (!formData.sku.trim()) newErrors.sku = 'SKU is required'
+    if (!formData.category_id) newErrors.category_id = 'Category is required'
 
-    if (!formData.sku.trim()) {
-      newErrors.sku = 'SKU is required'
-    }
-
-    if (!formData.category_id) {
-      newErrors.category_id = 'Category is required'
-    }
-
-    if (formData.cost_price && isNaN(parseFloat(formData.cost_price))) {
+    if (formData.cost_price && isNaN(parseFloat(formData.cost_price)))
       newErrors.cost_price = 'Cost price must be a valid number'
-    }
-
-    if (formData.unit_price && isNaN(parseFloat(formData.unit_price))) {
+    if (formData.unit_price && isNaN(parseFloat(formData.unit_price)))
       newErrors.unit_price = 'Unit price must be a valid number'
-    }
-
-    if (formData.weight && isNaN(parseFloat(formData.weight))) {
+    if (formData.weight && isNaN(parseFloat(formData.weight)))
       newErrors.weight = 'Weight must be a valid number'
-    }
+    if (formData.min_stock_level && isNaN(parseInt(formData.min_stock_level)))
+      newErrors.min_stock_level = 'Must be a valid number'
+    if (formData.max_stock_level && isNaN(parseInt(formData.max_stock_level)))
+      newErrors.max_stock_level = 'Must be a valid number'
+    if (formData.reorder_point && isNaN(parseInt(formData.reorder_point)))
+      newErrors.reorder_point = 'Must be a valid number'
 
-    // Stock validation when tracking is enabled
-    if (formData.track_stock) {
-      if (formData.minimum_stock && isNaN(parseInt(formData.minimum_stock))) {
-        newErrors.minimum_stock = 'Minimum stock must be a valid number'
-      }
-      if (formData.maximum_stock && isNaN(parseInt(formData.maximum_stock))) {
-        newErrors.maximum_stock = 'Maximum stock must be a valid number'
-      }
-      if (formData.reorder_point && isNaN(parseInt(formData.reorder_point))) {
-        newErrors.reorder_point = 'Reorder point must be a valid number'
-      }
-
-      // Check if minimum is greater than maximum
-      if (formData.minimum_stock && formData.maximum_stock && 
-          parseInt(formData.minimum_stock) >= parseInt(formData.maximum_stock)) {
-        newErrors.maximum_stock = 'Maximum stock must be greater than minimum stock'
-      }
-    }
+    if (formData.min_stock_level && formData.max_stock_level &&
+        parseInt(formData.min_stock_level) >= parseInt(formData.max_stock_level))
+      newErrors.max_stock_level = 'Maximum must be greater than minimum'
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -163,21 +133,27 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
     if (!validateForm()) return
 
     setIsSubmitting(true)
     try {
+      // Only send fields that exist in ProductCreateUpdateSerializer
       const submitData = {
-        ...formData,
+        name: formData.name,
+        sku: formData.sku,
+        description: formData.description || undefined,
+        category_id: formData.category_id,
+        unit_of_measure: formData.unit_of_measure || undefined,
         cost_price: formData.cost_price ? parseFloat(formData.cost_price) : undefined,
-        unit_price: formData.unit_price ? parseFloat(formData.unit_price) : undefined, // Fixed: use selling_price
+        unit_price: formData.unit_price ? parseFloat(formData.unit_price) : undefined,
         weight: formData.weight ? parseFloat(formData.weight) : undefined,
-        minimum_stock: formData.minimum_stock ? parseInt(formData.minimum_stock) : undefined,
-        maximum_stock: formData.maximum_stock ? parseInt(formData.maximum_stock) : undefined,
+        dimensions: formData.dimensions || undefined,
+        barcode: formData.barcode || undefined,
+        min_stock_level: formData.min_stock_level ? parseInt(formData.min_stock_level) : undefined,
+        max_stock_level: formData.max_stock_level ? parseInt(formData.max_stock_level) : undefined,
         reorder_point: formData.reorder_point ? parseInt(formData.reorder_point) : undefined,
-        reorder_level: formData.reorder_point ? parseInt(formData.reorder_point) : 0,
-        reorder_quantity: formData.maximum_stock ? parseInt(formData.maximum_stock) : 0
+        lead_time_days: formData.lead_time_days ? parseInt(formData.lead_time_days) : undefined,
+        is_active: formData.is_active,
       }
 
       if (isEditing) {
@@ -197,18 +173,11 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
   const handleInputChange = (field: keyof ProductFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
-    }
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }))
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-32">
-        <LoadingSpinner />
-      </div>
-    )
+    return <div className="flex items-center justify-center h-32"><LoadingSpinner /></div>
   }
 
   return (
@@ -274,7 +243,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
               required
               className={errors.category_id ? 'border-destructive' : ''}
             />
-
             <div className="space-y-2">
               <Label htmlFor="unit">Unit of Measure</Label>
               <Select
@@ -294,17 +262,14 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
               </Select>
             </div>
           </div>
-
           {errors.category_id && <p className="text-sm text-destructive">{errors.category_id}</p>}
         </CardContent>
       </Card>
 
-      {/* Pricing Information */}
+      {/* Pricing */}
       <Card>
-        <CardHeader>
-          <CardTitle>Pricing Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+        <CardHeader><CardTitle>Pricing</CardTitle></CardHeader>
+        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="cost_price">Cost Price</Label>
@@ -319,7 +284,6 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
               />
               {errors.cost_price && <p className="text-sm text-destructive">{errors.cost_price}</p>}
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="unit_price">Unit Price</Label>
               <Input
@@ -339,92 +303,63 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
 
       {/* Stock Management */}
       <Card>
-        <CardHeader>
-          <CardTitle>Stock Management</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="track_stock"
-              checked={formData.track_stock}
-              onCheckedChange={(checked) => handleInputChange('track_stock', checked)}
-            />
-            <Label htmlFor="track_stock">Track Stock Levels</Label>
-          </div>
-
-          {formData.track_stock && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="minimum_stock">Minimum Stock</Label>
-                <Input
-                  id="minimum_stock"
-                  type="number"
-                  value={formData.minimum_stock}
-                  onChange={(e) => handleInputChange('minimum_stock', e.target.value)}
-                  placeholder="0"
-                  className={errors.minimum_stock ? 'border-destructive' : ''}
-                />
-                {errors.minimum_stock && <p className="text-sm text-destructive">{errors.minimum_stock}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="maximum_stock">Maximum Stock</Label>
-                <Input
-                  id="maximum_stock"
-                  type="number"
-                  value={formData.maximum_stock}
-                  onChange={(e) => handleInputChange('maximum_stock', e.target.value)}
-                  placeholder="0"
-                  className={errors.maximum_stock ? 'border-destructive' : ''}
-                />
-                {errors.maximum_stock && <p className="text-sm text-destructive">{errors.maximum_stock}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="reorder_point">Reorder Point</Label>
-                <Input
-                  id="reorder_point"
-                  type="number"
-                  value={formData.reorder_point}
-                  onChange={(e) => handleInputChange('reorder_point', e.target.value)}
-                  placeholder="0"
-                  className={errors.reorder_point ? 'border-destructive' : ''}
-                />
-                {errors.reorder_point && <p className="text-sm text-destructive">{errors.reorder_point}</p>}
-              </div>
+        <CardHeader><CardTitle>Stock Management</CardTitle></CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="min_stock_level">Min Stock Level</Label>
+              <Input
+                id="min_stock_level"
+                type="number"
+                value={formData.min_stock_level}
+                onChange={(e) => handleInputChange('min_stock_level', e.target.value)}
+                placeholder="0"
+                className={errors.min_stock_level ? 'border-destructive' : ''}
+              />
+              {errors.min_stock_level && <p className="text-sm text-destructive">{errors.min_stock_level}</p>}
             </div>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="max_stock_level">Max Stock Level</Label>
+              <Input
+                id="max_stock_level"
+                type="number"
+                value={formData.max_stock_level}
+                onChange={(e) => handleInputChange('max_stock_level', e.target.value)}
+                placeholder="0"
+                className={errors.max_stock_level ? 'border-destructive' : ''}
+              />
+              {errors.max_stock_level && <p className="text-sm text-destructive">{errors.max_stock_level}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reorder_point">Reorder Point</Label>
+              <Input
+                id="reorder_point"
+                type="number"
+                value={formData.reorder_point}
+                onChange={(e) => handleInputChange('reorder_point', e.target.value)}
+                placeholder="0"
+                className={errors.reorder_point ? 'border-destructive' : ''}
+              />
+              {errors.reorder_point && <p className="text-sm text-destructive">{errors.reorder_point}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lead_time_days">Lead Time (days)</Label>
+              <Input
+                id="lead_time_days"
+                type="number"
+                value={formData.lead_time_days}
+                onChange={(e) => handleInputChange('lead_time_days', e.target.value)}
+                placeholder="1"
+              />
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Additional Information */}
+      {/* Physical Details */}
       <Card>
-        <CardHeader>
-          <CardTitle>Additional Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="supplier_name">Supplier Name</Label>
-              <Input
-                id="supplier_name"
-                value={formData.supplier_name}
-                onChange={(e) => handleInputChange('supplier_name', e.target.value)}
-                placeholder="Enter supplier name"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="supplier_sku">Supplier SKU</Label>
-              <Input
-                id="supplier_sku"
-                value={formData.supplier_sku}
-                onChange={(e) => handleInputChange('supplier_sku', e.target.value)}
-                placeholder="Supplier's product code"
-              />
-            </div>
-          </div>
-
+        <CardHeader><CardTitle>Physical Details</CardTitle></CardHeader>
+        <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <Label htmlFor="barcode">Barcode</Label>
@@ -435,43 +370,35 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
                 placeholder="Barcode number"
               />
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="weight">Weight</Label>
+              <Label htmlFor="weight">Weight (kg)</Label>
               <Input
                 id="weight"
                 type="number"
                 step="0.01"
                 value={formData.weight}
                 onChange={(e) => handleInputChange('weight', e.target.value)}
-                placeholder="Weight in kg"
+                placeholder="0.00"
                 className={errors.weight ? 'border-destructive' : ''}
               />
               {errors.weight && <p className="text-sm text-destructive">{errors.weight}</p>}
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="dimensions">Dimensions</Label>
+              <Label htmlFor="dimensions">Dimensions (L x W x H)</Label>
               <Input
                 id="dimensions"
                 value={formData.dimensions}
                 onChange={(e) => handleInputChange('dimensions', e.target.value)}
-                placeholder="L x W x H"
+                placeholder="e.g. 10x5x3 cm"
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Additional notes about this product"
-              rows={3}
-            />
-          </div>
-
+      {/* Status */}
+      <Card>
+        <CardContent className="pt-6">
           <div className="flex items-center space-x-2">
             <Switch
               id="is_active"
@@ -483,14 +410,17 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
         </CardContent>
       </Card>
 
-      {/* Form Actions */}
+      {/* Actions */}
       <div className="flex justify-end space-x-4">
         {onCancel && (
           <Button variant="outline" type="button" onClick={onCancel}>
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={isSubmitting || !formData.name.trim() || !formData.sku.trim() || !formData.category_id}>
+        <Button
+          type="submit"
+          disabled={isSubmitting || !formData.name.trim() || !formData.sku.trim() || !formData.category_id}
+        >
           <Save className="h-4 w-4 mr-2" />
           {isSubmitting ? 'Saving...' : isEditing ? 'Update Product' : 'Create Product'}
         </Button>

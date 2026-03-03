@@ -172,6 +172,7 @@ export function CategoryForm({ categoryId, onSuccess, onCancel }: CategoryFormPr
               onValueChange={(value) => handleInputChange('parent_id', value)}
               label="Parent Category"
               placeholder="Select parent category (optional)"
+               excludeCategoryId={categoryId}  
               className={errors.parent_id ? 'border-destructive' : ''}
               showInactive={false}
             />

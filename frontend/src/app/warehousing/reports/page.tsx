@@ -5,23 +5,11 @@ import { useEffect, useState } from 'react'
 import { useTransferItems } from '@/hooks/useWarehousing'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { 
-  AlertCircle, 
-  TrendingUp, 
-  FileText,
-  Download 
-} from 'lucide-react'
+import { AlertCircle, TrendingUp, FileText, Download } from 'lucide-react'
 
 export default function WarehousingReportsPage() {
   const { 

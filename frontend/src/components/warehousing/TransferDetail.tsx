@@ -7,30 +7,11 @@ import { useWarehouseTransfers } from '@/hooks/useWarehousing'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Separator } from '@/components/ui/separator'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  CheckCircle,
-  XCircle,
-  PlayCircle,
-  Package,
-  Calendar,
-  User,
-  ArrowRightLeft,
-  AlertCircle,
-} from 'lucide-react'
+import { ArrowLeft, Edit, Trash2, CheckCircle, XCircle, PlayCircle, Package, Calendar, User, ArrowRightLeft, AlertCircle } from 'lucide-react'
 import type { TransferStatus } from '@/types/warehousing.types'
 
 interface TransferDetailProps {

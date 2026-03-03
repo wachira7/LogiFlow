@@ -1,3 +1,4 @@
+//src/app/inventory/transactions/page.tsx
 'use client'
 
 import { useState } from 'react'
@@ -36,37 +37,27 @@ export default function TransactionsPage() {
 
   const getTransactionIcon = (type: TransactionType) => {
     switch (type) {
-      case 'IN':
-        return <TrendingUp className="h-4 w-4 text-green-600" />
-      case 'OUT':
-        return <TrendingDown className="h-4 w-4 text-red-600" />
-      case 'ADJUSTMENT':
-        return <RotateCcw className="h-4 w-4 text-blue-600" />
-      case 'TRANSFER':
-        return <ArrowRightLeft className="h-4 w-4 text-purple-600" />
-      default:
-        return <RotateCcw className="h-4 w-4 text-gray-600" />
+      case 'RECEIPT': return <TrendingUp className="h-4 w-4 text-green-600" />
+      case 'SHIPMENT': return <TrendingDown className="h-4 w-4 text-red-600" />
+      case 'RETURN': return <RotateCcw className="h-4 w-4 text-orange-600" />
+      case 'ADJUSTMENT': return <RotateCcw className="h-4 w-4 text-blue-600" />
+      case 'TRANSFER': return <ArrowRightLeft className="h-4 w-4 text-purple-600" />
     }
   }
 
   const getTransactionColor = (type: TransactionType) => {
     switch (type) {
-      case 'IN':
-        return 'bg-green-100 text-green-800 border-green-200'
-      case 'OUT':
-        return 'bg-red-100 text-red-800 border-red-200'
-      case 'ADJUSTMENT':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'TRANSFER':
-        return 'bg-purple-100 text-purple-800 border-purple-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'RECEIPT': return 'bg-green-100 text-green-800 border-green-200'
+      case 'SHIPMENT': return 'bg-red-100 text-red-800 border-red-200'
+      case 'RETURN': return 'bg-orange-100 text-orange-800 border-orange-200'
+      case 'ADJUSTMENT': return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'TRANSFER': return 'bg-purple-100 text-purple-800 border-purple-200'
     }
   }
 
   const totalTransactions = transactions.length
-  const inTransactions = transactions.filter(t => t.transaction_type === 'IN').length
-  const outTransactions = transactions.filter(t => t.transaction_type === 'OUT').length
+  const inTransactions = transactions.filter(t => t.transaction_type === 'RECEIPT').length
+  const outTransactions = transactions.filter(t => t.transaction_type === 'SHIPMENT').length
   const adjustmentTransactions = transactions.filter(t => t.transaction_type === 'ADJUSTMENT').length
 
   if (isLoading) {
@@ -291,11 +282,11 @@ export default function TransactionsPage() {
                       <TableCell>
                         <div className="flex items-center space-x-1">
                           <span className={`font-medium ${
-                            transaction.transaction_type === 'IN' ? 'text-green-600' :
-                            transaction.transaction_type === 'OUT' ? 'text-red-600' :
+                            transaction.transaction_type === 'RECEIPT' ? 'text-green-600' :
+                            transaction.transaction_type === 'SHIPMENT' ? 'text-red-600' :
                             'text-blue-600'
                           }`}>
-                            {transaction.transaction_type === 'OUT' ? '-' : '+'}
+                            {transaction.transaction_type === 'SHIPMENT' ? '-' : '+'}
                             {Math.abs(transaction.quantity)}
                           </span>
                           <span className="text-sm text-muted-foreground">
@@ -331,9 +322,9 @@ export default function TransactionsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <div>{new Date(transaction.created_at).toLocaleDateString()}</div>
+                          <div>{new Date(transaction.timestamp).toLocaleDateString()}</div>
                           <div className="text-xs text-muted-foreground">
-                            {new Date(transaction.created_at).toLocaleTimeString()}
+                            {new Date(transaction.timestamp).toLocaleTimeString()}
                           </div>
                         </div>
                       </TableCell>

@@ -9,22 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { 
-  Plus, 
-  Trash2, 
-  ArrowLeft,
-  Package,
-  AlertCircle
-} from 'lucide-react'
+import { Plus, Trash2, ArrowLeft, Package, AlertCircle } from 'lucide-react'
 import type { CreateWarehouseTransferData, CreateTransferItemData } from '@/types/warehousing.types'
 
 interface TransferFormProps {
@@ -41,8 +29,8 @@ interface TransferItemFormData extends CreateTransferItemData {
 export function TransferForm({ transferId, isEdit = false }: TransferFormProps) {
   const router = useRouter()
   const { createTransfer, updateTransfer, fetchTransferById, currentTransfer, loading } = useWarehouseTransfers()
-  const { warehouses = [], isLoading: warehousesLoading, refresh: refreshWarehouses } = useWarehouses()
-  const { products = [], isLoading: productsLoading, refresh: refreshProducts } = useProducts()
+  const { warehouses = [], isLoading: warehousesLoading } = useWarehouses()
+  const { products = [], isLoading: productsLoading } = useProducts()
 
 
 
@@ -57,11 +45,6 @@ export function TransferForm({ transferId, isEdit = false }: TransferFormProps) 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
 
-
-  useEffect(() => {
-    refreshWarehouses()
-    refreshProducts()
-  }, [refreshWarehouses, refreshProducts])
 
   useEffect(() => {
     if (isEdit && transferId) {

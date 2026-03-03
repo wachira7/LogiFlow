@@ -438,7 +438,7 @@ def dashboard_overview(request):
             'name': company.name,
             'industry': company.industry or 'Not specified',
             'created_at': company.created_at.isoformat(),
-            'logo': company.logo,
+            'logo': company.logo.url if company.logo and company.logo.name else None,
             'email': company.email,
         },
         'user': {

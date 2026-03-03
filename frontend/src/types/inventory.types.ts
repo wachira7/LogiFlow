@@ -13,23 +13,35 @@ export interface Product {
   weight?: number
   dimensions?: string
   barcode?: string
-  supplier_name?: string
-  supplier_sku?: string
-  track_stock?: boolean
-  minimum_stock?: number | undefined
-  maximum_stock?: number | undefined
-  reorder_level?: number | undefined  
-  reorder_point?: number | undefined  
-  reorder_quantity?: number | undefined 
-  notes?: string
   is_active: boolean
   created_at: string
   updated_at: string
+
+  // Stock level fields — match backend serializer exactly
+  min_stock_level?: number
+  max_stock_level?: number
+  reorder_point?: number
+  lead_time_days?: number
+
   // Computed fields from backend
-  current_stock?: number
   total_stock?: number
-  total_value?: number
-  low_stock?: boolean
+  needs_reorder?: boolean
+  profit_margin?: number
+  current_stock?: number   // keep for backward compat
+  low_stock?: boolean      // keep for backward compat
+
+  // From ProductDetailSerializer only
+  stock_by_warehouse?: Array<{
+    warehouse_id: string
+    warehouse_name: string
+    quantity: number
+    location?: string
+    last_checked?: string
+  }>
+
+  // REMOVEd these fields since they are not in the inventory model/serializer and not used in components. Can add back if needed for specific components, but better to keep types aligned with API for clarity.:
+  // reorder_level, reorder_quantity, minimum_stock, maximum_stock
+  // supplier_name, supplier_sku, track_stock, notes, total_value -- since they are not in inventory model/serializer
 }
 
 export interface Category {
@@ -81,8 +93,8 @@ export interface InventoryItem {
   sku: string              // Product SKU for display
   description?: string      // Product description
   current_stock: number     // Current stock quantity
-  minimum_stock?: number
-  maximum_stock?: number
+  min_stock_level?: number
+  max_stock_level?: number
   reorder_point?: number
   cost_price?: number
   unit_price?: number
@@ -115,10 +127,11 @@ export interface Transaction {
   previous_quantity?: number
   new_quantity?: number
   reason: string
-  reference: string         // Make required for components
+  reference: string         
   notes?: string
   created_by?: string
   created_at: string
+  timestamp: string 
   // Additional fields for component display
   type: string             // Transaction type for display
   item_name?: string       // Product name for display
@@ -130,7 +143,7 @@ export interface Transaction {
   warehouse?: Warehouse
 }
 
-export type TransactionType = 'IN' | 'OUT' | 'ADJUSTMENT' | 'TRANSFER'
+export type TransactionType = 'RECEIPT' | 'SHIPMENT' | 'ADJUSTMENT' | 'TRANSFER' | 'RETURN'
 
 // Create/Update data interfaces
 export interface CreateProductData {
@@ -144,16 +157,12 @@ export interface CreateProductData {
   weight?: number
   dimensions?: string
   barcode?: string
-  supplier_name?: string
-  supplier_sku?: string
-  track_stock?: boolean
-  minimum_stock?: number
-  maximum_stock?: number
-  reorder_level: number
+  min_stock_level?: number
+  max_stock_level?: number
   reorder_point?: number
-  reorder_quantity: number
-  notes?: string
+  lead_time_days?: number
   is_active?: boolean
+  
 }
 
 export interface UpdateProductData {
@@ -167,22 +176,17 @@ export interface UpdateProductData {
   weight?: number
   dimensions?: string
   barcode?: string
-  supplier_name?: string
-  supplier_sku?: string
-  track_stock?: boolean
-  minimum_stock?: number
-  maximum_stock?: number
-  reorder_level?: number
+  min_stock_level?: number
+  max_stock_level?: number
   reorder_point?: number
-  reorder_quantity?: number
-  notes?: string
+  lead_time_days?: number
   is_active?: boolean
 }
 
 export interface CreateCategoryData {
   name: string
   description?: string
-  parent_id?: string | null  // Allow null for components
+  parent_id?: string | null  
   is_active?: boolean
 }
 
@@ -311,7 +315,7 @@ export interface BulkStockUpdate {
   adjustment_type: 'add' | 'subtract' | 'set' | 'INCREASE' | 'DECREASE' | 'SET'
 }
 
-// Filters - Keep your existing ones and add component compatibility
+// Filters 
 export interface ProductFilter {
   category?: string
   warehouse?: string
@@ -408,10 +412,11 @@ export interface PaginatedResponse<T> {
 
 // Constants
 export const TRANSACTION_TYPES: { value: TransactionType; label: string }[] = [
-  { value: 'IN', label: 'Stock In' },
-  { value: 'OUT', label: 'Stock Out' },
+  { value: 'RECEIPT', label: 'Receipt' },
+  { value: 'SHIPMENT', label: 'Shipment' },
   { value: 'ADJUSTMENT', label: 'Adjustment' },
-  { value: 'TRANSFER', label: 'Transfer' }
+  { value: 'TRANSFER', label: 'Transfer' },
+  { value: 'RETURN', label: 'Return' },
 ]
 
 export const ADJUSTMENT_TYPES = [

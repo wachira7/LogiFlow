@@ -1,3 +1,4 @@
+//src/app/inventory/warehouses/page.tsx
 'use client'
 
 import { useState } from 'react'
@@ -11,12 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, MapPin, User, Building, Package } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Progress } from '@/components/ui/progress'
 
 export default function WarehousesPage() {

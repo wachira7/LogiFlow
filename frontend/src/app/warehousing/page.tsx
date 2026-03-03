@@ -7,14 +7,7 @@ import { useWarehouseTransfers } from '@/hooks/useWarehousing'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import {
-  Package,
-  Clock,
-  CheckCircle,
-  TrendingUp,
-  ArrowRightLeft,
-  Plus,
-} from 'lucide-react'
+import { Package, Clock, CheckCircle, TrendingUp, ArrowRightLeft ,Plus} from 'lucide-react'
 
 export default function WarehousingPage() {
   const router = useRouter()

@@ -16,6 +16,7 @@ interface CategorySelectorProps {
   required?: boolean
   className?: string
   showInactive?: boolean
+  excludeCategoryId?: string 
 }
 
 export function CategorySelector({
@@ -25,12 +26,14 @@ export function CategorySelector({
   label,
   required = false,
   className,
-  showInactive = false
+  showInactive = false,
+  excludeCategoryId
 }: CategorySelectorProps) {
   const { categories, isLoading } = useCategories()
 
   const filteredCategories = categories?.filter(category => 
-    showInactive ? true : category.is_active
+    showInactive ? true : category.is_active &&
+    category.id !== excludeCategoryId
   ) || []
 
   // Group categories by parent for better organization

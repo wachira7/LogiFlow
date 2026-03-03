@@ -24,6 +24,7 @@ class CompanySerializer(serializers.ModelSerializer):
     users_count = serializers.SerializerMethodField()
     subscription_status = serializers.CharField(source='subscription.status', read_only=True)
     subscription_plan = serializers.CharField(source='subscription.plan.name', read_only=True)
+    logo = serializers.SerializerMethodField() 
     
     class Meta:
         model = Company
@@ -39,9 +40,18 @@ class CompanySerializer(serializers.ModelSerializer):
     def get_users_count(self, obj):
         return obj.users.filter(is_active=True).count()
 
+    def get_logo(self, obj):
+        if obj.logo and obj.logo.name:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.logo.url)
+            return obj.logo.url
+        return None    
+
 
 class CompanyUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating company information."""
+    logo = serializers.ImageField(required=False, allow_null=True)
     
     class Meta:
         model = Company

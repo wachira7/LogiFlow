@@ -1,24 +1,16 @@
+//src/app/inventory/reports/page.tsx
 'use client'
 
 import { useState } from 'react'
 import { useInventoryDashboard, useProducts, useCategories, useWarehouses } from '@/hooks/useInventory'
+import { LowStockAlert } from '@/components/inventory/products/LowStockAlert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Progress } from '@/components/ui/progress'
-import { 
-  BarChart3, 
-  Download, 
-  FileText, 
-  TrendingUp, 
-  TrendingDown, 
-  Package, 
-  AlertTriangle,
-  Building,
-  FolderTree
-} from 'lucide-react'
+import { BarChart3, Download, FileText, TrendingUp, TrendingDown, Package, AlertTriangle, Building, FolderTree} from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default function ReportsPage() {
@@ -49,7 +41,7 @@ export default function ReportsPage() {
 
   const activeProducts = products.filter(p => p.is_active)
   const inactiveProducts = products.filter(p => !p.is_active)
-  const outOfStockProducts = products.filter(p => p.current_stock === 0)
+  const outOfStockProducts = products.filter(p => (p.total_stock ?? 0) === 0)
   
   const categoriesWithProducts = categories.map(category => ({
     ...category,
@@ -82,7 +74,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* Summary Stats - FIXED */}
+      {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -157,28 +149,7 @@ export default function ReportsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {lowStockProducts.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No low stock items</p>
-                ) : (
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
-                    {lowStockProducts.slice(0, 10).map((product) => (
-                      <div key={product.id} className="flex items-center justify-between p-2 border rounded">
-                        <div>
-                          <div className="font-medium text-sm">{product.name}</div>
-                          <div className="text-xs text-muted-foreground">{product.sku}</div>
-                        </div>
-                        <Badge variant="destructive" className="text-xs">
-                          {product.current_stock || 0} {product.unit_of_measure}
-                        </Badge>
-                      </div>
-                    ))}
-                    {lowStockProducts.length > 10 && (
-                      <p className="text-xs text-muted-foreground text-center">
-                        +{lowStockProducts.length - 10} more items
-                      </p>
-                    )}
-                  </div>
-                )}
+                 <LowStockAlert showViewAll={false} limit={10} />
               </CardContent>
             </Card>
 
@@ -259,8 +230,8 @@ export default function ReportsPage() {
                 </TableHeader>
                 <TableBody>
                   {products.slice(0, 10).map((product) => {
-                    const stockLevel = product.current_stock || 0
-                    const reorderLevel = product.reorder_level || 0
+                    const stockLevel = product.total_stock ?? 0
+                    const reorderLevel = product.reorder_point ?? 0
                     const status = stockLevel === 0 ? 'out' : stockLevel <= reorderLevel ? 'low' : 'good'
                     
                     return (

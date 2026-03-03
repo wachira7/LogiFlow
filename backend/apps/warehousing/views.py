@@ -38,11 +38,6 @@ class WarehouseTransferViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.Mod
         elif self.action == 'retrieve':
             return WarehouseTransferDetailSerializer
         return WarehouseTransferListSerializer
-
-    @action(detail=True, methods=['post'])
-    def approve_transfer(self, request, pk=None):
-        """Approve a warehouse transfer."""
-        transfer = self.get_object()
         
     @action(detail=True, methods=['post'])
     def approve_transfer(self, request, pk=None):

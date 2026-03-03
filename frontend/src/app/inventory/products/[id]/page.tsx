@@ -87,12 +87,12 @@ export default function ProductDetailPage() {
                   <p className="mt-1">{product.unit_of_measure}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Reorder Level</label>
-                  <p className="mt-1">{product.reorder_level}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Reorder Point</label>
+                  <p className="mt-1">{product.reorder_point ?? '-'}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Reorder Quantity</label>
-                  <p className="mt-1">{product.reorder_quantity}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Stock Levels</label>
+                  <p className="mt-1">{product.min_stock_level ?? '-'} – {product.max_stock_level ?? '-'}</p>
                 </div>
               </div>
               {product.description && (
@@ -123,7 +123,7 @@ export default function ProductDetailPage() {
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Current Stock</label>
                 <div className="mt-1 flex items-center space-x-2">
-                  <span className="text-2xl font-bold">{product.current_stock || 0}</span>
+                  <span className="text-2xl font-bold">{product.total_stock ?? 0}</span>
                   <span className="text-muted-foreground">{product.unit_of_measure}</span>
                   {product.low_stock && (
                     <Badge variant="destructive" className="text-xs">
@@ -133,10 +133,10 @@ export default function ProductDetailPage() {
                   )}
                 </div>
               </div>
-              {product.total_value && (
+              {product.total_stock && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Total Value</label>
-                  <p className="mt-1 text-lg font-semibold">${product.total_value.toFixed(2)}</p>
+                  <p className="mt-1 text-lg font-semibold">${product.total_stock.toFixed(2)}</p>
                 </div>
               )}
             </CardContent>

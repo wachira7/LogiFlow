@@ -33,6 +33,7 @@ class ProductListSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     company_id = serializers.UUIDField(read_only=True)
     category_id = serializers.UUIDField(read_only=True)
+    image = serializers.SerializerMethodField()
     
     # ADD: Include the full category object (lightweight version)
     category = serializers.SerializerMethodField()
@@ -49,7 +50,7 @@ class ProductListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'company_id', 'name', 'sku', 'category_id', 'category', 'category_name',
             'unit_price', 'cost_price', 'profit_margin', 'total_stock', 
-            'needs_reorder', 'reorder_point', 'is_active', 'created_at', 'updated_at'
+            'needs_reorder', 'reorder_point', 'is_active','image', 'created_at', 'updated_at'
         ]
 
     def get_category(self, obj):
@@ -61,6 +62,14 @@ class ProductListSerializer(serializers.ModelSerializer):
                 'is_active': obj.category.is_active
             }
         return None
+    
+    def get_image(self, obj):  
+        if obj.image and obj.image.name:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
 
 
@@ -69,11 +78,12 @@ class ProductDetailSerializer(serializers.ModelSerializer):
     id = serializers.UUIDField(read_only=True)
     company_id = serializers.UUIDField(read_only=True)
     category_id = serializers.UUIDField(required=False, allow_null=True)
+    image = serializers.SerializerMethodField()
     
-    # ADD: Include the full category object
+    # full category object
     category = CategorySerializer(read_only=True)
     
-    # KEEP: These for backward compatibility
+    # for backward compatibility
     category_name = serializers.CharField(source='category.name', read_only=True)
     category_full_path = serializers.CharField(source='category.full_path', read_only=True)
     
@@ -106,6 +116,14 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             for item in obj.inventory_items.select_related('warehouse')
         ]
     
+    def get_image(self, obj):  
+        if obj.image and obj.image.name:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
 class ProductCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer for creating and updating products."""
     id = serializers.UUIDField(read_only=True)
@@ -133,12 +151,13 @@ class WarehouseSerializer(serializers.ModelSerializer):
     manager_name = serializers.CharField(source='manager.get_full_name', read_only=True)
     total_products = serializers.ReadOnlyField()
     total_stock_value = serializers.ReadOnlyField()
+    utilization_percentage = serializers.ReadOnlyField()
 
     class Meta:
         model = Warehouse
         fields = [
-            'id', 'company_id', 'name', 'address', 'manager_id', 'manager_name',
-            'total_products', 'total_stock_value', 'is_active', 'created_at', 'updated_at'
+            'id', 'company_id', 'name', 'code', 'description','capacity', 'address', 'manager_id', 'manager_name',
+            'total_products', 'total_stock_value', 'utilization_percentage', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'company_id', 'created_at', 'updated_at']
 

@@ -50,7 +50,7 @@ class Product(TimeStampedModel):
     barcode = models.CharField(max_length=100, blank=True)
     weight = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)  # in kg
     dimensions = models.CharField(max_length=100, blank=True)  # Format: LxWxH in cm
-    image = models.CharField(max_length=500, blank=True)  # URL to product image
+    image = models.ImageField(upload_to='product_images/', blank=True, null=True)   # URL to product image
     
     # Stock management
     min_stock_level = models.PositiveIntegerField(default=0)
@@ -94,6 +94,9 @@ class Warehouse(TimeStampedModel):
     """
     company = models.ForeignKey('tenants.Company', on_delete=models.CASCADE, related_name='warehouses')
     name = models.CharField(max_length=255)
+    code = models.CharField(max_length=20, blank=True)          
+    description = models.TextField(blank=True)                   
+    capacity = models.PositiveIntegerField(null=True, blank=True) 
     address = models.TextField()
     manager = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='managed_warehouses')
     is_active = models.BooleanField(default=True)

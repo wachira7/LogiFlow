@@ -40,9 +40,8 @@ export const warehouseTransferService = {
     if (filters?.search) params.append('search', filters.search);
     if (filters?.ordering) params.append('ordering', filters.ordering);
 
-    const response = await api.get<WarehouseTransfer[]>(
-      `${BASE_URL}/transfers/?${params.toString()}`
-    );
+    const response = await api.get<WarehouseTransfer[]>(`${BASE_URL}/transfers/?${params.toString()}`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -50,31 +49,26 @@ export const warehouseTransferService = {
    * Get a single warehouse transfer by ID
    */
   getById: async (id: string) => {
-    const response = await api.get<WarehouseTransferDetail>(
-      `${BASE_URL}/transfers/${id}/`
-    );
-    return response.data;
+    const response = await api.get<WarehouseTransferDetail>(`${BASE_URL}/transfers/${id}/`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
+    return response.data
   },
 
   /**
    * Create a new warehouse transfer
    */
   create: async (data: CreateWarehouseTransferData) => {
-    const response = await api.post<WarehouseTransferDetail>(
-      `${BASE_URL}/transfers/`,
-      data
-    );
-    return response.data;
+    const response = await api.post<WarehouseTransferDetail>(`${BASE_URL}/transfers/`,data);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
+    return response.data
   },
 
   /**
    * Update an existing warehouse transfer
    */
   update: async (id: string, data: UpdateWarehouseTransferData) => {
-    const response = await api.patch<WarehouseTransferDetail>(
-      `${BASE_URL}/transfers/${id}/`,
-      data
-    );
+    const response = await api.patch<WarehouseTransferDetail>(`${BASE_URL}/transfers/${id}/`, data);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -89,9 +83,8 @@ export const warehouseTransferService = {
    * Approve a warehouse transfer
    */
   approveTransfer: async (id: string) => {
-    const response = await api.post<ApproveTransferResponse>(
-      `${BASE_URL}/transfers/${id}/approve_transfer/`
-    );
+    const response = await api.post<ApproveTransferResponse>(`${BASE_URL}/transfers/${id}/approve_transfer/`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -99,9 +92,8 @@ export const warehouseTransferService = {
    * Start a warehouse transfer (deducts stock from source)
    */
   startTransfer: async (id: string) => {
-    const response = await api.post<StartTransferResponse>(
-      `${BASE_URL}/transfers/${id}/start_transfer/`
-    );
+    const response = await api.post<StartTransferResponse>(`${BASE_URL}/transfers/${id}/start_transfer/`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -109,9 +101,8 @@ export const warehouseTransferService = {
    * Complete a warehouse transfer (adds stock to destination)
    */
   completeTransfer: async (id: string) => {
-    const response = await api.post<CompleteTransferResponse>(
-      `${BASE_URL}/transfers/${id}/complete_transfer/`
-    );
+    const response = await api.post<CompleteTransferResponse>(`${BASE_URL}/transfers/${id}/complete_transfer/`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -119,9 +110,8 @@ export const warehouseTransferService = {
    * Cancel a warehouse transfer
    */
   cancelTransfer: async (id: string) => {
-    const response = await api.post<CancelTransferResponse>(
-      `${BASE_URL}/transfers/${id}/cancel_transfer/`
-    );
+    const response = await api.post<CancelTransferResponse>(`${BASE_URL}/transfers/${id}/cancel_transfer/`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -129,9 +119,8 @@ export const warehouseTransferService = {
    * Get warehousing dashboard data
    */
   getDashboard: async () => {
-    const response = await api.get<WarehousingDashboard>(
-      `${BASE_URL}/transfers/dashboard/`
-    );
+    const response = await api.get<WarehousingDashboard>(`${BASE_URL}/transfers/dashboard/`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -139,9 +128,8 @@ export const warehouseTransferService = {
    * Get stock movements analysis between warehouses
    */
   getStockMovements: async () => {
-    const response = await api.get<StockMovementsReport>(
-      `${BASE_URL}/transfers/stock_movements/`
-    );
+    const response = await api.get<StockMovementsReport>(`${BASE_URL}/transfers/stock_movements/`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 };
@@ -161,9 +149,8 @@ export const transferItemService = {
     if (filters?.search) params.append('search', filters.search);
     if (filters?.ordering) params.append('ordering', filters.ordering);
 
-    const response = await api.get<TransferItem[]>(
-      `${BASE_URL}/transfer-items/?${params.toString()}`
-    );
+    const response = await api.get<TransferItem[]>(`${BASE_URL}/transfer-items/?${params.toString()}`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -171,9 +158,8 @@ export const transferItemService = {
    * Get a single transfer item by ID
    */
   getById: async (id: string) => {
-    const response = await api.get<TransferItem>(
-      `${BASE_URL}/transfer-items/${id}/`
-    );
+    const response = await api.get<TransferItem>(`${BASE_URL}/transfer-items/${id}/`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -181,10 +167,8 @@ export const transferItemService = {
    * Create a new transfer item
    */
   create: async (data: CreateTransferItemData) => {
-    const response = await api.post<TransferItem>(
-      `${BASE_URL}/transfer-items/`,
-      data
-    );
+    const response = await api.post<TransferItem>(`${BASE_URL}/transfer-items/`, data);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -192,10 +176,8 @@ export const transferItemService = {
    * Update an existing transfer item
    */
   update: async (id: string, data: UpdateTransferItemData) => {
-    const response = await api.patch<TransferItem>(
-      `${BASE_URL}/transfer-items/${id}/`,
-      data
-    );
+    const response = await api.patch<TransferItem>(`${BASE_URL}/transfer-items/${id}/`, data);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -210,9 +192,8 @@ export const transferItemService = {
    * Get report of transfer items with insufficient stock
    */
   getInsufficientStockReport: async () => {
-    const response = await api.get<InsufficientStockReport>(
-      `${BASE_URL}/transfer-items/insufficient_stock_report/`
-    );
+    const response = await api.get<InsufficientStockReport>(`${BASE_URL}/transfer-items/insufficient_stock_report/`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 
@@ -220,9 +201,8 @@ export const transferItemService = {
    * Get most frequently transferred products
    */
   getPopularTransfers: async () => {
-    const response = await api.get<PopularTransfersReport>(
-      `${BASE_URL}/transfer-items/popular_transfers/`
-    );
+    const response = await api.get<PopularTransfersReport>(`${BASE_URL}/transfer-items/popular_transfers/`);
+    if (!response.success || !response.data) throw new Error(response.error || 'Failed')
     return response.data;
   },
 };

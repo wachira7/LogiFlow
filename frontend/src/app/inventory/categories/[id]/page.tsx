@@ -45,7 +45,9 @@ export default function CategoryDetailPage() {
             <p className="text-muted-foreground">Category Details</p>
           </div>
         </div>
-        <Button><Edit className="mr-2 h-4 w-4" />Edit Category</Button>
+        <Link href={`/inventory/categories/${category.id}/edit`}>
+          <Button><Edit className="mr-2 h-4 w-4" />Edit Category</Button>
+        </Link>
       </div>
 
       <Card>

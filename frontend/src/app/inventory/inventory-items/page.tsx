@@ -1,3 +1,4 @@
+//src/app/inventory/inventory-items/page.tsx
 'use client'
 
 import { useState } from 'react'

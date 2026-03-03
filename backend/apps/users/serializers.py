@@ -14,7 +14,8 @@ class UserSerializer(serializers.ModelSerializer):
     company_id = serializers.UUIDField(read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
     full_name = serializers.SerializerMethodField()
-    role = serializers.CharField(read_only=True)  
+    role = serializers.CharField(read_only=True)
+    profile_picture = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -29,6 +30,14 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}".strip()
+
+    def get_profile_picture(self, obj):
+        if obj.profile_picture and obj.profile_picture.name:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.profile_picture.url)
+            return obj.profile_picture.url
+        return None
 
 class RegisterSerializer(serializers.ModelSerializer):
     """Serializer for user registration with UUID support."""
@@ -158,6 +167,7 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating user profile."""
+    profile_picture = serializers.ImageField(required=False, allow_null=True)
     
     class Meta:
         model = User
