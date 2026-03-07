@@ -1,4 +1,4 @@
-// /app/inventory/inventory-items/[id]/page.tsx
+// src/app/inventory/inventory-items/[id]/page.tsx
 'use client'
 
 import { useParams } from 'next/navigation'
@@ -14,7 +14,7 @@ export default function InventoryItemDetailPage() {
   const params = useParams()
   const itemId = params?.id as string
   const { inventoryItems, isLoading } = useInventoryItems()
-  
+
   const item = inventoryItems.find(i => i.id === itemId)
 
   if (isLoading) {
@@ -51,8 +51,8 @@ export default function InventoryItemDetailPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{item.product?.name}</h1>
-            <p className="text-muted-foreground">Inventory Item Details</p>
+            <h1 className="text-3xl font-bold tracking-tight">{item.product_name}</h1>
+            <p className="text-muted-foreground font-mono text-sm">{item.product_sku}</p>
           </div>
         </div>
         <Link href={`/inventory/inventory-items/${item.id}/edit`}>
@@ -64,136 +64,60 @@ export default function InventoryItemDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Main Item Info */}
+        {/* Left — main info */}
         <div className="md:col-span-2 space-y-6">
+
+          {/* Warehouse Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Product Information</CardTitle>
+              <CardTitle>Warehouse</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Product Name</label>
-                  <p className="mt-1 font-medium">{item.product?.name}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Warehouse Name</label>
+                  <p className="mt-1 font-medium">{item.warehouse_name}</p>
                 </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">SKU</label>
-                  <p className="mt-1 font-mono text-sm">{item.product?.sku}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Category</label>
-                  <p className="mt-1">{item.product?.category?.name || 'Uncategorized'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Unit of Measure</label>
-                  <p className="mt-1">{item.product?.unit_of_measure}</p>
-                </div>
+                {item.location && (
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground">Bin / Shelf Location</label>
+                    <p className="mt-1">{item.location}</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
 
+          {/* Pricing */}
           <Card>
             <CardHeader>
-              <CardTitle>Warehouse Information</CardTitle>
+              <CardTitle>Pricing</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Warehouse</label>
-                  <p className="mt-1 font-medium">{item.warehouse?.name}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Warehouse Code</label>
-                  <p className="mt-1 font-mono text-sm">{item.warehouse?.code}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Location</label>
-                  <p className="mt-1">{item.location || 'Not specified'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Address</label>
-                  <p className="mt-1 text-sm">{item.warehouse?.address}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Batch & Expiry Info */}
-          {(item.batch_number || item.expiration_date) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Batch Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {item.batch_number && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Batch Number</label>
-                      <p className="mt-1 font-mono text-sm">{item.batch_number}</p>
-                    </div>
-                  )}
-                  {item.expiration_date && (
-                    <div>
-                      <label className="text-sm font-medium text-muted-foreground">Expiration Date</label>
-                      <p className="mt-1">{new Date(item.expiration_date).toLocaleDateString()}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Stock Info & Status */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Stock Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Current Quantity</label>
-                <div className="mt-1 flex items-center space-x-2">
-                  <span className="text-3xl font-bold">{item.quantity}</span>
-                  <span className="text-muted-foreground">{item.product?.unit_of_measure}</span>
-                  {item.quantity === 0 && (
-                    <Badge variant="destructive" className="text-xs">
-                      <AlertTriangle className="mr-1 h-3 w-3" />
-                      Out of Stock
-                    </Badge>
-                  )}
-                  {item.product?.low_stock && item.quantity > 0 && (
-                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
-                      <AlertTriangle className="mr-1 h-3 w-3" />
-                      Low Stock
-                    </Badge>
-                  )}
-                </div>
-              </div>
-
-              {item.reserved_quantity !== undefined && item.reserved_quantity > 0 && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Reserved Quantity</label>
-                  <p className="mt-1 text-lg font-semibold text-orange-600">
-                    {item.reserved_quantity} {item.product?.unit_of_measure}
+                  <label className="text-sm font-medium text-muted-foreground">Cost Price</label>
+                  <p className="mt-1 font-medium">
+                    ${(item.product_cost_price ?? 0).toFixed(2)}
                   </p>
                 </div>
-              )}
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Available Quantity</label>
-                <p className="mt-1 text-lg font-semibold text-green-600">
-                  {item.available_quantity || (item.quantity - (item.reserved_quantity || 0))} {item.product?.unit_of_measure}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Reorder Level</label>
-                <p className="mt-1">{item.product?.reorder_level || 0} {item.product?.unit_of_measure}</p>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Unit Price</label>
+                  <p className="mt-1 font-medium">
+                    ${(item.product_unit_price ?? 0).toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Stock Value</label>
+                  <p className="mt-1 font-semibold text-green-700">
+                    ${(item.stock_value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
 
+          {/* Timestamps */}
           <Card>
             <CardHeader>
               <CardTitle>Timestamps</CardTitle>
@@ -206,6 +130,66 @@ export default function InventoryItemDetailPage() {
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
                 <p className="mt-1 text-sm">{new Date(item.updated_at).toLocaleString()}</p>
+              </div>
+              {item.last_checked && (
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Last Stock Check</label>
+                  <p className="mt-1 text-sm">{new Date(item.last_checked).toLocaleString()}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right — stock info */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Stock Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Current quantity */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Current Quantity</label>
+                <div className="mt-1 flex items-center space-x-2">
+                  <span className="text-3xl font-bold">{item.quantity}</span>
+                  {item.quantity === 0 && (
+                    <Badge variant="destructive" className="text-xs">
+                      <AlertTriangle className="mr-1 h-3 w-3" />
+                      Out of Stock
+                    </Badge>
+                  )}
+                  {item.needs_reorder && item.quantity > 0 && (
+                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+                      <AlertTriangle className="mr-1 h-3 w-3" />
+                      Low Stock
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              {/* Reorder point */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Reorder Point</label>
+                <p className="mt-1 font-medium">{item.reorder_point}</p>
+              </div>
+
+              {/* Status badge */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Status</label>
+                <div className="mt-1">
+                  {item.quantity === 0 ? (
+                    <Badge variant="destructive">Out of Stock</Badge>
+                  ) : item.needs_reorder ? (
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                      Low Stock
+                    </Badge>
+                  ) : (
+                    <Badge variant="default" className="bg-green-100 text-green-800">
+                      In Stock
+                    </Badge>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

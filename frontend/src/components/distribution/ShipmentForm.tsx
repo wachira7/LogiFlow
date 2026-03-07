@@ -10,29 +10,11 @@ import type { Warehouse } from '@/types/inventory.types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { 
-  ArrowLeft,
-  Package,
-  Truck,
-  MapPin 
-} from 'lucide-react';
+import { ArrowLeft, Package, Truck, MapPin } from 'lucide-react';
 import type { CreateShipmentData, ShipmentDetail } from '@/types/distribution.types';
 
 // ============================================================================
@@ -64,21 +46,6 @@ interface ShipmentFormProps {
   onCancel?: () => void;
 }
 
-// Mock data - replace with real data from your hooks
-const mockDrivers = [
-  { id: '1', name: 'John Doe' },
-  { id: '2', name: 'Jane Smith' },
-  { id: '3', name: 'Mike Johnson' },
-];
-
-const mockCarriers = [
-  'FedEx',
-  'UPS',
-  'DHL',
-  'USPS',
-  'Own Fleet',
-  'Third Party',
-];
 
 // ============================================================================
 // MAIN COMPONENT
@@ -166,9 +133,9 @@ export const ShipmentForm: React.FC<ShipmentFormProps> = ({
     try {
       const shipmentData: CreateShipmentData = {
         ...data,
-        // Convert empty strings to undefined for optional fields
-        order_id: data.order_id || undefined,
-        driver_id: data.driver_id || undefined,
+        order_id: (data.order_id && data.order_id !== 'none') ? data.order_id : undefined,
+        driver_id: (data.driver_id && data.driver_id !== 'none') ? data.driver_id : undefined,
+        carrier: (data.carrier && data.carrier !== 'none') ? data.carrier : undefined,
         estimated_delivery: data.estimated_delivery || undefined,
       };
 
@@ -346,29 +313,14 @@ export const ShipmentForm: React.FC<ShipmentFormProps> = ({
 
                     <FormField
                       control={form.control}
-                      name="driver_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Driver (Optional)</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
+                        name="driver_id"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Driver ID (Optional)</FormLabel>
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select driver" />
-                              </SelectTrigger>
+                              <Input placeholder="Enter driver ID" {...field} />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">No driver assigned</SelectItem>
-                              {mockDrivers.map((driver) => (
-                                <SelectItem key={driver.id} value={driver.id}>
-                                  {driver.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
+                            <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -410,25 +362,10 @@ export const ShipmentForm: React.FC<ShipmentFormProps> = ({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Carrier</FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            value={field.value}
-                          >
                             <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select carrier" />
-                              </SelectTrigger>
+                              <Input placeholder="e.g. FedEx, DHL, Own Fleet" {...field} />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="none">No carrier</SelectItem>
-                              {mockCarriers.map((carrier) => (
-                                <SelectItem key={carrier} value={carrier}>
-                                  {carrier}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
+                            <FormMessage />
                         </FormItem>
                       )}
                     />

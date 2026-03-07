@@ -1,39 +1,18 @@
 // src/components/distribution/TrackingDashboard.tsx
 import { useState, useEffect, useCallback } from 'react';
 import { useDistribution } from '@/hooks/useDistribution';
+import type { ShipmentStatus } from '@/types/distribution.types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { 
-  Search,
-  Package,
-  Truck,
-  MapPin,
-  Clock,
-  CheckCircle,
-  AlertTriangle,
-  BarChart3,
-  Eye,
-  ExternalLink
-} from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Search, Package, Truck, MapPin, Clock, CheckCircle, AlertTriangle, BarChart3, Eye, ExternalLink } from 'lucide-react';
 import { formatDate } from '@/utils/dateUtils';
+import { DeliveryStatus } from './DeliveryStatus';
 
 interface TrackingDashboardProps {
   customerView?: boolean;
@@ -287,7 +266,6 @@ export const TrackingDashboard: React.FC<TrackingDashboardProps> = ({
               </TableHeader>
               <TableBody>
                 {trackingResults.map((result) => {
-                  const StatusIcon = getStatusIcon(result.status_label, result.type);
                   return (
                     <TableRow key={`${result.type}-${result.id}`}>
                       <TableCell>
@@ -299,12 +277,16 @@ export const TrackingDashboard: React.FC<TrackingDashboardProps> = ({
                         {result.tracking_number}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <StatusIcon className="h-4 w-4" />
+                        {result.type === 'shipment' ? (
+                          <DeliveryStatus
+                            status={result.status_label as ShipmentStatus}
+                            compact
+                          />
+                        ) : (
                           <Badge className={getStatusColor(result.status_label, result.type)}>
                             {result.status_label}
                           </Badge>
-                        </div>
+                        )}
                       </TableCell>
                       <TableCell>{result.customer_info}</TableCell>
                       <TableCell>{formatDate(result.created_at)}</TableCell>

@@ -9,27 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  ArrowLeft,
-  Edit2,
-  MapPin,
-  Play,
-  CheckCircle,
-  Trash2,
-  Calendar,
-  User,
-  Truck,
-  Clock,
-  AlertTriangle,
-} from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ArrowLeft, Edit2, MapPin, Play, CheckCircle, Trash2, Calendar, User, Truck, Clock, AlertTriangle } from 'lucide-react';
 import { formatDate } from '@/utils/dateUtils';
 
 const statusColors: Record<string, string> = {
@@ -256,15 +237,6 @@ export default function RouteDetailsPage() {
                         <span>Not assigned</span>
                       </div>
                     )}
-                    {route.vehicle_name && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Vehicle:</span>
-                        <span className="flex items-center">
-                          <Truck className="h-4 w-4 mr-1" />
-                          {route.vehicle_name}
-                        </span>
-                      </div>
-                    )}
                     {route.estimated_duration && (
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Duration:</span>
@@ -317,7 +289,7 @@ export default function RouteDetailsPage() {
                       {route.route_stops.map((stop, index) => (
                         <TableRow key={stop.id || index}>
                           <TableCell className="font-medium">
-                            {stop.sequence_order || index + 1}
+                            {stop.stop_number || index + 1}
                           </TableCell>
                           <TableCell>{stop.address}</TableCell>
                           <TableCell>
@@ -406,12 +378,6 @@ export default function RouteDetailsPage() {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Completed:</span>
                   <span>{formatDate(route.end_time)}</span>
-                </div>
-              )}
-              {route.actual_duration && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Duration:</span>
-                  <span>{route.actual_duration}h</span>
                 </div>
               )}
             </CardContent>

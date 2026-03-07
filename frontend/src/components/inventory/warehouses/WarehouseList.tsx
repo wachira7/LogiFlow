@@ -4,39 +4,15 @@
 import { useState } from 'react'
 import { useWarehouses } from '@/hooks/useInventory'
 import { Warehouse as WarehouseType } from '@/types/inventory.types'
-
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu'
-import { 
-  Search, 
-  Plus, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
-  Warehouse,
-  Eye,
-  MapPin,
-  User,
-  Package
-} from 'lucide-react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Search, Plus, MoreHorizontal, Edit, Trash2, Warehouse, Eye, MapPin, User, Package } from 'lucide-react'
 import Link from 'next/link'
 
 export function WarehouseList() {
@@ -181,7 +157,7 @@ export function WarehouseList() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-start space-x-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                         <div className="text-sm max-w-[200px]">
                           {formatAddress(warehouse)}
                         </div>

@@ -4,23 +4,17 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useDistribution } from '@/hooks/useDistribution';
+import { DeliveryStatus } from '@/components/distribution/DeliveryStatus';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Edit2, Package, PackageCheck, Truck, CheckCircle, Trash2, Calendar, User, AlertTriangle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Edit2, Package, PackageCheck, Truck, CheckCircle, Trash2, Calendar, User, ExternalLink } from 'lucide-react';
 import type { ShipmentStatus } from '@/types/distribution.types';
 import { formatDate } from '@/utils/dateUtils';
 
-const statusColors: Record<ShipmentStatus, string> = {
-  PENDING: 'bg-gray-100 text-gray-800',
-  PICKED: 'bg-blue-100 text-blue-800',
-  PACKED: 'bg-yellow-100 text-yellow-800',
-  SHIPPED: 'bg-purple-100 text-purple-800',
-  DELIVERED: 'bg-green-100 text-green-800',
-};
+
 
 const statusLabels: Record<ShipmentStatus, string> = {
   PENDING: 'Pending',
@@ -144,7 +138,6 @@ export default function ShipmentDetailsPage() {
   }
 
   const shipment = selectedShipment;
-  const StatusIcon = statusIcons[shipment.status];
   
   const canEdit = shipment.status !== 'DELIVERED';
   const canPick = shipment.status === 'PENDING';
@@ -168,18 +161,11 @@ export default function ShipmentDetailsPage() {
                 <Calendar className="h-4 w-4 mr-1" />
                 {formatDate(shipment.created_at)}
               </div>
-              <div className="flex items-center">
-                <StatusIcon className="h-4 w-4 mr-1" />
-                <Badge className={statusColors[shipment.status]}>
-                  {statusLabels[shipment.status]}
-                </Badge>
-              </div>
-              {shipment.is_delayed && (
-                <div className="flex items-center text-red-600">
-                  <AlertTriangle className="h-4 w-4 mr-1" />
-                  Delayed
-                </div>
-              )}
+              <DeliveryStatus
+                status={shipment.status}
+                isDelayed={shipment.is_delayed}
+                compact
+              /> 
             </div>
           </div>
         </div>
@@ -447,14 +433,14 @@ export default function ShipmentDetailsPage() {
                 <span className="text-muted-foreground">Last Updated:</span>
                 <span>{formatDate(shipment.updated_at)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                <div className="flex items-center">
-                  <StatusIcon className="h-4 w-4 mr-1" />
-                  <Badge className={statusColors[shipment.status]}>
-                    {statusLabels[shipment.status]}
-                  </Badge>
-                </div>
+              <div className="pt-2">
+                <DeliveryStatus
+                  status={shipment.status}
+                  isDelayed={shipment.is_delayed}
+                  estimatedDelivery={shipment.estimated_delivery}
+                  actualDelivery={shipment.actual_delivery}
+                  trackingNumber={shipment.tracking_number}
+                />
               </div>
               {shipment.delivery_days && (
                 <div className="flex justify-between">
@@ -462,15 +448,7 @@ export default function ShipmentDetailsPage() {
                   <span>{shipment.delivery_days} days</span>
                 </div>
               )}
-              {shipment.is_delayed && (
-                <div className="flex justify-between text-red-600">
-                  <span>Status:</span>
-                  <span className="flex items-center">
-                    <AlertTriangle className="h-4 w-4 mr-1" />
-                    Delayed
-                  </span>
-                </div>
-              )}
+              
             </CardContent>
           </Card>
         </div>

@@ -5,46 +5,14 @@ import { useDistribution } from '@/hooks/useDistribution';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { 
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Eye, 
-  Edit2, 
-  Trash2, 
-  MapPin,
-  Play,
-  CheckCircle,
-  Clock,
-  Truck,
-  User,
-  AlertCircle
-} from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Eye, Edit2, Trash2, MapPin, Play, CheckCircle, Clock, Truck, User, AlertCircle } from 'lucide-react';
 import type { DeliveryRouteList, RouteStatus, RouteFilters } from '@/types/distribution.types';
 import { formatDate } from '@/utils/dateUtils';
 
@@ -279,7 +247,7 @@ export const RouteList: React.FC<RouteListProps> = ({
             </div>
             <Select
               value={statusFilter}
-              onValueChange={handleStatusFilter}
+              onValueChange={(v) => handleStatusFilter(v as RouteStatusType | 'ALL')}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by status" />

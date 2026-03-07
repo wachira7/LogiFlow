@@ -187,6 +187,9 @@ class DeliveryRoute(TimeStampedModel):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PLANNED')
     
     total_distance = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)  # in km
+    description = models.TextField(blank=True)
+    start_location = models.CharField(max_length=255, blank=True)
+    estimated_duration = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)  # hours
     notes = models.TextField(blank=True)
     
     class Meta:
@@ -220,10 +223,11 @@ class RouteStop(TimeStampedModel):
     shipment = models.ForeignKey(Shipment, on_delete=models.CASCADE, related_name='route_stops')
     stop_number = models.PositiveIntegerField()
     address = models.TextField()
-    
     estimated_arrival = models.DateTimeField(null=True, blank=True)
     actual_arrival = models.DateTimeField(null=True, blank=True)
     departure_time = models.DateTimeField(null=True, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),

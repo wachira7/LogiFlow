@@ -1,4 +1,4 @@
-// src/services/productionService.ts - FIXED VERSION
+// src/services/productionService.ts 
 
 import { api } from './api';
 import type {

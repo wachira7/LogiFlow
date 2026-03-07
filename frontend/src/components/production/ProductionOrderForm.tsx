@@ -34,7 +34,7 @@ interface MaterialFormData extends CreateProductionMaterialData {
 export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrderFormProps) {
   const router = useRouter()
   const { createOrder, updateOrder, fetchOrderById, currentOrder, loading } = useProductionOrders()
-  
+
   const { products = [], isLoading: productsLoading } = useProducts()
   const { warehouses = [], isLoading: warehousesLoading } = useWarehouses()
 
@@ -44,6 +44,7 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
     quantity: 1,
     status: 'PLANNED',
     notes: '',
+    output_warehouse_id: '',
   })
 
   const [productionSteps, setProductionSteps] = useState<StepFormData[]>([])
@@ -51,7 +52,6 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
 
-  // ALL useEffect hooks FIRST
   useEffect(() => {
     if (isEdit && orderId) {
       fetchOrderById(orderId)
@@ -68,8 +68,9 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
         start_date: currentOrder.start_date || undefined,
         end_date: currentOrder.end_date || undefined,
         notes: currentOrder.notes || '',
+        output_warehouse_id: currentOrder.output_warehouse_id || '',
       })
-      
+
       setProductionSteps(
         (currentOrder.production_steps || []).map((step) => ({
           id: step.id,
@@ -94,7 +95,6 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
     }
   }, [isEdit, currentOrder])
 
-  // NOW add loading checks AFTER all hooks
   if (productsLoading || warehousesLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -119,16 +119,11 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
     }
   }
 
-  // Production Steps Functions
   const addProductionStep = () => {
-    const newStep: StepFormData = {
-      id: `temp-${Date.now()}`,
-      name: '',
-      description: '',
-      duration_hours: 0,
-      status: 'PENDING',
-    }
-    setProductionSteps((prev) => [...prev, newStep])
+    setProductionSteps((prev) => [
+      ...prev,
+      { id: `temp-${Date.now()}`, name: '', description: '', duration_hours: 0, status: 'PENDING' }
+    ])
   }
 
   const removeProductionStep = (id: string) => {
@@ -141,15 +136,11 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
     )
   }
 
-  // Production Materials Functions
   const addProductionMaterial = () => {
-    const newMaterial: MaterialFormData = {
-      id: `temp-${Date.now()}`,
-      product_id: '',
-      warehouse_id: '',
-      quantity: 1,
-    }
-    setProductionMaterials((prev) => [...prev, newMaterial])
+    setProductionMaterials((prev) => [
+      ...prev,
+      { id: `temp-${Date.now()}`, product_id: '', warehouse_id: '', quantity: 1 }
+    ])
   }
 
   const removeProductionMaterial = (id: string) => {
@@ -159,57 +150,40 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
   const updateProductionMaterial = (id: string, field: keyof MaterialFormData, value: string | number) => {
     setProductionMaterials((prev) =>
       prev.map((material) => {
-        if (material.id === id) {
-          const updated = { ...material, [field]: value }
-          
-          // Update product/warehouse names when IDs change
-          if (field === 'product_id') {
-            const product = products.find((p) => p.id === value)
-            if (product) updated.product_name = product.name
-          }
-          if (field === 'warehouse_id') {
-            const warehouse = warehouses.find((w) => w.id === value)
-            if (warehouse) updated.warehouse_name = warehouse.name
-          }
-          
-          return updated
+        if (material.id !== id) return material
+        const updated = { ...material, [field]: value }
+        if (field === 'product_id') {
+          const product = products.find((p) => p.id === value)
+          if (product) updated.product_name = product.name
         }
-        return material
+        if (field === 'warehouse_id') {
+          const warehouse = warehouses.find((w) => w.id === value)
+          if (warehouse) updated.warehouse_name = warehouse.name
+        }
+        return updated
       })
     )
   }
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
-
-    if (!formData.order_number.trim()) {
-      newErrors.order_number = 'Order number is required'
-    }
-
-    if (!formData.product_id) {
-      newErrors.product_id = 'Product is required'
-    }
-
-    if (formData.quantity <= 0) {
-      newErrors.quantity = 'Quantity must be greater than 0'
-    }
-
+    if (!formData.order_number.trim()) newErrors.order_number = 'Order number is required'
+    if (!formData.product_id) newErrors.product_id = 'Product is required'
+    if (formData.quantity <= 0) newErrors.quantity = 'Quantity must be greater than 0'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!validateForm()) {
-      return
-    }
+    if (!validateForm()) return
 
     setSubmitting(true)
-
     try {
       const orderData: CreateProductionOrderData = {
         ...formData,
+        // Send undefined instead of empty string so the backend treats it as null
+        output_warehouse_id: formData.output_warehouse_id || undefined,
         production_steps: productionSteps.map((step) => ({
           name: step.name,
           description: step.description,
@@ -225,7 +199,10 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
       }
 
       if (isEdit && orderId) {
-        await updateOrder(orderId, formData)
+        await updateOrder(orderId, {
+          ...formData,
+          output_warehouse_id: formData.output_warehouse_id || undefined,
+        })
       } else {
         await createOrder(orderData)
       }
@@ -237,14 +214,6 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
     } finally {
       setSubmitting(false)
     }
-  }
-
-  if (loading && isEdit) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
-    )
   }
 
   return (
@@ -268,18 +237,16 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Order Details */}
         <Card>
           <CardHeader>
             <CardTitle>Order Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
               {/* Order Number */}
               <div className="space-y-2">
-                <Label htmlFor="order_number">
-                  Order Number <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="order_number">Order Number <span className="text-red-500">*</span></Label>
                 <Input
                   id="order_number"
                   value={formData.order_number}
@@ -287,16 +254,12 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
                   placeholder="e.g., PO-2024-001"
                   className={errors.order_number ? 'border-red-500' : ''}
                 />
-                {errors.order_number && (
-                  <p className="text-sm text-red-500">{errors.order_number}</p>
-                )}
+                {errors.order_number && <p className="text-sm text-red-500">{errors.order_number}</p>}
               </div>
 
               {/* Product */}
               <div className="space-y-2">
-                <Label htmlFor="product">
-                  Product <span className="text-red-500">*</span>
-                </Label>
+                <Label>Product <span className="text-red-500">*</span></Label>
                 <Select
                   value={formData.product_id}
                   onValueChange={(value) => handleInputChange('product_id', value)}
@@ -312,16 +275,12 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.product_id && (
-                  <p className="text-sm text-red-500">{errors.product_id}</p>
-                )}
+                {errors.product_id && <p className="text-sm text-red-500">{errors.product_id}</p>}
               </div>
 
               {/* Quantity */}
               <div className="space-y-2">
-                <Label htmlFor="quantity">
-                  Quantity <span className="text-red-500">*</span>
-                </Label>
+                <Label htmlFor="quantity">Quantity <span className="text-red-500">*</span></Label>
                 <Input
                   id="quantity"
                   type="number"
@@ -330,21 +289,17 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
                   onChange={(e) => handleInputChange('quantity', parseInt(e.target.value) || 1)}
                   className={errors.quantity ? 'border-red-500' : ''}
                 />
-                {errors.quantity && (
-                  <p className="text-sm text-red-500">{errors.quantity}</p>
-                )}
+                {errors.quantity && <p className="text-sm text-red-500">{errors.quantity}</p>}
               </div>
 
               {/* Status */}
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label>Status</Label>
                 <Select
                   value={formData.status}
                   onValueChange={(value) => handleInputChange('status', value)}
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="PLANNED">Planned</SelectItem>
                     <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
@@ -352,6 +307,57 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
                     <SelectItem value="CANCELLED">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Output Warehouse */}
+              <div className="space-y-2 md:col-span-2">
+                <Label>
+                  Output Warehouse
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    — finished goods will be stocked here when production completes
+                  </span>
+                </Label>
+                <Select
+                  value={formData.output_warehouse_id || ''}
+                  onValueChange={(value) => handleInputChange('output_warehouse_id', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select output warehouse (required to complete production)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {warehouses.map((warehouse) => (
+                      <SelectItem key={warehouse.id} value={warehouse.id}>
+                        {warehouse.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Start Date */}
+              <div className="space-y-2">
+                <Label htmlFor="start_date">Start Date</Label>
+                <Input
+                  id="start_date"
+                  type="datetime-local"
+                  value={formData.start_date ? new Date(formData.start_date).toISOString().slice(0, 16) : ''}
+                  onChange={(e) =>
+                    handleInputChange('start_date', e.target.value ? new Date(e.target.value).toISOString() : '')
+                  }
+                />
+              </div>
+
+              {/* End Date */}
+              <div className="space-y-2">
+                <Label htmlFor="end_date">End Date</Label>
+                <Input
+                  id="end_date"
+                  type="datetime-local"
+                  value={formData.end_date ? new Date(formData.end_date).toISOString().slice(0, 16) : ''}
+                  onChange={(e) =>
+                    handleInputChange('end_date', e.target.value ? new Date(e.target.value).toISOString() : '')
+                  }
+                />
               </div>
 
               {/* Notes */}
@@ -369,7 +375,7 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
           </CardContent>
         </Card>
 
-        {/* Production Steps and Materials Tabs */}
+        {/* Steps & Materials */}
         <Tabs defaultValue="steps" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="steps">
@@ -382,15 +388,14 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
             </TabsTrigger>
           </TabsList>
 
-          {/* Production Steps Tab */}
+          {/* Steps Tab */}
           <TabsContent value="steps" className="space-y-4">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Production Steps</CardTitle>
                   <Button type="button" variant="outline" size="sm" onClick={addProductionStep}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Step
+                    <Plus className="h-4 w-4 mr-2" />Add Step
                   </Button>
                 </div>
               </CardHeader>
@@ -415,7 +420,6 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
                                 placeholder="e.g., Assembly"
                               />
                             </div>
-
                             <div className="md:col-span-4 space-y-2">
                               <Label>Description</Label>
                               <Input
@@ -424,23 +428,17 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
                                 placeholder="Step details..."
                               />
                             </div>
-
                             <div className="md:col-span-3 space-y-2">
                               <Label>Duration (hours)</Label>
                               <Input
-                                type="number"
-                                min="0"
-                                step="0.5"
+                                type="number" min="0" step="0.5"
                                 value={step.duration_hours || ''}
                                 onChange={(e) => updateProductionStep(step.id, 'duration_hours', parseFloat(e.target.value) || 0)}
                               />
                             </div>
-
                             <div className="flex items-end">
                               <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
+                                type="button" variant="ghost" size="sm"
                                 onClick={() => removeProductionStep(step.id)}
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
                               >
@@ -464,8 +462,7 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
                 <div className="flex items-center justify-between">
                   <CardTitle>Bill of Materials (BOM)</CardTitle>
                   <Button type="button" variant="outline" size="sm" onClick={addProductionMaterial}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Material
+                    <Plus className="h-4 w-4 mr-2" />Add Material
                   </Button>
                 </div>
               </CardHeader>
@@ -488,53 +485,39 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
                                 value={material.product_id}
                                 onValueChange={(value) => updateProductionMaterial(material.id, 'product_id', value)}
                               >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select material" />
-                                </SelectTrigger>
+                                <SelectTrigger><SelectValue placeholder="Select material" /></SelectTrigger>
                                 <SelectContent>
                                   {products.map((product) => (
-                                    <SelectItem key={product.id} value={product.id}>
-                                      {product.name}
-                                    </SelectItem>
+                                    <SelectItem key={product.id} value={product.id}>{product.name}</SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>
                             </div>
-
-                                <div className="md:col-span-3 space-y-2">
+                            <div className="md:col-span-3 space-y-2">
                               <Label>Warehouse *</Label>
                               <Select
                                 value={material.warehouse_id}
                                 onValueChange={(value) => updateProductionMaterial(material.id, 'warehouse_id', value)}
                               >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select warehouse" />
-                                </SelectTrigger>
+                                <SelectTrigger><SelectValue placeholder="Select warehouse" /></SelectTrigger>
                                 <SelectContent>
                                   {warehouses.map((warehouse) => (
-                                    <SelectItem key={warehouse.id} value={warehouse.id}>
-                                      {warehouse.name}
-                                    </SelectItem>
+                                    <SelectItem key={warehouse.id} value={warehouse.id}>{warehouse.name}</SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>
                             </div>
-
                             <div className="md:col-span-3 space-y-2">
                               <Label>Quantity *</Label>
                               <Input
-                                type="number"
-                                min="1"
+                                type="number" min="1"
                                 value={material.quantity}
                                 onChange={(e) => updateProductionMaterial(material.id, 'quantity', parseInt(e.target.value) || 1)}
                               />
                             </div>
-
                             <div className="flex items-end">
                               <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
+                                type="button" variant="ghost" size="sm"
                                 onClick={() => removeProductionMaterial(material.id)}
                                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
                               >
@@ -552,7 +535,6 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
           </TabsContent>
         </Tabs>
 
-        {/* Submit Error */}
         {errors.submit && (
           <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
             <p className="font-medium">Error</p>
@@ -560,22 +542,13 @@ export function ProductionOrderForm({ orderId, isEdit = false }: ProductionOrder
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex items-center justify-end space-x-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={submitting}
-          >
+          <Button type="button" variant="outline" onClick={() => router.back()} disabled={submitting}>
             Cancel
           </Button>
           <Button type="submit" disabled={submitting}>
             {submitting ? (
-              <>
-                <LoadingSpinner className="mr-2" />
-                {isEdit ? 'Updating...' : 'Creating...'}
-              </>
+              <><LoadingSpinner className="mr-2" />{isEdit ? 'Updating...' : 'Creating...'}</>
             ) : (
               <>{isEdit ? 'Update Order' : 'Create Order'}</>
             )}

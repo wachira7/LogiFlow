@@ -6,21 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
-import {
-  Package,
-  PackageCheck,
-  Truck,
-  CheckCircle,
-  Clock,
-  MapPin,
-  Search,
-  ExternalLink,
-  AlertTriangle,
-  User,
-  Building
-} from 'lucide-react';
+import { Package, PackageCheck, Truck, CheckCircle, Clock, MapPin, Search, ExternalLink, AlertTriangle, User, Building } from 'lucide-react';
 import { formatDate } from '@/utils/dateUtils';
 import type { ShipmentDetail } from '@/types/distribution.types';
+import { distributionService } from '@/services/distributionService';
 
 interface TrackingEvent {
   id: string;
@@ -148,34 +137,14 @@ export const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
     setError(null);
 
     try {
-      // Simulate API call - in real implementation, call your tracking API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock response based on tracking number
-      if (trackingNumber.toLowerCase().includes('invalid')) {
+      const result = await distributionService.trackShipment(trackingNumber);
+      if (result) {
+        setTrackingEvents(generateTrackingEvents(result));
+      } else {
         setError('Tracking number not found. Please check and try again.');
         setTrackingEvents([]);
-      } else {
-        // Generate mock tracking events
-        const mockShipment: ShipmentDetail = {
-            id: 'mock-id',
-            company_id: 'mock-company',
-            shipment_number: trackingNumber,
-            tracking_number: trackingNumber,
-            status: 'SHIPPED',
-            warehouse_id: 'mock-warehouse',
-            warehouse_name: 'Main Warehouse',
-            carrier: 'Express Delivery',
-            vehicle_info: '',
-            notes: '',
-            shipment_items: [],
-            is_delayed: false,
-            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-            updated_at: new Date().toISOString(),
-            shipping_date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-          };
-        setTrackingEvents(generateTrackingEvents(mockShipment));
       }
+      
     } catch  {
       setError('Failed to fetch tracking information. Please try again.');
     } finally {
@@ -216,7 +185,7 @@ export const ShipmentTracker: React.FC<ShipmentTrackerProps> = ({
           return (
             <div key={status} className="flex items-start space-x-4">
               <div className={`
-                flex items-center justify-center w-10 h-10 rounded-full border-2 flex-shrink-0
+                flex items-center justify-center w-10 h-10 rounded-full border-2 shrink-0
                 ${isCurrent 
                   ? 'bg-blue-100 border-blue-500 text-blue-600' 
                   : isCompleted 

@@ -194,16 +194,23 @@ class RouteStopSerializer(serializers.ModelSerializer):
     shipment_id = serializers.UUIDField()
     shipment_number = serializers.CharField(source='shipment.shipment_number', read_only=True)
     stop_duration_minutes = serializers.ReadOnlyField()
+    customer_name = serializers.SerializerMethodField()
 
     class Meta:
         model = RouteStop
         fields = [
             'id', 'route_id', 'shipment_id', 'shipment_number', 'stop_number',
             'address', 'estimated_arrival', 'actual_arrival', 'departure_time',
-            'status', 'notes', 'stop_duration_minutes', 'created_at', 'updated_at'
+            'status', 'notes', 'stop_duration_minutes', 'created_at', 'updated_at',
+            'latitude', 'longitude',
         ]
         read_only_fields = ['id', 'route_id', 'created_at', 'updated_at']
-
+    
+    def get_customer_name(self, obj):
+        """Get customer name from related shipment's order."""
+        if obj.shipment and obj.shipment.order:
+            return obj.shipment.order.customer_name
+        return None
 class DeliveryRouteListSerializer(serializers.ModelSerializer):
     """Lightweight serializer for delivery route lists."""
     id = serializers.UUIDField(read_only=True)
@@ -217,7 +224,8 @@ class DeliveryRouteListSerializer(serializers.ModelSerializer):
         model = DeliveryRoute
         fields = [
             'id', 'company_id', 'route_name', 'driver_id', 'driver_name',
-            'vehicle_id', 'start_time', 'end_time', 'status', 'total_distance',
+            'vehicle_id', 'start_time', 'end_time', 'status', 'total_distance','description', 
+            'start_location', 'estimated_duration',
             'duration_hours', 'stop_count', 'created_at'
         ]
 
@@ -236,7 +244,7 @@ class DeliveryRouteDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'company_id', 'route_name', 'driver_id', 'driver_name',
             'vehicle_id', 'start_time', 'end_time', 'status', 'total_distance',
-            'notes', 'duration_hours', 'stop_count', 'route_stops',
-            'created_at', 'updated_at'
+            'notes', 'duration_hours', 'stop_count', 'route_stops','description', 
+            'start_location', 'estimated_duration', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'company_id', 'created_at', 'updated_at']

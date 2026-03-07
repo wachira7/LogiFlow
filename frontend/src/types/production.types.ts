@@ -18,6 +18,8 @@ export interface ProductionOrder {
   start_date: string | null;
   end_date: string | null;
   notes: string;
+  output_warehouse_id: string | null;
+  output_warehouse_name: string | null;
   created_by_id: string;
   created_by_name: string;
   duration_days: number | null;
@@ -42,6 +44,7 @@ export interface CreateProductionOrderData {
   start_date?: string;
   end_date?: string;
   notes?: string;
+  output_warehouse_id?: string;
   production_steps?: CreateProductionStepData[];
   production_materials?: CreateProductionMaterialData[];
 }
@@ -54,6 +57,7 @@ export interface UpdateProductionOrderData {
   start_date?: string;
   end_date?: string;
   notes?: string;
+  output_warehouse_id?: string;
 }
 
 // ============================================================================

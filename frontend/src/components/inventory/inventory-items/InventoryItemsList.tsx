@@ -1,94 +1,55 @@
-// /src/components/inventory/inventory-items/InventoryItemsList.tsx
+// src/components/inventory/inventory-items/InventoryItemsList.tsx
 'use client'
 
 import { useState } from 'react'
 import { useInventoryItems } from '@/hooks/useInventory'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table'
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { 
-  Plus, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
-  Package,
-  Eye,
-  AlertTriangle
-} from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Plus, MoreHorizontal, Edit, Trash2, Package, Eye, AlertTriangle, Search } from 'lucide-react'
 import Link from 'next/link'
-import { InventoryFilters } from '../shared/InventoryFilters'
-import { StockLevelIndicator } from './StockLevelIndicator'
-import { InventoryItem } from '@/types/inventory.types'
+import { useWarehouses } from '@/hooks/useInventory'
 
 export function InventoryItemsList() {
-  const { inventoryItems, isLoading, deleteInventoryItem } = useInventoryItems()
-  const [filters, setFilters] = useState({
-    search: '',
-    category_id: '',
-    warehouse_id: '',
-    stock_status: '',
-    is_active: '',
-    unit_of_measure: ''
-  })
+  const { inventoryItems, isLoading, deleteInventoryItem, applyFilter } = useInventoryItems()
+  const { warehouses } = useWarehouses()
 
-  const filteredItems = inventoryItems.filter(item => {
-    if (filters.search && !item.name.toLowerCase().includes(filters.search.toLowerCase()) &&
-        !item.sku.toLowerCase().includes(filters.search.toLowerCase())) {
-      return false
-    }
-    if (filters.category_id && item.category_id !== filters.category_id) return false
-    if (filters.warehouse_id && item.warehouse_id !== filters.warehouse_id) return false
-    if (filters.is_active && item.is_active.toString() !== filters.is_active) return false
-    if (filters.unit_of_measure && item.unit_of_measure !== filters.unit_of_measure) return false
-    
-    // Stock status filtering
-    if (filters.stock_status) {
-      const stockStatus = getStockStatus(item)
-      if (stockStatus !== filters.stock_status) return false
-    }
-    
-    return true
-  })
+  const [searchQuery, setSearchQuery] = useState('')
+  const [warehouseFilter, setWarehouseFilter] = useState('')
 
-  const getStockStatus = (item: InventoryItem) => {
-    if (item.current_stock === 0) return 'out_of_stock'
-    if (item.reorder_point && item.current_stock <= item.reorder_point) return 'low_stock'
-    if (item.maximum_stock && item.current_stock >= item.maximum_stock) return 'overstocked'
-    return 'in_stock'
+  const handleSearch = () => {
+    applyFilter({
+      ...(searchQuery && { search: searchQuery }),
+      ...(warehouseFilter && { warehouse: warehouseFilter }),
+    })
+  }
+
+  const handleWarehouseChange = (value: string) => {
+    setWarehouseFilter(value)
+    applyFilter({
+      ...(searchQuery && { search: searchQuery }),
+      ...(value && { warehouse: value }),
+    })
   }
 
   const handleDelete = async (itemId: string) => {
-    if (window.confirm('Are you sure you want to delete this inventory item?')) {
+    if (window.confirm('Are you sure you want to remove this inventory item?')) {
       try {
         await deleteInventoryItem(itemId)
       } catch (error) {
         console.error('Failed to delete inventory item:', error)
       }
     }
-  }
-
-  const formatCurrency = (amount: number | null) => {
-    if (!amount) return '-'
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount)
   }
 
   if (isLoading) {
@@ -105,46 +66,72 @@ export function InventoryItemsList() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Inventory Items</h2>
-          <p className="text-muted-foreground">Manage your inventory stock levels</p>
+          <p className="text-muted-foreground">Stock levels per product per warehouse</p>
         </div>
         <Link href="/inventory/inventory-items/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Add Item
+            Add Stock
           </Button>
         </Link>
       </div>
 
       {/* Filters */}
-      <InventoryFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        showStockStatus={true}
-        showWarehouse={true}
-        showUnitFilter={true}
-      />
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by product name or SKU..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                className="pl-10"
+              />
+            </div>
+            <div className="w-full md:w-56">
+              <Select value={warehouseFilter} onValueChange={handleWarehouseChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Warehouses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Warehouses</SelectItem>
+                  {warehouses.map((warehouse) => (
+                    <SelectItem key={warehouse.id} value={warehouse.id}>
+                      {warehouse.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleSearch}>
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Items Table */}
+      {/* Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>Items ({filteredItems.length})</span>
+            <span>Items ({inventoryItems.length})</span>
             <Package className="h-5 w-5" />
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {filteredItems.length === 0 ? (
+          {inventoryItems.length === 0 ? (
             <EmptyState
               icon={<Package className="h-12 w-12 text-muted-foreground/50" />}
               title="No inventory items found"
-              description={filters.search || filters.category_id || filters.warehouse_id ? 
-                "No items match your current filters." : 
-                "Get started by adding your first inventory item."}
+              description="Get started by adding stock for a product in a warehouse."
               action={
                 <Link href="/inventory/inventory-items/new">
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Item
+                    Add Stock
                   </Button>
                 </Link>
               }
@@ -153,70 +140,52 @@ export function InventoryItemsList() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
+                  <TableHead>Product</TableHead>
                   <TableHead>SKU</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Stock Status</TableHead>
-                  <TableHead>Current Stock</TableHead>
-                  <TableHead>Unit Price</TableHead>
+                  <TableHead>Warehouse</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Quantity</TableHead>
+                  <TableHead>Reorder Point</TableHead>
+                  <TableHead>Unit Cost</TableHead>
+                  <TableHead>Stock Value</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[70px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredItems.map((item) => (
+                {inventoryItems.map((item) => (
                   <TableRow key={item.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium">{item.name}</div>
-                        {item.description && (
-                          <div className="text-sm text-muted-foreground truncate max-w-[200px]">
-                            {item.description}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {item.sku}
-                    </TableCell>
-                    <TableCell>
-                      {item.category?.name || '-'}
-                    </TableCell>
-                    <TableCell>
-                      <StockLevelIndicator
-                        currentStock={item.current_stock}
-                        minimumStock={item.minimum_stock}
-                        maximumStock={item.maximum_stock}
-                        reorderPoint={item.reorder_point}
-                        variant="badge"
-                        showNumbers={false}
-                      />
-                    </TableCell>
+                    <TableCell className="font-medium">{item.product_name}</TableCell>
+                    <TableCell className="font-mono text-sm">{item.product_sku}</TableCell>
+                    <TableCell>{item.warehouse_name}</TableCell>
+                    <TableCell>{item.location || '-'}</TableCell>
                     <TableCell>
                       <div className="flex items-center space-x-2">
-                        <span className="font-medium">{item.current_stock}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {item.unit_of_measure}
-                        </span>
-                        {item.reorder_point && item.current_stock <= item.reorder_point && (
+                        <span className="font-medium">{item.quantity}</span>
+                        {item.needs_reorder && (
                           <AlertTriangle className="h-4 w-4 text-destructive" />
                         )}
                       </div>
                     </TableCell>
+                    <TableCell>{item.reorder_point}</TableCell>
                     <TableCell>
-                      <div className="space-y-1">
-                        <div className="text-sm">
-                          Cost: {formatCurrency(item.cost_price as number | null)}
-                        </div>
-                        <div className="text-sm">
-                          Sell: {formatCurrency(item.unit_price as number | null)}
-                        </div>
-                      </div>
+                      ${(item.product_cost_price ?? 0).toFixed(2)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={item.is_active ? "default" : "secondary"}>
-                        {item.is_active ? 'Active' : 'Inactive'}
-                      </Badge>
+                      ${(item.stock_value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell>
+                      {item.quantity === 0 ? (
+                        <Badge variant="destructive">Out of Stock</Badge>
+                      ) : item.needs_reorder ? (
+                        <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                          Low Stock
+                        </Badge>
+                      ) : (
+                        <Badge variant="default" className="bg-green-100 text-green-800">
+                          In Stock
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -235,7 +204,7 @@ export function InventoryItemsList() {
                           <DropdownMenuItem asChild>
                             <Link href={`/inventory/inventory-items/${item.id}/edit`}>
                               <Edit className="h-4 w-4 mr-2" />
-                              Edit
+                              Adjust Stock
                             </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -243,7 +212,7 @@ export function InventoryItemsList() {
                             className="text-destructive"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
+                            Remove
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

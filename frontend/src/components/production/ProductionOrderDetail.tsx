@@ -9,37 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { Separator } from '@/components/ui/separator'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { 
-  ArrowLeft, 
-  Edit, 
-  Play, 
-  CheckCircle, 
-  XCircle,
-  AlertTriangle,
-  Package,
-  ListChecks,
-  Calendar,
-  User,
-  TrendingUp
-} from 'lucide-react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { ArrowLeft, Edit, Play, CheckCircle, XCircle, AlertTriangle, Package, ListChecks, Calendar, User, TrendingUp } from 'lucide-react'
 import type { ProductionOrderStatus, ProductionStepStatus } from '@/types/production.types'
 
 interface ProductionOrderDetailProps {
@@ -48,9 +20,9 @@ interface ProductionOrderDetailProps {
 
 export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
   const router = useRouter()
-  const { 
-    currentOrder, 
-    loading, 
+  const {
+    currentOrder,
+    loading,
     fetchOrderById,
     startProduction,
     completeProduction,
@@ -66,11 +38,12 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
     }
   }, [orderId, fetchOrderById])
 
+  // The hook's startProduction/completeProduction/cancelProduction already call
+  // fetchOrderById internally, so we don't need to call it again here.
   const handleStartProduction = async () => {
     setActionLoading(true)
     try {
       await startProduction(orderId)
-      await fetchOrderById(orderId)
     } catch (error) {
       console.error('Failed to start production:', error)
     } finally {
@@ -82,7 +55,6 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
     setActionLoading(true)
     try {
       await completeProduction(orderId)
-      await fetchOrderById(orderId)
     } catch (error) {
       console.error('Failed to complete production:', error)
     } finally {
@@ -94,7 +66,6 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
     setActionLoading(true)
     try {
       await cancelProduction(orderId)
-      await fetchOrderById(orderId)
       setShowCancelDialog(false)
     } catch (error) {
       console.error('Failed to cancel production:', error)
@@ -110,7 +81,7 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
       COMPLETED: { variant: 'outline', label: 'Completed' },
       CANCELLED: { variant: 'destructive', label: 'Cancelled' },
     }
-    
+
     const config = variants[status]
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
@@ -122,7 +93,7 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
       COMPLETED: { variant: 'outline', label: 'Completed' },
       SKIPPED: { variant: 'destructive', label: 'Skipped' },
     }
-    
+
     const config = variants[status]
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
@@ -266,7 +237,7 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
               <p className="text-sm text-muted-foreground mb-1">Order Number</p>
               <p className="font-medium">{currentOrder.order_number}</p>
             </div>
-            
+
             <div>
               <p className="text-sm text-muted-foreground mb-1">Created By</p>
               <div className="flex items-center space-x-2">
@@ -278,7 +249,7 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-1">Start Date</p>
               <p className="font-medium">
-                {currentOrder.start_date 
+                {currentOrder.start_date
                   ? new Date(currentOrder.start_date).toLocaleString()
                   : 'Not started'
                 }
@@ -288,7 +259,7 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-1">End Date</p>
               <p className="font-medium">
-                {currentOrder.end_date 
+                {currentOrder.end_date
                   ? new Date(currentOrder.end_date).toLocaleString()
                   : currentOrder.estimated_completion
                     ? `Est. ${new Date(currentOrder.estimated_completion).toLocaleString()}`
@@ -307,7 +278,7 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
             <div>
               <p className="text-sm text-muted-foreground mb-1">Total Material Cost</p>
               <p className="font-medium text-lg">
-                ${currentOrder.total_material_cost?.toLocaleString() || '0.00'}
+                ${(currentOrder.total_material_cost ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
           </div>
@@ -360,7 +331,7 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
                       {step.duration_hours ? (
                         <span>
                           {step.duration_hours}
-                          {step.actual_duration_hours && (
+                          {step.actual_duration_hours != null && (
                             <span className="text-xs text-muted-foreground ml-1">
                               (actual: {step.actual_duration_hours.toFixed(1)})
                             </span>
@@ -370,13 +341,13 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
                     </TableCell>
                     <TableCell>{step.assigned_to_name || 'Unassigned'}</TableCell>
                     <TableCell>
-                      {step.start_time 
+                      {step.start_time
                         ? new Date(step.start_time).toLocaleString()
                         : '-'
                       }
                     </TableCell>
                     <TableCell>
-                      {step.end_time 
+                      {step.end_time
                         ? new Date(step.end_time).toLocaleString()
                         : '-'
                       }
@@ -436,8 +407,8 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
                         {material.available_stock}
                       </span>
                     </TableCell>
-                    <TableCell>${material.unit_cost}</TableCell>
-                    <TableCell>${material.material_cost.toFixed(2)}</TableCell>
+                    <TableCell>${(material.unit_cost ?? 0).toFixed(2)}</TableCell>
+                    <TableCell>${(material.material_cost ?? 0).toFixed(2)}</TableCell>
                     <TableCell>
                       {material.sufficient_stock ? (
                         <Badge variant="outline">Sufficient</Badge>
@@ -464,7 +435,7 @@ export function ProductionOrderDetail({ orderId }: ProductionOrderDetailProps) {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={actionLoading}>No, keep it</AlertDialogCancel>
-            <AlertDialogAction 
+            <AlertDialogAction
               onClick={handleCancelProduction}
               disabled={actionLoading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

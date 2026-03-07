@@ -50,16 +50,17 @@ class ApiClient {
     const status = response.status
     const success = response.ok
 
+    if (status === 204) {
+      // No content
+      return { data: undefined, status, success: true}
+    }
+
     try {
       const data = await response.json()
       
       if (!success) {
         // Handle different error formats from Django REST Framework
-        const errorMessage = data.detail || 
-                            data.message || 
-                            data.error || 
-                            this.getErrorFromData(data) ||
-                            `Request failed with status ${status}`
+        const errorMessage = data.detail || data.message || data.error || this.getErrorFromData(data) || `Request failed with status ${status}`
 
         return {
           data: undefined,
@@ -154,7 +155,7 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
     
-    // ✅ Don't set Content-Type for FormData — browser sets it with boundary
+    // browser sets it with boundary
     const isFormData = options.body instanceof FormData
     
     const headers = isFormData

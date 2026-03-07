@@ -14,28 +14,27 @@ import { Search, Package, AlertTriangle, CheckCircle } from 'lucide-react'
 
 export function MaterialsList() {
   const router = useRouter()
-  const { 
+  const {
     materials = [],
     insufficientStock,
-    loading, 
+    loading,
     fetchMaterials,
     fetchInsufficientStock
   } = useProductionMaterials()
 
   const [searchQuery, setSearchQuery] = useState('')
 
-  // DECLARE the function FIRST with useCallback
   const loadMaterials = useCallback(async () => {
     await Promise.all([
       fetchMaterials(),
       fetchInsufficientStock()
     ])
-  }, [fetchMaterials, fetchInsufficientStock]) // Add dependencies
+  }, [fetchMaterials, fetchInsufficientStock])
 
-  // THEN use it in useEffect
   useEffect(() => {
     loadMaterials()
   }, [loadMaterials])
+
   const handleSearch = async () => {
     const filters = searchQuery ? { search: searchQuery } : undefined
     await fetchMaterials(filters)
@@ -171,7 +170,7 @@ export function MaterialsList() {
               <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
               <h3 className="text-lg font-semibold mb-2">No materials found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchQuery 
+                {searchQuery
                   ? 'Try adjusting your search'
                   : 'Materials will appear here when production orders are created'
                 }
@@ -214,8 +213,8 @@ export function MaterialsList() {
                           {material.available_stock}
                         </span>
                       </TableCell>
-                      <TableCell>${material.unit_cost}</TableCell>
-                      <TableCell>${material.material_cost.toFixed(2)}</TableCell>
+                      <TableCell>${(material.unit_cost ?? 0).toFixed(2)}</TableCell>
+                      <TableCell>${(material.material_cost ?? 0).toFixed(2)}</TableCell>
                       <TableCell>
                         {material.sufficient_stock ? (
                           <Badge variant="outline" className="bg-green-50">

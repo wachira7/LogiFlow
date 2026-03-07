@@ -1,8 +1,8 @@
-// /src/components/inventory/inventory-items/BulkStockUpdate.tsx
+// src/components/inventory/inventory-items/BulkStockUpdate.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useInventoryItems } from '@/hooks/useInventory'
+import { useInventoryItems, useWarehouses } from '@/hooks/useInventory'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,32 +12,20 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table'
-import { 
-  PackageCheck, 
-  Upload, 
-  Download, 
-  CheckCircle, 
-  AlertTriangle,
-  Filter,
-  FilterX
-} from 'lucide-react'
-import { InventoryFilters } from '../shared/InventoryFilters'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { PackageCheck, Download, CheckCircle, AlertTriangle } from 'lucide-react'
 
 interface BulkUpdateItem {
+  // FIX: track product_id + warehouse_id for correct payload
   id: string
-  name: string
-  sku: string
-  current_stock: number
+  product_id: string
+  warehouse_id: string
+  name: string       // from product_name
+  sku: string        // from product_sku
+  warehouse_name: string
+  current_stock: number  // from quantity
   new_stock: string
-  unit_of_measure?: string
   selected: boolean
   hasError?: boolean
   errorMessage?: string
@@ -50,130 +38,95 @@ interface BulkStockUpdateProps {
 
 export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
   const { inventoryItems, bulkUpdateStock } = useInventoryItems()
+  const { warehouses } = useWarehouses()
   const [items, setItems] = useState<BulkUpdateItem[]>([])
-  const [filters, setFilters] = useState({
-    search: '',
-    category_id: '',
-    warehouse_id: '',
-    stock_status: '',
-    is_active: 'true',
-    unit_of_measure: ''
-  })
+
+  // Only filters that backend actually supports
+  const [searchQuery, setSearchQuery] = useState('')
+  const [warehouseFilter, setWarehouseFilter] = useState('')
+
   const [bulkOperation, setBulkOperation] = useState({
     action: '', // 'set', 'add', 'subtract'
     value: '',
-    reason: '',
     notes: ''
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitProgress, setSubmitProgress] = useState(0)
-  const [showFilters, setShowFilters] = useState(true)
 
-  // Initialize items from inventory when filters change
+  // FIX: map backend fields correctly — product_name, product_sku, quantity
   useEffect(() => {
-    const filteredInventory = inventoryItems.filter(item => {
-      if (!item.track_stock || !item.is_active) return false
-      
-      if (filters.search && !item.name.toLowerCase().includes(filters.search.toLowerCase()) &&
-          !item.sku.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false
+    const filtered = inventoryItems.filter(item => {
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase()
+        if (!item.product_name.toLowerCase().includes(q) &&
+            !item.product_sku.toLowerCase().includes(q)) {
+          return false
+        }
       }
-      if (filters.category_id && item.category_id !== filters.category_id) return false
-      if (filters.warehouse_id && item.warehouse_id !== filters.warehouse_id) return false
-      if (filters.unit_of_measure && item.unit_of_measure !== filters.unit_of_measure) return false
-      
+      if (warehouseFilter && item.warehouse_id !== warehouseFilter) return false
       return true
     })
 
-    setItems(filteredInventory.map(item => ({
+    setItems(filtered.map(item => ({
       id: item.id,
-      name: item.name,
-      sku: item.sku,
-      current_stock: item.current_stock || 0,
-      new_stock: (item.current_stock || 0).toString(),
-      unit_of_measure: item.unit_of_measure,
+      product_id: item.product_id,
+      warehouse_id: item.warehouse_id ?? '',
+      name: item.product_name,
+      sku: item.product_sku,
+      warehouse_name: item.warehouse_name,
+      current_stock: item.quantity,
+      new_stock: item.quantity.toString(),
       selected: false
     })))
-  }, [inventoryItems, filters])
+  }, [inventoryItems, searchQuery, warehouseFilter])
 
-  const selectedItems = items.filter(item => item.selected)
-  const validSelectedItems = selectedItems.filter(item => !item.hasError)
+  const selectedItems = items.filter(i => i.selected)
+  const validSelectedItems = selectedItems.filter(i => !i.hasError)
 
   const toggleSelectAll = () => {
-    const allSelected = items.every(item => item.selected)
-    setItems(items.map(item => ({ ...item, selected: !allSelected })))
+    const allSelected = items.every(i => i.selected)
+    setItems(items.map(i => ({ ...i, selected: !allSelected })))
   }
 
-  const toggleSelectItem = (itemId: string) => {
-    setItems(items.map(item => 
-      item.id === itemId ? { ...item, selected: !item.selected } : item
-    ))
+  const toggleSelectItem = (id: string) => {
+    setItems(items.map(i => i.id === id ? { ...i, selected: !i.selected } : i))
   }
 
-  const updateItemStock = (itemId: string, newStock: string) => {
+  const updateItemStock = (id: string, newStock: string) => {
     setItems(items.map(item => {
-      if (item.id === itemId) {
-        const hasError = isNaN(parseInt(newStock)) || parseInt(newStock) < 0
-        return {
-          ...item,
-          new_stock: newStock,
-          hasError,
-          errorMessage: hasError ? 'Invalid quantity' : undefined
-        }
-      }
-      return item
+      if (item.id !== id) return item
+      const hasError = isNaN(parseInt(newStock)) || parseInt(newStock) < 0
+      return { ...item, new_stock: newStock, hasError, errorMessage: hasError ? 'Invalid quantity' : undefined }
     }))
   }
 
   const applyBulkOperation = () => {
     if (!bulkOperation.action || !bulkOperation.value) return
-
     const value = parseInt(bulkOperation.value)
     if (isNaN(value)) return
 
     setItems(items.map(item => {
       if (!item.selected) return item
-
       let newStock: number
       switch (bulkOperation.action) {
-        case 'set':
-          newStock = value
-          break
-        case 'add':
-          newStock = item.current_stock + value
-          break
-        case 'subtract':
-          newStock = Math.max(0, item.current_stock - value)
-          break
-        default:
-          return item
+        case 'set': newStock = value; break
+        case 'add': newStock = item.current_stock + value; break
+        case 'subtract': newStock = Math.max(0, item.current_stock - value); break
+        default: return item
       }
-
-      return {
-        ...item,
-        new_stock: newStock.toString(),
-        hasError: false,
-        errorMessage: undefined
-      }
+      return { ...item, new_stock: newStock.toString(), hasError: false, errorMessage: undefined }
     }))
   }
 
   const validateItems = (): boolean => {
-    const updatedItems = items.map(item => {
+    const updated = items.map(item => {
       if (!item.selected) return item
-
-      const newStock = parseInt(item.new_stock)
-      const hasError = isNaN(newStock) || newStock < 0
-      
-      return {
-        ...item,
-        hasError,
-        errorMessage: hasError ? 'Invalid quantity' : undefined
-      }
+      const qty = parseInt(item.new_stock)
+      const hasError = isNaN(qty) || qty < 0
+      return { ...item, hasError, errorMessage: hasError ? 'Invalid quantity' : undefined }
     })
-
-    setItems(updatedItems)
-    return updatedItems.filter(item => item.selected && item.hasError).length === 0
+    setItems(updated)
+    return updated.filter(i => i.selected && i.hasError).length === 0
   }
 
   const handleSubmit = async () => {
@@ -184,27 +137,21 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
     setSubmitProgress(0)
 
     try {
+      // FIX: pass product_id + warehouse_id instead of item_id
       const updates = validSelectedItems.map(item => ({
-        item_id: item.id,
+        product_id: item.product_id,
+        warehouse_id: item.warehouse_id,
         new_stock: parseInt(item.new_stock),
-        reason: bulkOperation.reason || 'Bulk update',
-        notes: bulkOperation.notes,
-        adjustment_type: 'set' as const, // Add required field
-        quantity: parseInt(item.new_stock), // Add required field
+        notes: bulkOperation.notes
       }))
 
-      // Simulate progress for better UX
       for (let i = 0; i <= updates.length; i++) {
         setSubmitProgress((i / updates.length) * 100)
-        if (i < updates.length) {
-          // In real implementation, you'd process items individually or in batches
-          await new Promise(resolve => setTimeout(resolve, 100))
-        }
+        if (i < updates.length) await new Promise(r => setTimeout(r, 80))
       }
 
       await bulkUpdateStock(updates)
       onSuccess?.()
-      
     } catch (error) {
       console.error('Failed to update stock:', error)
     } finally {
@@ -215,8 +162,8 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
 
   const exportTemplate = () => {
     const csvContent = [
-      ['SKU', 'Name', 'Current Stock', 'New Stock'],
-      ...items.map(item => [item.sku, item.name, item.current_stock, ''])
+      ['Product Name', 'SKU', 'Warehouse', 'Current Quantity', 'New Quantity'],
+      ...items.map(item => [item.name, item.sku, item.warehouse_name, item.current_stock, ''])
     ].map(row => row.join(',')).join('\n')
 
     const blob = new Blob([csvContent], { type: 'text/csv' })
@@ -228,10 +175,6 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
     URL.revokeObjectURL(url)
   }
 
-  const handleToggleFilters = () => {
-    setShowFilters(prevShowFilters => !prevShowFilters)
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -240,41 +183,39 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
           <h2 className="text-2xl font-bold">Bulk Stock Update</h2>
           <p className="text-muted-foreground">Update multiple items at once</p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" onClick={handleToggleFilters}>
-            {showFilters ? (
-              <>
-                <FilterX className="h-4 w-4 mr-2" />
-                Hide Filters
-              </>
-            ) : (
-              <>
-                <Filter className="h-4 w-4 mr-2" />
-                Show Filters
-              </>
-            )}
-          </Button>
-          <Button variant="outline" onClick={exportTemplate}>
-            <Download className="h-4 w-4 mr-2" />
-            Export Template
-          </Button>
-          <Button variant="outline">
-            <Upload className="h-4 w-4 mr-2" />
-            Import CSV
-          </Button>
-        </div>
+        <Button variant="outline" onClick={exportTemplate}>
+          <Download className="h-4 w-4 mr-2" />
+          Export Template
+        </Button>
       </div>
 
-      {/* Filters */}
-      {showFilters && (
-        <InventoryFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          showStockStatus={false}
-          showWarehouse={true}
-          showUnitFilter={true}
-        />
-      )}
+      {/* Filters — only search + warehouse (fields that exist on backend) */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <Input
+                placeholder="Search by product name or SKU..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="w-full md:w-56">
+              <Select value={warehouseFilter} onValueChange={setWarehouseFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Warehouses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Warehouses</SelectItem>
+                  {warehouses.map(w => (
+                    <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Bulk Operations */}
       <Card>
@@ -288,7 +229,7 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
               <select
                 className="w-full p-2 border rounded"
                 value={bulkOperation.action}
-                onChange={(e) => setBulkOperation({...bulkOperation, action: e.target.value})}
+                onChange={(e) => setBulkOperation({ ...bulkOperation, action: e.target.value })}
               >
                 <option value="">Select action</option>
                 <option value="set">Set to value</option>
@@ -302,21 +243,21 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
                 type="number"
                 min="0"
                 value={bulkOperation.value}
-                onChange={(e) => setBulkOperation({...bulkOperation, value: e.target.value})}
+                onChange={(e) => setBulkOperation({ ...bulkOperation, value: e.target.value })}
                 placeholder="Enter value"
               />
             </div>
             <div className="space-y-2">
-              <Label>Reason</Label>
+              <Label>Notes</Label>
               <Input
-                value={bulkOperation.reason}
-                onChange={(e) => setBulkOperation({...bulkOperation, reason: e.target.value})}
-                placeholder="Adjustment reason"
+                value={bulkOperation.notes}
+                onChange={(e) => setBulkOperation({ ...bulkOperation, notes: e.target.value })}
+                placeholder="Optional notes"
               />
             </div>
             <div className="space-y-2">
               <Label>&nbsp;</Label>
-              <Button 
+              <Button
                 onClick={applyBulkOperation}
                 disabled={!bulkOperation.action || !bulkOperation.value || selectedItems.length === 0}
                 className="w-full"
@@ -334,9 +275,7 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
           <CardTitle className="flex items-center justify-between">
             <span>Items ({items.length})</span>
             <div className="flex items-center space-x-4">
-              <Badge variant="outline">
-                {selectedItems.length} selected
-              </Badge>
+              <Badge variant="outline">{selectedItems.length} selected</Badge>
               <PackageCheck className="h-5 w-5" />
             </div>
           </CardTitle>
@@ -344,7 +283,7 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
         <CardContent>
           {items.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No items found. Adjust your filters to see items.
+              No items found. Try adjusting your search or warehouse filter.
             </div>
           ) : (
             <Table>
@@ -352,23 +291,21 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
                 <TableRow>
                   <TableHead className="w-[50px]">
                     <Checkbox
-                      checked={items.length > 0 && items.every(item => item.selected)}
+                      checked={items.length > 0 && items.every(i => i.selected)}
                       onCheckedChange={toggleSelectAll}
                     />
                   </TableHead>
-                  <TableHead>Item</TableHead>
+                  <TableHead>Product</TableHead>
                   <TableHead>SKU</TableHead>
-                  <TableHead>Current Stock</TableHead>
-                  <TableHead>New Stock</TableHead>
+                  <TableHead>Warehouse</TableHead>
+                  <TableHead>Current Qty</TableHead>
+                  <TableHead>New Qty</TableHead>
                   <TableHead>Change</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.map((item) => {
                   const stockChange = parseInt(item.new_stock) - item.current_stock
-                  const isIncrease = stockChange > 0
-                  const isDecrease = stockChange < 0
-                  
                   return (
                     <TableRow key={item.id} className={item.hasError ? 'bg-destructive/5' : ''}>
                       <TableCell>
@@ -377,17 +314,10 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
                           onCheckedChange={() => toggleSelectItem(item.id)}
                         />
                       </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="font-medium">{item.name}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {item.sku}
-                      </TableCell>
-                      <TableCell>
-                        {item.current_stock} {item.unit_of_measure}
-                      </TableCell>
+                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell className="font-mono text-sm">{item.sku}</TableCell>
+                      <TableCell>{item.warehouse_name}</TableCell>
+                      <TableCell>{item.current_stock}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Input
@@ -397,26 +327,20 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
                             onChange={(e) => updateItemStock(item.id, e.target.value)}
                             className={`w-24 ${item.hasError ? 'border-destructive' : ''}`}
                           />
-                          <span className="text-sm text-muted-foreground">
-                            {item.unit_of_measure}
-                          </span>
-                          {item.hasError && (
-                            <AlertTriangle className="h-4 w-4 text-destructive" />
-                          )}
+                          {item.hasError && <AlertTriangle className="h-4 w-4 text-destructive" />}
                         </div>
                         {item.errorMessage && (
                           <p className="text-xs text-destructive mt-1">{item.errorMessage}</p>
                         )}
                       </TableCell>
                       <TableCell>
-                        {stockChange !== 0 && (
-                          <div className={`flex items-center space-x-1 ${
-                            isIncrease ? 'text-green-600' : isDecrease ? 'text-red-600' : ''
-                          }`}>
-                            {isIncrease && <span>+{stockChange}</span>}
-                            {isDecrease && <span>{stockChange}</span>}
-                            {stockChange === 0 && <span>No change</span>}
-                          </div>
+                        {!isNaN(stockChange) && stockChange !== 0 && (
+                          <span className={stockChange > 0 ? 'text-green-600' : 'text-red-600'}>
+                            {stockChange > 0 ? `+${stockChange}` : stockChange}
+                          </span>
+                        )}
+                        {(isNaN(stockChange) || stockChange === 0) && (
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -436,7 +360,7 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
         <CardContent>
           <Textarea
             value={bulkOperation.notes}
-            onChange={(e) => setBulkOperation({...bulkOperation, notes: e.target.value})}
+            onChange={(e) => setBulkOperation({ ...bulkOperation, notes: e.target.value })}
             placeholder="Add notes about this bulk update..."
             rows={3}
           />
@@ -465,7 +389,7 @@ export function BulkStockUpdate({ onSuccess, onCancel }: BulkStockUpdateProps) {
             Cancel
           </Button>
         )}
-        <Button 
+        <Button
           onClick={handleSubmit}
           disabled={isSubmitting || validSelectedItems.length === 0}
         >

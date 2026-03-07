@@ -169,6 +169,21 @@ export class DistributionService {
   }
 
   /**
+  *tracking a shipment
+  */
+
+  async trackShipment(trackingNumber: string): Promise<ShipmentDetail | null> {
+    try {
+      const response = await api.get<ShipmentDetail>(
+        `${this.baseUrl}/shipments/track/?tracking_number=${trackingNumber}`
+      );
+      if (!response.success) return null;
+      return response.data!;
+    } catch {
+      return null;
+    }
+  }
+  /**
    * Update an existing shipment
    */
   async updateShipment(id: string, shipmentData: Partial<CreateShipmentData>): Promise<ShipmentDetail> {

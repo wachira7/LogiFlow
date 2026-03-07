@@ -10,28 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  ArrowLeft,
-  Edit2,
-  Package,
-  Truck,
-  X,
-  Trash2,
-  Calendar,
-  Mail,
-  Phone,
-  MapPin,
-} from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ArrowLeft, Edit2, Package, Truck, X, Trash2, Calendar, Mail, Phone, MapPin } from 'lucide-react';
 import type { OrderStatus } from '@/types/distribution.types';
 import { formatCurrency, formatDate } from '@/utils/dateUtils';
+import { WarehouseSelectDialog } from '@/components/distribution/WarehouseSelectDialog';
 
 const statusColors: Record<OrderStatus, string> = {
   NEW: 'bg-blue-100 text-blue-800',
@@ -66,6 +49,7 @@ export default function OrderDetailsPage() {
 
   const [actionLoading, setActionLoading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showWarehouseDialog, setShowWarehouseDialog] = useState(false);
 
   useEffect(() => {
     if (orderId) {
@@ -91,18 +75,15 @@ export default function OrderDetailsPage() {
     }
   };
 
-  const handleShip = async () => {
-    // In a real implementation, this would open a dialog to select warehouse
-    const defaultWarehouseId = 'default-warehouse-id';
+  const handleShip = async (warehouseId: string) => {
     setActionLoading(true);
     try {
-      await shipOrder(orderId, { warehouse_id: defaultWarehouseId });
+      await shipOrder(orderId, { warehouse_id: warehouseId });
       await fetchOrder(orderId);
     } finally {
       setActionLoading(false);
     }
   };
-
   const handleCancel = async () => {
     setActionLoading(true);
     try {
@@ -184,7 +165,7 @@ export default function OrderDetailsPage() {
           )}
 
           {canShip && (
-            <Button onClick={handleShip} disabled={actionLoading}>
+            <Button onClick={() => setShowWarehouseDialog(true)} disabled={actionLoading}>
               {actionLoading ? (
                 <LoadingSpinner size="sm" className="mr-2" />
               ) : (
@@ -404,6 +385,11 @@ export default function OrderDetailsPage() {
         title="Delete Order"
         description="Are you sure you want to delete this order? This action cannot be undone."
         onConfirm={handleDelete}
+      />
+      <WarehouseSelectDialog
+        open={showWarehouseDialog}
+        onOpenChange={setShowWarehouseDialog}
+        onConfirm={handleShip}
       />
     </div>
   );

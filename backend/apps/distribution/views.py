@@ -15,6 +15,8 @@ from .serializers import (
 )
 from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
+from .utils import geocode_address 
+import time
 
 class CustomerOrderViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
     """ViewSet for CustomerOrder management."""
@@ -286,6 +288,23 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
             'delivery_time': shipment.actual_delivery
         })
 
+    @action(detail=False, methods=['get'], url_path='track')
+    def track(self, request):
+        tracking_number = request.query_params.get('tracking_number')
+        if not tracking_number:
+            return Response({'error': 'tracking_number required'}, status=400)
+        
+        shipment = Shipment.objects.filter(
+            company=request.user.company,
+            tracking_number=tracking_number
+        ).first()
+        
+        if not shipment:
+            return Response({'error': 'Shipment not found'}, status=404)
+        
+        serializer = ShipmentDetailSerializer(shipment)
+        return Response(serializer.data)
+
     @action(detail=False, methods=['get'])
     def tracking_report(self, request):
         """Get shipment tracking report."""
@@ -325,7 +344,12 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
             'shipped_shipments': shipped_shipments,
             'delivered_shipments': delivered_shipments,
             'delayed_shipments': delayed_shipments,
-            'average_delivery_days': round(avg_delivery_days, 1)
+            'average_delivery_days': round(avg_delivery_days, 1),
+            'total_shipments': pending_shipments + picked_shipments + packed_shipments + shipped_shipments + delivered_shipments,
+            'on_time_percentage': round(
+                ((shipped_shipments + delivered_shipments - delayed_shipments) / 
+                max(shipped_shipments + delivered_shipments, 1)) * 100, 1
+            ),
         })
 
 class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
@@ -435,6 +459,30 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
         return RouteStop.objects.filter(
             route__company=self.request.user.company
         ).select_related('route', 'shipment')
+
+
+    
+    def perform_create(self, serializer):
+        address = serializer.validated_data.get('address', '')
+        coords = geocode_address(address)
+        time.sleep(1)  # Nominatim rate limit: 1 req/sec
+        if coords:
+            serializer.save(
+                company=self.request.user.company,
+                latitude=coords[0],
+                longitude=coords[1],
+            )
+        else:
+            serializer.save(company=self.request.user.company)
+
+    def perform_update(self, serializer):
+        address = serializer.validated_data.get('address', '')
+        coords = geocode_address(address)
+        time.sleep(1)
+        if coords:
+            serializer.save(latitude=coords[0], longitude=coords[1])
+        else:
+            serializer.save()    
 
     @action(detail=True, methods=['post'])
     def arrive_at_stop(self, request, pk=None):

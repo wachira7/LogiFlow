@@ -88,6 +88,14 @@ export interface InventoryItem {
   product_id: string
   warehouse_id?: string
   quantity: number
+  product_name: string
+  product_sku: string
+  warehouse_name: string
+  stock_value: number
+  product_unit_price: number
+  product_cost_price: number
+  needs_reorder: boolean
+  last_checked: string | null
   // Additional fields that components expect
   name: string              // Product name for display
   sku: string              // Product SKU for display
@@ -294,16 +302,20 @@ export interface UpdateInventoryItemData {
 
 // Stock operations - Updated for components
 export interface StockAdjustment {
-  item_id?: string          // For compatibility
-  inventory_item_id?: string // Your API field
-  adjustment_type: 'add' | 'subtract' | 'set' | 'INCREASE' | 'DECREASE' | 'SET'
-  quantity: number
+  product_id: string
+  warehouse_id: string
+  adjustment_quantity: number
   reason: string
   notes?: string
 }
 
 export interface BulkStockAdjustment {
-  adjustments: StockAdjustment[]
+  updates: {
+    product_id: string
+    warehouse_id: string
+    quantity: number
+    notes?: string
+  }[]
 }
 
 // New interface for bulk update from components

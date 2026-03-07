@@ -4,14 +4,7 @@
 import { useEffect } from 'react'
 import { useWarehouseTransfers } from '@/hooks/useWarehousing'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ArrowRightLeft, TrendingUp } from 'lucide-react'

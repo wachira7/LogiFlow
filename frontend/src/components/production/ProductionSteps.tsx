@@ -17,9 +17,9 @@ import type { ProductionStepStatus } from '@/types/production.types'
 
 export function ProductionSteps() {
   const router = useRouter()
-  const { 
+  const {
     steps = [],
-    loading, 
+    loading,
     fetchSteps,
     startStep,
     completeStep,
@@ -30,16 +30,14 @@ export function ProductionSteps() {
   const [statusFilter, setStatusFilter] = useState<ProductionStepStatus | 'ALL'>('ALL')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
-  // FIRST define the function
   const loadSteps = useCallback(async () => {
-        const filters = statusFilter !== 'ALL' ? { status: statusFilter } : undefined
-        await fetchSteps(filters)
-    }, [statusFilter, fetchSteps]) // Add dependencies
+    const filters = statusFilter !== 'ALL' ? { status: statusFilter } : undefined
+    await fetchSteps(filters)
+  }, [statusFilter, fetchSteps])
 
-  // THEN use it in useEffect
   useEffect(() => {
-        loadSteps()
-    }, [loadSteps])
+    loadSteps()
+  }, [loadSteps])
 
   const handleSearch = async () => {
     const filters = {
@@ -94,7 +92,7 @@ export function ProductionSteps() {
       COMPLETED: { variant: 'outline', label: 'Completed' },
       SKIPPED: { variant: 'destructive', label: 'Skipped' },
     }
-    
+
     const config = variants[status]
     return <Badge variant={config.variant}>{config.label}</Badge>
   }
@@ -132,7 +130,7 @@ export function ProductionSteps() {
                 />
               </div>
             </div>
-            
+
             <div className="w-full md:w-48">
               <Select
                 value={statusFilter}
@@ -176,7 +174,7 @@ export function ProductionSteps() {
               <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
               <h3 className="text-lg font-semibold mb-2">No production steps found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchQuery || statusFilter !== 'ALL' 
+                {searchQuery || statusFilter !== 'ALL'
                   ? 'Try adjusting your filters'
                   : 'Production steps will appear here when orders are created'
                 }
@@ -241,13 +239,13 @@ export function ProductionSteps() {
                       </TableCell>
                       <TableCell>{step.assigned_to_name || 'Unassigned'}</TableCell>
                       <TableCell>
-                        {step.start_time 
+                        {step.start_time
                           ? new Date(step.start_time).toLocaleString()
                           : '-'
                         }
                       </TableCell>
                       <TableCell>
-                        {step.end_time 
+                        {step.end_time
                           ? new Date(step.end_time).toLocaleString()
                           : '-'
                         }
@@ -261,13 +259,23 @@ export function ProductionSteps() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {step.status === 'PENDING' && (
-                              <DropdownMenuItem
-                                onClick={() => handleStartStep(step.id)}
-                                disabled={actionLoading === step.id}
-                              >
-                                <Play className="h-4 w-4 mr-2" />
-                                Start Step
-                              </DropdownMenuItem>
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => handleStartStep(step.id)}
+                                  disabled={actionLoading === step.id}
+                                >
+                                  <Play className="h-4 w-4 mr-2" />
+                                  Start Step
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleSkipStep(step.id)}
+                                  disabled={actionLoading === step.id}
+                                  className="text-orange-600"
+                                >
+                                  <SkipForward className="h-4 w-4 mr-2" />
+                                  Skip Step
+                                </DropdownMenuItem>
+                              </>
                             )}
 
                             {step.status === 'IN_PROGRESS' && (
@@ -282,22 +290,12 @@ export function ProductionSteps() {
                                 <DropdownMenuItem
                                   onClick={() => handleSkipStep(step.id)}
                                   disabled={actionLoading === step.id}
+                                  className="text-orange-600"
                                 >
                                   <SkipForward className="h-4 w-4 mr-2" />
-                                  Skip
+                                  Skip Step
                                 </DropdownMenuItem>
                               </>
-                            )}
-
-                            {(step.status === 'PENDING' || step.status === 'IN_PROGRESS') && (
-                              <DropdownMenuItem
-                                onClick={() => handleSkipStep(step.id)}
-                                disabled={actionLoading === step.id}
-                                className="text-orange-600"
-                              >
-                                <SkipForward className="h-4 w-4 mr-2" />
-                                Skip Step
-                              </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>

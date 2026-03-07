@@ -8,31 +8,11 @@ import { useDistribution } from '@/hooks/useDistribution';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { 
-  ArrowLeft,
-  MapPin,
-  Plus,
-  Trash2,
-  User,
-  Clock
-} from 'lucide-react';
+import { ArrowLeft, MapPin, Plus, Trash2, User, Clock } from 'lucide-react';
 import type { CreateDeliveryRouteData, DeliveryRouteDetail } from '@/types/distribution.types';
 
 // ============================================================================

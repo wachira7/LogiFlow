@@ -1,20 +1,35 @@
 // src/components/distribution/RouteMap.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import 'leaflet/dist/leaflet.css';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { 
-  MapPin, 
-  Navigation, 
-  Clock, 
-  Truck,
-  CheckCircle,
-  AlertCircle,
-  Maximize2,
-  Route
-} from 'lucide-react';
+import { MapPin, Navigation, Clock, Truck, CheckCircle, AlertCircle, Maximize2, Route } from 'lucide-react';
 import type { DeliveryRouteDetail, RouteStop } from '@/types/distribution.types';
+
+  // ADD — prevents SSR crash since Leaflet needs window:
+  const MapContainer = dynamic(
+    () => import('react-leaflet').then(m => m.MapContainer),
+    { ssr: false }
+  );
+  const TileLayer = dynamic(
+    () => import('react-leaflet').then(m => m.TileLayer),
+    { ssr: false }
+  );
+  const Marker = dynamic(
+    () => import('react-leaflet').then(m => m.Marker),
+    { ssr: false }
+  );
+  const Polyline = dynamic(
+    () => import('react-leaflet').then(m => m.Polyline),
+    { ssr: false }
+  );
+  const Popup = dynamic(
+    () => import('react-leaflet').then(m => m.Popup),
+    { ssr: false }
+  );
 
 interface RouteMapProps {
   route?: DeliveryRouteDetail;
@@ -42,26 +57,12 @@ export const RouteMap: React.FC<RouteMapProps> = ({
   showControls = true,
   className
 }) => {
-  const mapRef = useRef<HTMLDivElement>(null);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [mapStops, setMapStops] = useState<MapStop[]>([]);
-  const [selectedStop, setSelectedStop] = useState<MapStop | null>(null);
   const [totalDistance, setTotalDistance] = useState<number>(0);
   const [estimatedTime, setEstimatedTime] = useState<number>(0);
 
-  // Mock coordinates for demo purposes - in real implementation, use geocoding API
-  const getMockCoordinates = (address: string, index: number) => {
-    // Generate mock coordinates around a central point
-    const baseLat = -1.2921; // Nairobi coordinates
-    const baseLng = 36.8219;
-    const offset = 0.05;
-    
-    return {
-      lat: baseLat + (Math.random() - 0.5) * offset + (index * 0.01),
-      lng: baseLng + (Math.random() - 0.5) * offset + (index * 0.01)
-    };
-  };
-
+  
   useEffect(() => {
     // Process route stops
     const processedStops: MapStop[] = [];
@@ -74,7 +75,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         customerName: 'Start Location',
         sequence: 0,
         status: 'START',
-        coordinates: getMockCoordinates(route.start_location, 0)
+        coordinates: undefined // In real implementation, geocode the address to get coordinates
       });
     }
 
@@ -85,56 +86,31 @@ export const RouteMap: React.FC<RouteMapProps> = ({
         id: stop.id || `stop-${index}`,
         address: stop.address,
         customerName: stop.customer_name,
-        sequence: stop.sequence_order || index + 1,
+        sequence: stop.stop_number || index + 1,
         status: stop.status || 'PENDING',
-        coordinates: getMockCoordinates(stop.address, index + 1)
+        coordinates: (stop.latitude && stop.longitude)
+          ? { lat: Number(stop.latitude), lng: Number(stop.longitude) }
+          : undefined
       });
     });
 
     setMapStops(processedStops);
 
-    // Calculate mock distance and time
-    if (processedStops.length > 1) {
-      const distance = processedStops.length * 5.2; // Mock: ~5km per stop
-      const time = distance * 0.08; // Mock: ~5 minutes per km
-      setTotalDistance(Math.round(distance));
-      setEstimatedTime(Math.round(time));
+    // Calculate total distance and estimated time from route details
+    if (route?.total_distance) {
+      setTotalDistance(Number(route.total_distance));
+    }
+    if (route?.estimated_duration) {
+      setEstimatedTime(Math.round(Number(route.estimated_duration) * 60));
     }
 
     // Simulate map loading
-    setTimeout(() => setIsMapLoaded(true), 1000);
+     setIsMapLoaded(true);
   }, [route, stops]);
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      START: 'bg-blue-500',
-      PENDING: 'bg-gray-400',
-      ARRIVED: 'bg-yellow-500',
-      COMPLETED: 'bg-green-500',
-      FAILED: 'bg-red-500'
-    };
-    return colors[status] || 'bg-gray-400';
-  };
-
-  const getStatusIcon = (status: string) => {
-    const icons: Record<string, React.ComponentType<{ className?: string }>> = {
-      START: Navigation,
-      PENDING: Clock,
-      ARRIVED: Truck,
-      COMPLETED: CheckCircle,
-      FAILED: AlertCircle
-    };
-    const IconComponent = icons[status] || MapPin;
-    return IconComponent;
-  };
-
-  const handleStopClick = (stop: MapStop) => {
-    setSelectedStop(stop);
-  };
-
+  
+ 
   const handleOptimizeRoute = () => {
-    // Mock route optimization - in real implementation, call routing API
-    console.log('Optimizing route for', mapStops.length, 'stops');
     // You could integrate with Google Maps Directions API, MapBox, etc.
   };
 
@@ -189,11 +165,10 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           <div className="space-y-4">
             {/* Map Container */}
             <div 
-              ref={mapRef}
               className="relative border rounded-lg overflow-hidden bg-gray-50"
               style={{ height }}
             >
-              {!isMapLoaded ? (
+             {!isMapLoaded ? (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
                     <LoadingSpinner size="lg" />
@@ -203,99 +178,52 @@ export const RouteMap: React.FC<RouteMapProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-green-50">
-                  {/* Mock Map Visualization */}
-                  <div className="relative w-full h-full">
-                    {/* Route path visualization */}
-                    <svg className="absolute inset-0 w-full h-full">
-                      {mapStops.map((stop, index) => {
-                        if (index === 0) return null;
-                        const prevStop = mapStops[index - 1];
-                        const x1 = (prevStop.coordinates?.lng || 0) * 10 + 200;
-                        const y1 = (prevStop.coordinates?.lat || 0) * -10 + 200;
-                        const x2 = (stop.coordinates?.lng || 0) * 10 + 200;
-                        const y2 = (stop.coordinates?.lat || 0) * -10 + 200;
-                        
-                        return (
-                          <line
-                            key={`path-${index}`}
-                            x1={x1}
-                            y1={y1}
-                            x2={x2}
-                            y2={y2}
-                            stroke="#3b82f6"
-                            strokeWidth="3"
-                            strokeDasharray="5,5"
-                          />
-                        );
-                      })}
-                    </svg>
+                <MapContainer
+                  center={[-1.2921, 36.8219]}
+                  zoom={12}
+                  style={{ height: '100%', width: '100%' }}
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
+                  />
 
-                    {/* Stop markers */}
-                    {mapStops.map((stop) => {
-                      const x = (stop.coordinates?.lng || 0) * 10 + 200;
-                      const y = (stop.coordinates?.lat || 0) * -10 + 200;
-                      
-                      return (
-                        <div
-                          key={stop.id}
-                          className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer"
-                          style={{ left: x, top: y }}
-                          onClick={() => handleStopClick(stop)}
-                        >
-                          <div 
-                            className={`w-8 h-8 rounded-full ${getStatusColor(stop.status)} 
-                              flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform`}
-                          >
-                            {stop.status === 'START' ? (
-                              <Navigation className="h-4 w-4" />
-                            ) : (
-                              <span className="text-xs font-bold">{stop.sequence}</span>
-                            )}
-                          </div>
-                          
-                          {/* Stop label */}
-                          <div className="absolute top-10 left-1/2 transform -translate-x-1/2 
-                            bg-white px-2 py-1 rounded shadow-md text-xs whitespace-nowrap z-10">
-                            {stop.customerName || `Stop ${stop.sequence}`}
+                  {/* Route path */}
+                  {mapStops.filter(s => s.coordinates).length > 1 && (
+                    <Polyline
+                      positions={mapStops
+                        .filter(s => s.coordinates)
+                        .map(s => [s.coordinates!.lat, s.coordinates!.lng])}
+                      color="#3b82f6"
+                      dashArray="8,8"
+                    />
+                  )}
+
+                  {/* Stop markers */}
+                  {mapStops.filter(s => s.coordinates).map((stop) => (
+                    <Marker
+                      key={stop.id}
+                      position={[stop.coordinates!.lat, stop.coordinates!.lng]}
+                    >
+                      <Popup>
+                        <div className="text-sm space-y-1">
+                          <p className="font-medium">{stop.customerName || `Stop ${stop.sequence}`}</p>
+                          <p className="text-gray-500">{stop.address}</p>
+                          <div className="flex items-center mt-1 space-x-1">
+                            {stop.status === 'START' && <Navigation className="h-3 w-3 text-blue-500" />}
+                            {stop.status === 'PENDING' && <Clock className="h-3 w-3 text-gray-400" />}
+                            {stop.status === 'ARRIVED' && <Truck className="h-3 w-3 text-yellow-500" />}
+                            {stop.status === 'COMPLETED' && <CheckCircle className="h-3 w-3 text-green-500" />}
+                            {stop.status === 'FAILED' && <AlertCircle className="h-3 w-3 text-red-500" />}
+                            <span className="text-gray-600">{stop.status}</span>
                           </div>
                         </div>
-                      );
-                    })}
-
-                    {/* Selected stop details */}
-                    {selectedStop && (
-                        <div className="absolute top-4 left-4 bg-white p-4 rounded-lg shadow-lg max-w-xs">
-                          {(() => {
-                            const StopIcon = getStatusIcon(selectedStop.status);
-                            return (
-                              <>
-                                <h4 className="font-medium">{selectedStop.customerName || 'Stop Details'}</h4>
-                                <p className="text-sm text-muted-foreground">{selectedStop.address}</p>
-                                <div className="flex items-center mt-2">
-                                  <StopIcon className="h-4 w-4 mr-2" />
-                                  <Badge className={`${getStatusColor(selectedStop.status)} text-white`}>
-                                    {selectedStop.status}
-                                  </Badge>
-                                </div>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="mt-2 w-full"
-                                  onClick={() => setSelectedStop(null)}
-                                >
-                                  Close
-                                </Button>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      )}
-                  </div>
-                </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+                </MapContainer>
               )}
-            </div>
-
+            </div>     
             {/* Interactive Controls */}
             {interactive && showControls && (
               <div className="flex items-center justify-between pt-2 border-t">

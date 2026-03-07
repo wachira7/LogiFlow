@@ -2,57 +2,21 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useDistribution } from '@/hooks/useDistribution';
+import { DeliveryStatus } from '@/components/distribution/DeliveryStatus';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { 
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Eye, 
-  Edit2, 
-  Trash2, 
-  Package,
-  PackageCheck,
-  Truck,
-  CheckCircle,
-  AlertTriangle
-} from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Eye, Edit2, Trash2, Package, PackageCheck, Truck, CheckCircle } from 'lucide-react';
 import type { ShipmentList as ShipmentListType, ShipmentStatus, ShipmentFilters } from '@/types/distribution.types';
 import { formatDate } from '@/utils/dateUtils';
 
-const statusColors: Record<ShipmentStatus, string> = {
-  PENDING: 'bg-gray-100 text-gray-800',
-  PICKED: 'bg-blue-100 text-blue-800',
-  PACKED: 'bg-yellow-100 text-yellow-800',
-  SHIPPED: 'bg-purple-100 text-purple-800',
-  DELIVERED: 'bg-green-100 text-green-800',
-};
+
 
 const statusLabels: Record<ShipmentStatus, string> = {
   PENDING: 'Pending',
@@ -322,7 +286,7 @@ export const ShipmentList: React.FC<ShipmentListProps> = ({
             </div>
             <Select
               value={statusFilter}
-              onValueChange={handleStatusFilter}
+              onValueChange={(v) => handleStatusFilter(v as ShipmentStatus | 'ALL')}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by status" />
@@ -390,7 +354,6 @@ export const ShipmentList: React.FC<ShipmentListProps> = ({
                 </TableHeader>
                 <TableBody>
                   {shipments.map((shipment) => {
-                    const StatusIcon = statusIcons[shipment.status];
                     return (
                       <TableRow key={shipment.id}>
                         <TableCell className="font-medium">
@@ -406,15 +369,11 @@ export const ShipmentList: React.FC<ShipmentListProps> = ({
                           )}
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <StatusIcon className="h-4 w-4" />
-                            <Badge className={statusColors[shipment.status]}>
-                              {statusLabels[shipment.status]}
-                            </Badge>
-                            {shipment.is_delayed && (
-                              <AlertTriangle className="h-4 w-4 text-red-500" />
-                            )}
-                          </div>
+                           <DeliveryStatus
+                            status={shipment.status}
+                            isDelayed={shipment.is_delayed}
+                            compact
+                          />          
                         </TableCell>
                         <TableCell>{shipment.warehouse_name || 'N/A'}</TableCell>
                         <TableCell>

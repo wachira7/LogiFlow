@@ -9,29 +9,11 @@ import { useInventoryItems } from '@/hooks/useInventory';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { 
-  Plus, 
-  Trash2, 
-  ArrowLeft,
-  Calculator 
-} from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Calculator } from 'lucide-react';
 import type { CreateCustomerOrderData, CustomerOrderDetail } from '@/types/distribution.types';
 import type { InventoryItem } from '@/types/inventory.types';
 
@@ -72,18 +54,8 @@ interface OrderFormProps {
 }
 
 // Helper type for inventory item with flexible structure
-interface FlexibleInventoryItem {
-  id: string;
-  name?: string;
-  price?: number;
-  product?: {
-    name?: string;
-    price?: number;
-  };
-}
 
-// Type assertion helper for form control - properly typed
-//type TypedControl = Control<OrderFormData>;
+
 
 // ============================================================================
 // MAIN COMPONENT
@@ -206,24 +178,17 @@ export const OrderForm: React.FC<OrderFormProps> = ({
   // HELPER FUNCTIONS
   // ============================================================================
 
-  const getItemName = (item: FlexibleInventoryItem): string => {
-    return item.product?.name || item.name || 'Unknown Product';
-  };
-
-  const getItemPrice = (item: FlexibleInventoryItem): number => {
-    return item.product?.price || item.price || 0;
-  };
-
+  const getItemName = (item: InventoryItem): string => item.product_name;
+  const getItemPrice = (item: InventoryItem): number => item.product_unit_price;
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
 
   const handleProductChange = useCallback((index: number, productId: string) => {
-    const item = inventoryItems.find((inv: InventoryItem) => inv.id === productId);
+    const item = inventoryItems.find((inv: InventoryItem) => inv.product_id === productId);
     if (item) {
-      const flexibleItem = item as unknown as FlexibleInventoryItem;
       form.setValue(`order_items.${index}.product_id`, productId);
-      form.setValue(`order_items.${index}.unit_price`, getItemPrice(flexibleItem));
+      form.setValue(`order_items.${index}.unit_price`, getItemPrice(item));
     }
   }, [inventoryItems, form]);
 
@@ -484,14 +449,11 @@ export const OrderForm: React.FC<OrderFormProps> = ({
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {inventoryItems.map((item: InventoryItem) => {
-                                    const flexibleItem = item as unknown as FlexibleInventoryItem;
-                                    return (
-                                      <SelectItem key={item.id} value={item.id}>
-                                        {getItemName(flexibleItem)} - ${getItemPrice(flexibleItem).toFixed(2)}
-                                      </SelectItem>
-                                    );
-                                  })}
+                                  {inventoryItems.map((item: InventoryItem) => (
+                                    <SelectItem key={item.product_id} value={item.product_id}>
+                                      {getItemName(item)} - ${getItemPrice(item).toFixed(2)}
+                                    </SelectItem>
+                                  ))}
                                 </SelectContent>
                               </Select>
                               <FormMessage />

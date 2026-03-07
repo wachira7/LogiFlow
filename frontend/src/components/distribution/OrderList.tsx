@@ -5,44 +5,17 @@ import { useDistribution } from '@/hooks/useDistribution';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { 
-  Plus, 
-  Search, 
-  MoreHorizontal, 
-  Eye, 
-  Edit2, 
-  Trash2, 
-  Package,
-  Truck,
-  X
-} from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Eye, Edit2, Trash2, Package, Truck, X } from 'lucide-react';
 import type { CustomerOrderList, OrderStatus, OrderFilters } from '@/types/distribution.types';
 import { formatCurrency, formatDate } from '@/utils/dateUtils';
+import { WarehouseSelectDialog } from './WarehouseSelectDialog';
 
 const statusColors: Record<OrderStatus, string> = {
   NEW: 'bg-blue-100 text-blue-800',
@@ -86,6 +59,7 @@ export const OrderList: React.FC<OrderListProps> = ({
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL');
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [shipOrderId, setShipOrderId] = useState<string | null>(null);
 
   // Load orders on component mount
   useEffect(() => {
@@ -127,21 +101,20 @@ export const OrderList: React.FC<OrderListProps> = ({
     }
   }, [processOrder, fetchOrders, searchTerm, statusFilter]);
 
-  const handleShipOrder = useCallback(async (orderId: string) => {
-    // For now, we'll need a warehouse ID - in real implementation, 
-    // this would open a dialog to select warehouse
-    const defaultWarehouseId = 'default-warehouse-id';
-    setActionLoading(orderId);
+  const handleShipOrder = useCallback(async (warehouseId: string) => {
+    if (!shipOrderId) return;
+    setActionLoading(shipOrderId);
     try {
-      await shipOrder(orderId, { warehouse_id: defaultWarehouseId });
+      await shipOrder(shipOrderId, { warehouse_id: warehouseId });
       await fetchOrders({
         search: searchTerm || undefined,
         status: statusFilter !== 'ALL' ? statusFilter : undefined,
       });
     } finally {
       setActionLoading(null);
+      setShipOrderId(null);
     }
-  }, [shipOrder, fetchOrders, searchTerm, statusFilter]);
+  }, [shipOrderId, shipOrder, fetchOrders, searchTerm, statusFilter]);
 
   const handleCancelOrder = useCallback(async (orderId: string) => {
     setActionLoading(orderId);
@@ -220,7 +193,7 @@ export const OrderList: React.FC<OrderListProps> = ({
           )}
 
           {order.status === 'PROCESSING' && (
-            <DropdownMenuItem onClick={() => handleShipOrder(order.id)}>
+            <DropdownMenuItem onClick={() => setShipOrderId(order.id)}>
               <Truck className="mr-2 h-4 w-4" />
               Ship Order
             </DropdownMenuItem>
@@ -295,7 +268,7 @@ export const OrderList: React.FC<OrderListProps> = ({
             </div>
             <Select
               value={statusFilter}
-              onValueChange={handleStatusFilter}
+              onValueChange={(v) => handleStatusFilter(v as OrderStatus | 'ALL')}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by status" />
@@ -413,6 +386,11 @@ export const OrderList: React.FC<OrderListProps> = ({
         description="Are you sure you want to delete this order? This action cannot be undone."
         onConfirm={handleDeleteOrder}
       />
+      <WarehouseSelectDialog
+          open={!!shipOrderId}
+          onOpenChange={(open) => !open && setShipOrderId(null)}
+          onConfirm={handleShipOrder}
+        />
     </div>
   );
 };

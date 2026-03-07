@@ -130,10 +130,11 @@ export interface RouteStop {
   route_id: string;
   shipment_id: string;
   shipment_number: string;
-  sequence_order: number;
   customer_name?: string;
   stop_number: number;
   address: string;
+  latitude?: string | null;
+  longitude?: string | null;
   estimated_arrival?: string;
   actual_arrival?: string;
   departure_time?: string;
@@ -161,10 +162,8 @@ export interface DeliveryRouteList {
   created_at: string;
 }
 
-export interface DeliveryRouteDetail extends DeliveryRouteList {
-  vehicle_name: string;           
+export interface DeliveryRouteDetail extends DeliveryRouteList {     
   estimated_duration?: number;    
-  actual_duration?: number;       
   start_location?: string;        
   description?: string;           
   notes: string;
