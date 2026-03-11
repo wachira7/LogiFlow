@@ -10,19 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { useSubscriptions } from '@/hooks/useBilling';
-import {
-  Calendar,
-  CreditCard,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  RefreshCw,
-  Crown,
-  Users,
-  Building2,
-  Package,
-  ArrowLeft
-} from 'lucide-react';
+import { Calendar, CreditCard, CheckCircle2, XCircle, AlertTriangle, RefreshCw, Crown, Users, Building2, Package, ArrowLeft } from 'lucide-react';
 import type { UserSubscriptionDetail } from '@/types/billing.types';
 import { format } from 'date-fns';
 import Link from 'next/link';

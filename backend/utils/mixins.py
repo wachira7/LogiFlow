@@ -65,6 +65,11 @@ class TenantViewSetMixin(TenantQuerysetMixin, UUIDMixin):
             if 'company' not in serializer.validated_data:
                 save_kwargs['company'] = self.request.user.company
             
+            # Only add user if field exists and not already set
+            if (hasattr(serializer.Meta.model, 'user') and 
+                'user' not in serializer.validated_data):
+                save_kwargs['user'] = self.request.user
+            
             # Only add created_by if field exists and not already set
             if (hasattr(serializer.Meta.model, 'created_by') and 
                 'created_by' not in serializer.validated_data):
@@ -73,6 +78,7 @@ class TenantViewSetMixin(TenantQuerysetMixin, UUIDMixin):
             serializer.save(**save_kwargs)
         else:
             serializer.save()
+        
 
 class BulkActionMixin:
     """

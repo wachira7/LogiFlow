@@ -2,20 +2,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSubscriptions, usePaymentMethods, useSubscriptionPlans } from '@/hooks/useBilling';
+import { billingService } from '@/services/billingService';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { CreditCard, Smartphone, Bitcoin, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import type { PaymentProvider, SubscriptionPlan } from '@/types/billing.types';
@@ -36,10 +30,12 @@ export function SubscribeDialog({ open, onOpenChange, planId, onSuccess }: Subsc
   const { plans, loading: plansLoading } = useSubscriptionPlans();
   
   const [selectedProvider, setSelectedProvider] = useState<PaymentProvider>('STRIPE');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(''); // ✅ FIX: Use empty string consistently
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(''); 
   const [autoRenew, setAutoRenew] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [kesAmount, setKesAmount] = useState<number | null>(null);
+  const [rateLoading, setRateLoading] = useState(false);
 
   // Find the selected plan
   const plan = plans.find((p: SubscriptionPlan) => p.id === planId) || null;
@@ -48,11 +44,32 @@ export function SubscribeDialog({ open, onOpenChange, planId, onSuccess }: Subsc
   useEffect(() => {
     if (!open) {
       setSelectedProvider('STRIPE');
-      setSelectedPaymentMethod(''); // ✅ FIX: Reset to empty string
+      setSelectedPaymentMethod(''); 
       setAutoRenew(true);
       setError(null);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (selectedProvider !== 'MPESA' || !plan) {
+      setKesAmount(null);
+      return;
+    }
+    const fetchRate = async () => {
+      setRateLoading(true);
+      try {
+        const response = await billingService.getExchangeRate('USD', 'KES');
+        if (response.data?.rate) {
+          setKesAmount(Math.ceil(parseFloat(plan.price) * response.data.rate));
+        }
+      } catch {
+        setKesAmount(null);
+      } finally {
+        setRateLoading(false);
+      }
+    };
+    fetchRate();
+  }, [selectedProvider, plan]);
 
   if (!planId || !plan) {
     if (open && !plansLoading) {
@@ -100,10 +117,30 @@ export function SubscribeDialog({ open, onOpenChange, planId, onSuccess }: Subsc
     setError(null);
 
     try {
+      // redirect to Stripe Checkout instead of calling createSubscription
+      if (selectedProvider === 'STRIPE') {
+        const response = await billingService.createStripeCheckoutSession({
+          plan_id: plan.id,
+          success_url: `${window.location.origin}/billing/subscriptions?checkout=success`,
+          cancel_url: `${window.location.origin}/billing/plans?checkout=cancelled`,
+        });
+
+        if (response.success && response.data.checkout_url) {
+          // Redirect 
+          window.location.href = response.data.checkout_url;
+          return;
+        }
+
+        setError(response.error || 'Failed to start checkout');
+        setLoading(false);
+        return;
+      }
+
+      // M-Pesa and Crypto: use existing createSubscription flow
       const result = await createSubscription({
         plan_id: plan.id,
         payment_provider: selectedProvider,
-        payment_method_id: selectedPaymentMethod || undefined, // ✅ FIX: Convert empty string to undefined
+        payment_method_id: selectedPaymentMethod || undefined,
         auto_renew: autoRenew,
       });
 
@@ -201,7 +238,7 @@ export function SubscribeDialog({ open, onOpenChange, planId, onSuccess }: Subsc
                   value={selectedPaymentMethod} 
                   onValueChange={setSelectedPaymentMethod}
                 >
-                  {/* ✅ FIX: Add "None" option to allow deselection */}
+                  {/* "None" option to allow deselection */}
                   <div className="flex items-center space-x-2 rounded-lg border p-3 cursor-pointer hover:bg-accent">
                     <RadioGroupItem value="" id="none" />
                     <Label htmlFor="none" className="cursor-pointer flex-1">
@@ -249,16 +286,39 @@ export function SubscribeDialog({ open, onOpenChange, planId, onSuccess }: Subsc
                 <strong>14-day free trial</strong> - You won&apos;t be charged until the trial ends.
               </AlertDescription>
             </Alert>
-
+              {/* KES Conversion Preview */}
+                {selectedProvider === 'MPESA' && (
+                  <div className="rounded-lg border bg-green-50 dark:bg-green-950 p-3 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Amount in KES</span>
+                      {rateLoading ? (
+                        <span className="text-sm text-muted-foreground animate-pulse">Fetching rate...</span>
+                      ) : kesAmount ? (
+                        <span className="text-sm font-bold text-green-700 dark:text-green-300">
+                          KES {kesAmount.toLocaleString()}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Unavailable</span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Original price</span>
+                      <span className="text-xs text-muted-foreground">USD {parseFloat(plan.price).toFixed(2)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground border-t pt-1 mt-1">
+                      Rate updated per day. Final amount confirmed at payment time.
+                    </p>
+                  </div>
+                )}
             {/* Error Display */}
-            {error && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-        )}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
@@ -271,7 +331,7 @@ export function SubscribeDialog({ open, onOpenChange, planId, onSuccess }: Subsc
                 Processing...
               </>
             ) : (
-              'Start Free Trial'
+              selectedProvider === 'STRIPE' ? 'Continue to Stripe →' : 'Start Free Trial'
             )}
           </Button>
         </DialogFooter>

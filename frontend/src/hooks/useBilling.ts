@@ -1,5 +1,4 @@
 // src/hooks/useBilling.ts
-// ✅ FIXED: Removed dependency issues causing infinite loops
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { billingService } from '@/services/billingService';
@@ -16,8 +15,6 @@ import type {
   RevenueReport,
   PaymentMethod,
   PaymentMethodFilters,
-  StripePaymentData,
-  StripePaymentResponse,
   MPesaPaymentData,
   MPesaPaymentResponse,
   MPesaStatusData,
@@ -30,67 +27,56 @@ import type {
 // SUBSCRIPTION PLANS HOOK - WITH CACHING
 // ============================================================================
 
-let plansCache: SubscriptionPlan[] | null = null;
-let plansCacheTime: number | null = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 export function useSubscriptionPlans(filters?: SubscriptionPlanFilters) {
-  const [plans, setPlans] = useState<SubscriptionPlan[]>(plansCache || []);
-  const [loading, setLoading] = useState(!plansCache);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const fetchedRef = useRef(false);
+  const filtersString = JSON.stringify(filters || {});
 
   useEffect(() => {
-    // ✅ FIX: Only fetch once on mount, use cache if available
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
+    let cancelled = false;
 
-    const fetchPlans = async () => {
-      const now = Date.now();
-      const cacheValid = plansCache && plansCacheTime && (now - plansCacheTime < CACHE_DURATION);
-      
-      if (cacheValid && plansCache) {
-        setPlans(plansCache);
+      const fetchPlans = async () => {
+        setLoading(true);
+        setError(null);
+
+        const response = await billingService.getPlans(filters);
+
+        if (cancelled) return;
+
+        if (response.success) {
+          setPlans(response.data || []);
+        } else {
+          setError(response.error || 'Failed to fetch subscription plans');
+          setPlans([]);
+        }
+
         setLoading(false);
-        return;
-      }
+      };
 
+      fetchPlans();
+
+      return () => {
+        cancelled = true;
+      };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filtersString]); // ✅ Re-fetches whenever billing_cycle or is_active changes
+
+    const getPlanById = useCallback(async (id: string) => {
+      const response = await billingService.getPlanById(id);
+      return response.success ? response.data : null;
+    }, []);
+
+    const refetch = useCallback(async () => {
       setLoading(true);
-      setError(null);
-      
       const response = await billingService.getPlans(filters);
-      
       if (response.success) {
-        plansCache = response.data || [];
-        plansCacheTime = Date.now();
-        setPlans(plansCache);
-      } else {
-        setError(response.error || 'Failed to fetch subscription plans');
-        setPlans([]);
+        setPlans(response.data || []);
       }
-      
       setLoading(false);
-    };
-
-    fetchPlans();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
-
-  const getPlanById = useCallback(async (id: string) => {
-    const response = await billingService.getPlanById(id);
-    return response.success ? response.data : null;
-  }, []);
-
-  const refetch = useCallback(async () => {
-    fetchedRef.current = false;
-    const response = await billingService.getPlans(filters);
-    
-    if (response.success) {
-      plansCache = response.data || [];
-      plansCacheTime = Date.now();
-      setPlans(plansCache);
-    }
-  }, [filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filtersString]);
 
   return {
     plans,
@@ -101,21 +87,18 @@ export function useSubscriptionPlans(filters?: SubscriptionPlanFilters) {
   };
 }
 
-// ============================================================================
-// USER SUBSCRIPTIONS HOOK - FIXED
-// ============================================================================
-
+// USER SUBSCRIPTIONS HOOK 
 export function useSubscriptions(filters?: SubscriptionFilters) {
   const [subscriptions, setSubscriptions] = useState<UserSubscription[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const fetchedRef = useRef(false);
   
-  // ✅ FIX: Serialize filters to prevent unnecessary re-renders
+  //  Serialize filters to prevent unnecessary re-renders
   const filtersString = JSON.stringify(filters || {});
 
   useEffect(() => {
-    // ✅ FIX: Only fetch once per filter change
+    //  Only fetch once per filter change
     if (fetchedRef.current) return;
     fetchedRef.current = true;
 
@@ -137,7 +120,7 @@ export function useSubscriptions(filters?: SubscriptionFilters) {
 
     fetchSubscriptions();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtersString]); // ✅ Use serialized string instead of object
+  }, [filtersString]); //Use serialized string instead of object
 
   const getSubscriptionById = useCallback(async (id: string): Promise<UserSubscriptionDetail | null> => {
     const response = await billingService.getSubscriptionById(id);
@@ -479,40 +462,56 @@ export function usePaymentMethods(filters?: PaymentMethodFilters) {
 // STRIPE PAYMENT HOOK
 // ============================================================================
 
-export function useStripePayment() {
+export function useStripeCheckout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paymentResponse, setPaymentResponse] = useState<StripePaymentResponse | null>(null);
 
-  const initiatePayment = useCallback(async (data: StripePaymentData) => {
+  const initiateCheckout = useCallback(async (planId: string) => {
     setLoading(true);
     setError(null);
-    setPaymentResponse(null);
-    
-    const response = await billingService.initiateStripePayment(data);
-    
-    if (response.success) {
-      setPaymentResponse(response.data);
-      setLoading(false);
-      return { success: true, data: response.data };
+
+    const response = await billingService.createStripeCheckoutSession({
+      plan_id: planId,
+      success_url: `${window.location.origin}/billing/subscriptions?checkout=success`,
+      cancel_url: `${window.location.origin}/billing/plans?checkout=cancelled`,
+    });
+
+    if (response.success && response.data.checkout_url) {
+      // Redirect to Stripe hosted checkout page
+      window.location.href = response.data.checkout_url;
+      return { success: true };
     }
-    
-    setError(response.error || 'Failed to initiate Stripe payment');
+
+    const errorMsg = response.error || 'Failed to create checkout session';
+    setError(errorMsg);
     setLoading(false);
-    return { success: false, error: response.error };
+    return { success: false, error: errorMsg };
   }, []);
 
-  const reset = useCallback(() => {
+  const handleCheckoutSuccess = useCallback(async (sessionId: string) => {
+    setLoading(true);
     setError(null);
-    setPaymentResponse(null);
+
+    const response = await billingService.handleStripeCheckoutSuccess({
+      session_id: sessionId,
+    });
+
+    setLoading(false);
+
+    if (response.success) {
+      return { success: true, data: response.data };
+    }
+
+    const errorMsg = response.error || 'Failed to process payment';
+    setError(errorMsg);
+    return { success: false, error: errorMsg };
   }, []);
 
   return {
     loading,
     error,
-    paymentResponse,
-    initiatePayment,
-    reset,
+    initiateCheckout,
+    handleCheckoutSuccess,
   };
 }
 

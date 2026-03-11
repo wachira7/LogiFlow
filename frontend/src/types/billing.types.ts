@@ -1,10 +1,4 @@
 // src/types/billing.types.ts
-
-/**
- * Billing & Payment Types
- * Matches Django models from apps/payments/models.py
- */
-
 // ============================================================================
 // ENUMS & CONSTANTS
 // ============================================================================
@@ -51,6 +45,7 @@ export interface UserSubscription {
   company_name: string;
   plan_name: string;
   plan_price: string;
+  plan_id: string;
   status: SubscriptionStatus;
   payment_provider: PaymentProvider;
   start_date: string;
@@ -191,6 +186,31 @@ export interface StripePaymentResponse {
   currency: string;
 }
 
+export interface StripeCheckoutData {
+  plan_id: string;
+  success_url?: string;
+  cancel_url?: string;
+}
+
+export interface StripeCheckoutResponse {
+  checkout_url: string;
+  session_id: string;
+}
+
+export interface StripeCheckoutSuccessData {
+  session_id: string;
+}
+
+export interface StripeCheckoutSuccessResponse {
+  message: string;
+  subscription_id: string;
+  plan_name: string;
+  status: string;
+  is_trial: boolean;
+  trial_end: string | null;
+  end_date: string;
+}
+
 // M-Pesa Payment
 export interface MPesaPaymentData {
   phone_number: string;
@@ -244,17 +264,16 @@ export interface CryptoStatusData {
 }
 
 export interface CryptoStatusResponse {
-  payment_status: {
-    id: string;
-    status: string;
-    pay_currency: string;
-    pay_amount: number;
-    amount: number;
-    currency: string;
-    created_at: string;
-    updated_at: string;
-  };
   payment_id: string;
+  status: string;
+  payment_address: string;
+  pay_currency: string;
+  pay_amount: string;
+  price_amount: string;
+  price_currency: string;
+  created_at: string;
+  updated_at: string;
+  order_id: string;
 }
 
 // ============================================================================
@@ -269,5 +288,15 @@ export interface BillingApiResponse<T> {
     count: number;
     next: string | null;
     previous: string | null;
+  };
+}
+
+export interface ExchangeRateResponse {
+  from: string;
+  to: string;
+  rate: number;
+  example: {
+    input: string;
+    output: string;
   };
 }

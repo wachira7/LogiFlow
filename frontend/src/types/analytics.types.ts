@@ -1,5 +1,6 @@
 // src/types/analytics.types.ts
 
+import type { RevenueReport } from '@/types/billing.types';
 // ============================================================================
 // WAREHOUSING ANALYTICS TYPES
 // ============================================================================
@@ -133,12 +134,7 @@ export interface ProviderRevenue {
   crypto: number;
 }
 
-export interface RevenueReport {
-  total_revenue: number;
-  provider_revenue: ProviderRevenue;
-  monthly_revenue: MonthlyRevenue[];
-  transaction_count: number;
-}
+
 
 // ============================================================================
 // INVENTORY ANALYTICS TYPES
@@ -173,6 +169,8 @@ export interface TrackingReport {
   delivered_shipments: number;
   delayed_shipments: number;
   average_delivery_days: number;
+  on_time_percentage: number;
+  total_shipments: number;
 }
 
 export interface DistributionDashboard {

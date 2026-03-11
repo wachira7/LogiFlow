@@ -55,7 +55,7 @@ export function KPICard({
 
 interface KPICardsGridProps {
   children: ReactNode;
-  cols?: 2 | 3 | 4;
+  cols?: 2 | 3 | 4 | 5;
 }
 
 export function KPICardsGrid({ children, cols = 4 }: KPICardsGridProps) {
@@ -63,6 +63,7 @@ export function KPICardsGrid({ children, cols = 4 }: KPICardsGridProps) {
     2: 'md:grid-cols-2',
     3: 'md:grid-cols-3',
     4: 'md:grid-cols-2 lg:grid-cols-4',
+    5: 'md:grid-cols-3 lg:grid-cols-5',
   };
 
   return (

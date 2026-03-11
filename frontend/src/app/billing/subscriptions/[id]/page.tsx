@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { SubscriptionDetail } from '@/components/billing/SubscriptionDetail';
-import { useSubscriptions } from '@/hooks/useBilling';
+import { billingService } from '@/services/billingService';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
@@ -13,7 +13,7 @@ import type { UserSubscriptionDetail } from '@/types/billing.types';
 export default function SubscriptionDetailPage() {
   const params = useParams();
   const subscriptionId = params.id as string;
-  const { getSubscriptionById } = useSubscriptions();
+
   
   const [subscription, setSubscription] = useState<UserSubscriptionDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,8 @@ export default function SubscriptionDetailPage() {
       setLoading(true);
       setError(null);
       
-      const result = await getSubscriptionById(subscriptionId);
+      const response = await billingService.getSubscriptionById(subscriptionId);
+      const result = response.success ? response.data : null;
       
       if (result) {
         setSubscription(result);
@@ -38,7 +39,8 @@ export default function SubscriptionDetailPage() {
     if (subscriptionId) {
       fetchSubscription();
     }
-  }, [subscriptionId, getSubscriptionById]);
+  
+  }, [subscriptionId]);
 
   if (loading) {
     return (

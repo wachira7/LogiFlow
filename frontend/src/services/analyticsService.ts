@@ -10,7 +10,6 @@ import type {
   SecurityReport,
   SystemHealthDashboard,
   SubscriptionsDashboard,
-  RevenueReport,
   StockReport,
   LowStockProduct,
   TrackingReport,
@@ -18,6 +17,7 @@ import type {
   DashboardOverview,
   AnalyticsSummary,
 } from '@/types/analytics.types';
+import type { RevenueReport } from '@/types/billing.types';
 
 // ============================================================================
 // HELPER TYPES
@@ -588,6 +588,8 @@ export const distributionAnalyticsService = {
         return {
           success: false,
           data: {
+            total_shipments: 0,
+            on_time_percentage: 0,
             pending_shipments: 0,
             picked_shipments: 0,
             packed_shipments: 0,
@@ -603,6 +605,8 @@ export const distributionAnalyticsService = {
       return {
         success: true,
         data: response.data || {
+          total_shipments: 0,
+          on_time_percentage: 0,
           pending_shipments: 0,
           picked_shipments: 0,
           packed_shipments: 0,
@@ -617,6 +621,8 @@ export const distributionAnalyticsService = {
       return {
         success: false,
         data: {
+          total_shipments: 0,
+          on_time_percentage: 0,
           pending_shipments: 0,
           picked_shipments: 0,
           packed_shipments: 0,

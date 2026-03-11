@@ -1,7 +1,7 @@
 # backend/apps/payments/utils/currency_converter.py
 """
 Currency conversion utility for multi-currency payment support.
-Uses exchangerate-api.com for real-time exchange rates.
+Uses exchangerate-api.com v6 for real-time exchange rates.
 """
 
 import requests
@@ -17,20 +17,23 @@ class CurrencyConverter:
     
     # Default exchange rates (fallback if API fails)
     DEFAULT_RATES = {
-        'KES': 150.0,  # 1 USD = 150 KES (approximate)
-        'EUR': 0.85,   # 1 USD = 0.85 EUR
-        'GBP': 0.73,   # 1 USD = 0.73 GBP
-        'yen': 110.0,  # 1 USD = 110 yen
-        'yuan': 6.5,   # 1 USD = 6.5 yuan
-        'rupee': 50.0, # 1 USD = 50 rupees
-        'riyal': 3.67, # 1 USD = 3.67 Riyals
-        'rub': 60.0,   # 1 USD = 60 rub
+        'KES': 129.50,
+        'EUR': 0.92,
+        'GBP': 0.79,
+        'JPY': 110.0,
+        'CNY': 6.5,
+        'INR': 83.0,
+        'SAR': 3.75,
+        'RUB': 90.0,
+        'NGN': 1580.0,
+        'UGX': 3750.0,
+        'TZS': 2550.0,
+        'ZAR': 18.50,
     }
     
     def __init__(self):
         self.api_key = getattr(settings, 'EXCHANGE_RATE_API_KEY', None)
-        self.base_url = 'https://api.exchangerate-api.com/v4/latest'
-        self.cache_duration = 3600  # 1 hour cache
+        self.cache_duration = 86400  # 1 day cache
     
     def get_exchange_rates(self, base_currency='USD'):
         """
@@ -46,23 +49,26 @@ class CurrencyConverter:
             return cached_rates
         
         try:
-            # Fetch from API
-            url = f"{self.base_url}/{base_currency}"
+            url = f"https://v6.exchangerate-api.com/v6/{self.api_key}/latest/{base_currency}"
             response = requests.get(url, timeout=5)
             response.raise_for_status()
             
             data = response.json()
-            rates = data.get('rates', {})
+
+            if data.get('result') != 'success':
+                raise ValueError(f"API error: {data.get('error-type', 'unknown')}")
+
+            rates = data.get('conversion_rates', {})
             
             # Cache the rates
             cache.set(cache_key, rates, self.cache_duration)
             
-            logger.info(f"Fetched and cached exchange rates for {base_currency}")
+            logger.info(f"✅ Fetched and cached exchange rates for {base_currency}")
             return rates
             
         except Exception as e:
             logger.error(f"Failed to fetch exchange rates: {str(e)}")
-            logger.info("Using default exchange rates")
+            logger.info("Using default fallback exchange rates")
             return {**{'USD': 1.0}, **self.DEFAULT_RATES}
     
     def convert(self, amount, from_currency='USD', to_currency='KES'):
@@ -96,12 +102,11 @@ class CurrencyConverter:
             
             converted_amount = amount * Decimal(str(rate))
             
-            logger.info(f"Converted {amount} {from_currency} to {converted_amount:.2f} {to_currency}")
+            logger.info(f"Converted {amount} {from_currency} → {converted_amount:.2f} {to_currency}")
             return converted_amount
             
         except Exception as e:
             logger.error(f"Currency conversion error: {str(e)}")
-            # Return original amount as fallback
             return Decimal(str(amount))
     
     def usd_to_kes(self, amount):
@@ -115,9 +120,7 @@ class CurrencyConverter:
     def get_crypto_equivalent(self, amount_usd, crypto_currency='btc'):
         """
         Get crypto equivalent of USD amount.
-        This is handled by NOWPayments API, so this is just a placeholder.
-        
-        Returns the USD amount - actual conversion happens in NOWPayments.
+        Actual conversion handled by NOWPayments API.
         """
         return Decimal(str(amount_usd))
 
@@ -126,7 +129,8 @@ class CurrencyConverter:
 currency_converter = CurrencyConverter()
 
 
-# Utility functions for easy access
+# ── Utility functions ─────────────────────────────────────────────────────────
+
 def convert_usd_to_kes(amount_usd):
     """Convert USD to KES using current exchange rate."""
     return currency_converter.usd_to_kes(amount_usd)
@@ -135,6 +139,15 @@ def convert_usd_to_kes(amount_usd):
 def convert_currency(amount, from_currency, to_currency):
     """Convert between any two currencies."""
     return currency_converter.convert(amount, from_currency, to_currency)
+
+
+def get_exchange_rate(from_currency: str, to_currency: str) -> float:
+    """
+    Get exchange rate between two currencies.
+    Used by the exchange rate API endpoint.
+    """
+    rates = currency_converter.get_exchange_rates(from_currency)
+    return float(rates.get(to_currency, currency_converter.DEFAULT_RATES.get(to_currency, 1.0)))
 
 
 def get_payment_amount_display(amount_usd, payment_provider):
@@ -146,7 +159,8 @@ def get_payment_amount_display(amount_usd, payment_provider):
         payment_provider: 'STRIPE', 'MPESA', or 'CRYPTO'
     
     Returns:
-        dict with 'amount', 'currency', and 'display' keys
+        dict with 'amount', 'currency', 'display',
+        'original_amount', 'original_currency' keys
     """
     amount_usd = Decimal(str(amount_usd))
     
@@ -155,19 +169,25 @@ def get_payment_amount_display(amount_usd, payment_provider):
         return {
             'amount': float(kes_amount),
             'currency': 'KES',
-            'display': f'KES {kes_amount:,.0f}'
+            'display': f'KES {kes_amount:,.0f}',
+            'original_amount': float(amount_usd),
+            'original_currency': 'USD',
         }
     
     elif payment_provider == 'CRYPTO':
         return {
             'amount': float(amount_usd),
             'currency': 'USD',
-            'display': f'${amount_usd:.2f} (in crypto)'
+            'display': f'${amount_usd:.2f} (in crypto)',
+            'original_amount': float(amount_usd),
+            'original_currency': 'USD',
         }
     
     else:  # STRIPE or default
         return {
             'amount': float(amount_usd),
             'currency': 'USD',
-            'display': f'${amount_usd:.2f}'
+            'display': f'${amount_usd:.2f}',
+            'original_amount': float(amount_usd),
+            'original_currency': 'USD',
         }

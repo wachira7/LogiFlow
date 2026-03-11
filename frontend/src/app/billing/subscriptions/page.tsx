@@ -1,6 +1,9 @@
 // src/app/billing/subscriptions/page.tsx
 'use client';
 
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { billingService } from '@/services/billingService';
 import { useSubscriptions } from '@/hooks/useBilling';
 import { SubscriptionSummaryCard } from '@/components/billing/SubscriptionSummaryCard';
 import { Button } from '@/components/ui/button';
@@ -9,9 +12,49 @@ import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ArrowLeft, CreditCard, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 
 export default function SubscriptionsPage() {
   const { subscriptions, loading, error } = useSubscriptions();
+  const searchParams = useSearchParams();
+  const { refetch } = useSubscriptions();
+
+
+  useEffect(() => {
+      const checkout = searchParams.get('checkout');
+      const sessionId = searchParams.get('session_id');
+
+      if (checkout === 'success' && sessionId) {
+        // Process the successful Stripe checkout
+        const processSuccess = async () => {
+          const response = await billingService.handleStripeCheckoutSuccess({
+            session_id: sessionId,
+          });
+
+          if (response.success) {
+            toast.success('Subscription activated!', {
+              description: `You are now on the ${response.data.plan_name} plan`,
+            });
+            refetch(); // Refresh subscription list
+          } else {
+            toast.error('Failed to activate subscription', {
+              description: response.error,
+            });
+          }
+        };
+
+        processSuccess();
+
+        // Clean up URL params
+        window.history.replaceState({}, '', '/billing/subscriptions');
+      }
+
+      if (checkout === 'cancelled') {
+        toast.info('Checkout cancelled');
+        window.history.replaceState({}, '', '/billing/subscriptions');
+      }
+    }, [searchParams, refetch]);
+
 
   if (loading) {
     return (

@@ -10,7 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function PlansPage() {
-  // ✅ FIX: Use useMemo to prevent object recreation on every render
+  // Use useMemo to prevent object recreation on every render
   const filters = useMemo(() => ({ status: 'ACTIVE' as const }), []);
   const { subscriptions } = useSubscriptions(filters);
   
@@ -19,7 +19,7 @@ export default function PlansPage() {
   const [actionLoading, setActionLoading] = useState(false);
 
   // Get current active subscription plan ID
-  const currentPlanId = subscriptions.find(s => s.status === 'ACTIVE')?.id;
+  const currentPlanId = subscriptions.find(s => s.status === 'ACTIVE')?.plan_id;
 
   // Handle plan selection
   const handleSelectPlan = (planId: string) => {

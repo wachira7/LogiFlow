@@ -1,15 +1,26 @@
 // src/app/analytics/page.tsx
 'use client';
 
-import { useAnalyticsSummary } from '@/hooks/useAnalytics';
+import { useAnalyticsSummary, useDistributionAnalytics } from '@/hooks/useAnalytics';
+import { useSubscriptions } from '@/hooks/useBilling';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { Package, TrendingUp, ShoppingCart, Truck, Factory, Warehouse, DollarSign, RefreshCw, ArrowUpRight, ArrowDownRight, AlertTriangle } from 'lucide-react';
+import { TenantFinancialSummary } from '@/components/analytics/TenantFinancialSummary';
+import { KPICard, KPICardsGrid } from '@/components/analytics/KPICards';
+import { Package, TrendingUp, ShoppingCart, Truck, Factory, Warehouse, RefreshCw, ArrowUpRight, ArrowDownRight, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+import { useMemo } from 'react';
 
 export default function AnalyticsOverviewPage() {
   const { summary, loading, error, refetch } = useAnalyticsSummary();
+  const { dashboard: distDashboard } = useDistributionAnalytics();
+  const { subscriptions } = useSubscriptions();
+
+  const activeSubscription = useMemo(
+    () => subscriptions.find(s => s.status === 'ACTIVE' || s.status === 'TRIALING') ?? null,
+    [subscriptions]
+  );
 
   if (loading) {
     return (
@@ -32,15 +43,14 @@ export default function AnalyticsOverviewPage() {
     );
   }
 
-  // Calculate totals and percentages
-  const totalRevenue = summary.distribution.total_revenue + summary.financial.total_revenue;
-  const totalOrders = summary.distribution.total_orders;
-  const totalProducts = summary.inventory.total_products;
-  const totalTransfers = summary.warehousing.total_transfers;
+  const totalRevenue         = summary.distribution.total_revenue;
+  const totalOrders          = summary.distribution.total_orders;
+  const totalProducts        = summary.inventory.total_products;
+  const totalTransfers       = summary.warehousing.total_transfers;
   const totalProductionOrders = summary.production.total_orders;
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -56,125 +66,51 @@ export default function AnalyticsOverviewPage() {
       </div>
 
       {/* Top Level KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* Total Revenue */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${totalRevenue.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {summary.financial.transaction_count} transactions
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Total Orders */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalOrders}</div>
-            <div className="flex items-center text-xs text-muted-foreground">
-              <span>{summary.distribution.delivered_orders} delivered</span>
-              {summary.distribution.cancelled_orders > 0 && (
-                <span className="ml-2 flex items-center text-destructive">
-                  <ArrowDownRight className="h-3 w-3 mr-1" />
-                  {summary.distribution.cancelled_orders} cancelled
-                </span>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Total Products */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalProducts}</div>
-            <p className="text-xs text-muted-foreground">
-              {summary.inventory.active_products} active
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Stock Value */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stock Value</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${summary.inventory.total_stock_value.toLocaleString()}
-            </div>
-            {summary.inventory.low_stock_products > 0 && (
-              <p className="text-xs text-destructive flex items-center">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                {summary.inventory.low_stock_products} low stock items
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Secondary KPIs */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* Production Orders */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Production Orders</CardTitle>
-            <Factory className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalProductionOrders}</div>
-            <p className="text-xs text-muted-foreground">
-              {summary.production.in_progress_orders} in progress
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Warehouse Transfers */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Warehouse Transfers</CardTitle>
-            <Warehouse className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalTransfers}</div>
-            <p className="text-xs text-muted-foreground">
-              {summary.warehousing.completed_transfers} completed
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Active Subscriptions */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Subscriptions</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{summary.subscriptions.active_subscriptions}</div>
-            <p className="text-xs text-muted-foreground">
-              ${summary.subscriptions.monthly_revenue.toLocaleString()} MRR
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Module Sections */}
+      
+       <KPICardsGrid cols={4}>
+          <KPICard
+            title="Total Revenue"
+            value={`$${totalRevenue.toLocaleString()}`}
+            description={`${summary.distribution.delivered_orders} orders delivered`}
+            icon={TrendingUp}
+          />
+          <KPICard
+            title="Total Orders"
+            value={totalOrders}
+            description={`${summary.distribution.delivered_orders} delivered${summary.distribution.cancelled_orders > 0 ? ` · ${summary.distribution.cancelled_orders} cancelled` : ''}`}
+            icon={ShoppingCart}
+            valueColor={summary.distribution.cancelled_orders > 0 ? undefined : undefined}
+          />
+          <KPICard
+            title="Total Products"
+            value={totalProducts}
+            description={`${summary.inventory.active_products} active`}
+            icon={Package}
+          />
+          <KPICard
+            title="Stock Value"
+            value={`$${summary.inventory.total_stock_value.toLocaleString()}`}
+            description={summary.inventory.low_stock_products > 0 ? `${summary.inventory.low_stock_products} low stock` : 'All stocked'}
+            icon={TrendingUp}
+            valueColor={summary.inventory.low_stock_products > 0 ? 'text-destructive' : undefined}
+          />
+          <KPICard
+            title="Production Orders"
+            value={totalProductionOrders}
+            description={`${summary.production.in_progress_orders} in progress${summary.production.overdue_orders > 0 ? ` · ${summary.production.overdue_orders} overdue` : ''}`}
+            icon={Factory}
+            valueColor={summary.production.overdue_orders > 0 ? 'text-destructive' : undefined}
+          />
+          <KPICard
+            title="Warehouse Transfers"
+            value={totalTransfers}
+            description={`${summary.warehousing.completed_transfers} completed`}
+            icon={Warehouse}
+          />
+        </KPICardsGrid>
+      {/* Module Cards */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Inventory Analytics */}
+        {/* Inventory */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -184,13 +120,12 @@ export default function AnalyticsOverviewPage() {
               </div>
               <Link href="/analytics/inventory">
                 <Button variant="ghost" size="sm">
-                  View Details
-                  <ArrowUpRight className="h-4 w-4 ml-1" />
+                  View Details <ArrowUpRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Total Products</p>
@@ -198,15 +133,11 @@ export default function AnalyticsOverviewPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Active</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {summary.inventory.active_products}
-                </p>
+                <p className="text-2xl font-bold text-green-600">{summary.inventory.active_products}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Inactive</p>
-                <p className="text-2xl font-bold text-gray-500">
-                  {summary.inventory.inactive_products}
-                </p>
+                <p className="text-2xl font-bold text-gray-500">{summary.inventory.inactive_products}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Low Stock</p>
@@ -215,16 +146,14 @@ export default function AnalyticsOverviewPage() {
                 </p>
               </div>
             </div>
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t mt-4">
               <p className="text-sm text-muted-foreground">Total Stock Value</p>
-              <p className="text-xl font-bold">
-                ${summary.inventory.total_stock_value.toLocaleString()}
-              </p>
+              <p className="text-xl font-bold">${summary.inventory.total_stock_value.toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Distribution Analytics */}
+        {/* Distribution */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -234,13 +163,12 @@ export default function AnalyticsOverviewPage() {
               </div>
               <Link href="/analytics/distribution">
                 <Button variant="ghost" size="sm">
-                  View Details
-                  <ArrowUpRight className="h-4 w-4 ml-1" />
+                  View Details <ArrowUpRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Total Orders</p>
@@ -248,33 +176,35 @@ export default function AnalyticsOverviewPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">New</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {summary.distribution.new_orders}
-                </p>
+                <p className="text-2xl font-bold text-blue-600">{summary.distribution.new_orders}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Processing</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {summary.distribution.processing_orders}
-                </p>
+                <p className="text-2xl font-bold text-orange-600">{summary.distribution.processing_orders}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Delivered</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {summary.distribution.delivered_orders}
-                </p>
+                <p className="text-2xl font-bold text-green-600">{summary.distribution.delivered_orders}</p>
               </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Delivered</p>
+                <p className="text-2xl font-bold text-green-600">{summary.distribution.delivered_orders}</p>
+              </div>
+              {summary.distribution.cancelled_orders > 0 && (
+                <div className="col-span-2 flex items-center gap-1 text-sm text-destructive font-medium">
+                  <ArrowDownRight className="h-4 w-4" />
+                  {summary.distribution.cancelled_orders} orders cancelled
+                </div>
+              )}
             </div>
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t mt-4">
               <p className="text-sm text-muted-foreground">Total Revenue</p>
-              <p className="text-xl font-bold">
-                ${summary.distribution.total_revenue.toLocaleString()}
-              </p>
+              <p className="text-xl font-bold">${summary.distribution.total_revenue.toLocaleString()}</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Production Analytics */}
+        {/* Production */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -284,13 +214,12 @@ export default function AnalyticsOverviewPage() {
               </div>
               <Link href="/analytics/production">
                 <Button variant="ghost" size="sm">
-                  View Details
-                  <ArrowUpRight className="h-4 w-4 ml-1" />
+                  View Details <ArrowUpRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Total Orders</p>
@@ -298,25 +227,19 @@ export default function AnalyticsOverviewPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Planned</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {summary.production.planned_orders}
-                </p>
+                <p className="text-2xl font-bold text-blue-600">{summary.production.planned_orders}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">In Progress</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {summary.production.in_progress_orders}
-                </p>
+                <p className="text-2xl font-bold text-orange-600">{summary.production.in_progress_orders}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Completed</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {summary.production.completed_orders}
-                </p>
+                <p className="text-2xl font-bold text-green-600">{summary.production.completed_orders}</p>
               </div>
             </div>
             {summary.production.overdue_orders > 0 && (
-              <div className="pt-4 border-t">
+              <div className="pt-4 border-t mt-4">
                 <p className="text-sm text-destructive flex items-center">
                   <AlertTriangle className="h-4 w-4 mr-1" />
                   {summary.production.overdue_orders} overdue orders
@@ -326,7 +249,7 @@ export default function AnalyticsOverviewPage() {
           </CardContent>
         </Card>
 
-        {/* Warehousing Analytics */}
+        {/* Warehousing */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -334,15 +257,14 @@ export default function AnalyticsOverviewPage() {
                 <Warehouse className="h-5 w-5" />
                 <CardTitle>Warehousing</CardTitle>
               </div>
-              <Link href="/warehousing/reports">
+              <Link href="/analytics/warehousing">
                 <Button variant="ghost" size="sm">
-                  View Details
-                  <ArrowUpRight className="h-4 w-4 ml-1" />
+                  View Details <ArrowUpRight className="h-4 w-4 ml-1" />
                 </Button>
               </Link>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Total Transfers</p>
@@ -350,109 +272,31 @@ export default function AnalyticsOverviewPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pending</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {summary.warehousing.pending_transfers}
-                </p>
+                <p className="text-2xl font-bold text-orange-600">{summary.warehousing.pending_transfers}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">In Transit</p>
-                <p className="text-2xl font-bold text-blue-600">
-                  {summary.warehousing.in_transit_transfers}
-                </p>
+                <p className="text-2xl font-bold text-blue-600">{summary.warehousing.in_transit_transfers}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Completed</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {summary.warehousing.completed_transfers}
-                </p>
+                <p className="text-2xl font-bold text-green-600">{summary.warehousing.completed_transfers}</p>
               </div>
             </div>
-            <div className="pt-4 border-t">
+            <div className="pt-4 border-t mt-4">
               <p className="text-sm text-muted-foreground">Avg Transfer Time</p>
-              <p className="text-xl font-bold">
-                {summary.warehousing.average_transfer_days} days
-              </p>
+              <p className="text-xl font-bold">{summary.warehousing.average_transfer_days} days</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Financial Summary */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="h-5 w-5" />
-              <CardTitle>Financial Summary</CardTitle>
-            </div>
-            <Link href="/analytics/financial">
-              <Button variant="ghost" size="sm">
-                View Details
-                <ArrowUpRight className="h-4 w-4 ml-1" />
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Revenue</p>
-              <p className="text-2xl font-bold">
-                ${summary.financial.total_revenue.toLocaleString()}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {summary.financial.transaction_count} transactions
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Stripe</p>
-              <p className="text-xl font-bold">
-                ${summary.financial.provider_revenue.stripe.toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">M-Pesa</p>
-              <p className="text-xl font-bold">
-                ${summary.financial.provider_revenue.mpesa.toLocaleString()}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Crypto</p>
-              <p className="text-xl font-bold">
-                ${summary.financial.provider_revenue.crypto.toLocaleString()}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 pt-6 border-t">
-            <h4 className="text-sm font-medium mb-4">Subscriptions</h4>
-            <div className="grid gap-4 md:grid-cols-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-xl font-bold">{summary.subscriptions.total_subscriptions}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Active</p>
-                <p className="text-xl font-bold text-green-600">
-                  {summary.subscriptions.active_subscriptions}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Trial</p>
-                <p className="text-xl font-bold text-blue-600">
-                  {summary.subscriptions.trial_subscriptions}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">MRR</p>
-                <p className="text-xl font-bold">
-                  ${summary.subscriptions.monthly_revenue.toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Tenant Financial Summary */}
+      <TenantFinancialSummary
+        distribution={distDashboard}
+        inventory={summary.inventory}
+        subscription={activeSubscription}
+      />
     </div>
   );
 }

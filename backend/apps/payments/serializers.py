@@ -51,10 +51,25 @@ class PaymentTransactionSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'company_name', 'user_email', 'created_at', 'updated_at']
 
-class UserSubscriptionListSerializer(serializers.ModelSerializer):
+class SubscriptionDatesMixin:
+    """Shared date computation methods for subscription serializers."""
+
+    def get_days_remaining(self, obj):
+        from django.utils import timezone
+        if obj.end_date:
+            delta = obj.end_date.date() - timezone.now().date()
+            return max(0, delta.days)
+        return 0
+
+    def get_is_expired(self, obj):
+        from django.utils import timezone
+        return obj.end_date and obj.end_date < timezone.now()        
+
+class UserSubscriptionListSerializer(SubscriptionDatesMixin, serializers.ModelSerializer):
     """Lightweight serializer for subscription lists."""
     plan_name = serializers.CharField(source='plan.name', read_only=True)
     plan_price = serializers.DecimalField(source='plan.price', max_digits=10, decimal_places=2, read_only=True)
+    plan_id = serializers.UUIDField(source='plan.id', read_only=True) 
     company_name = serializers.CharField(source='company.name', read_only=True)
     days_remaining = serializers.SerializerMethodField()
     is_expired = serializers.SerializerMethodField()
@@ -62,23 +77,12 @@ class UserSubscriptionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserSubscription
         fields = [
-            'id', 'company_name', 'plan_name', 'plan_price', 'status',
+            'id', 'company_name', 'plan_name', 'plan_price', 'plan_id', 'status',
             'payment_provider', 'start_date', 'end_date', 'is_trial',
             'days_remaining', 'is_expired', 'auto_renew'
         ]
     
-    def get_days_remaining(self, obj):
-        from django.utils import timezone
-        if obj.end_date:
-            delta = obj.end_date.date() - timezone.now().date()
-            return max(0, delta.days)
-        return 0
-    
-    def get_is_expired(self, obj):
-        from django.utils import timezone
-        return obj.end_date and obj.end_date < timezone.now()
-
-class UserSubscriptionDetailSerializer(serializers.ModelSerializer):
+class UserSubscriptionDetailSerializer(SubscriptionDatesMixin, serializers.ModelSerializer):
     """Detailed serializer for UserSubscription model."""
     plan = SubscriptionPlanSerializer(read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
@@ -100,17 +104,6 @@ class UserSubscriptionDetailSerializer(serializers.ModelSerializer):
         transactions = obj.transactions.all()[:5]
         return PaymentTransactionSerializer(transactions, many=True).data
     
-    def get_days_remaining(self, obj):
-        from django.utils import timezone
-        if obj.end_date:
-            delta = obj.end_date.date() - timezone.now().date()
-            return max(0, delta.days)
-        return 0
-    
-    def get_is_expired(self, obj):
-        from django.utils import timezone
-        return obj.end_date and obj.end_date < timezone.now()
-
 class MPesaPaymentSerializer(serializers.Serializer):
         """Serializer for M-Pesa payment requests."""
         phone_number = serializers.CharField(

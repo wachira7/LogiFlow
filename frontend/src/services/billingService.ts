@@ -15,8 +15,6 @@ import type {
   RevenueReport,
   PaymentMethod,
   PaymentMethodFilters,
-  StripePaymentData,
-  StripePaymentResponse,
   MPesaPaymentData,
   MPesaPaymentResponse,
   MPesaStatusData,
@@ -25,6 +23,11 @@ import type {
   CryptoPaymentResponse,
   CryptoStatusData,
   CryptoStatusResponse,
+  StripeCheckoutData,
+  StripeCheckoutResponse,
+  StripeCheckoutSuccessData,
+  StripeCheckoutSuccessResponse,
+   ExchangeRateResponse,
 } from '@/types/billing.types';
 
 // ============================================================================
@@ -540,32 +543,67 @@ async function deletePaymentMethod(id: string): Promise<BillingApiResponse<void>
 // PAYMENT PROCESSING
 // ============================================================================
 
-/**
- * Initiate Stripe payment
- */
-async function initiateStripePayment(data: StripePaymentData): Promise<BillingApiResponse<StripePaymentResponse>> {
+
+ /* Create Stripe Checkout Session - redirects to Stripe hosted page for payment */
+async function createStripeCheckoutSession(
+  data: StripeCheckoutData
+): Promise<BillingApiResponse<StripeCheckoutResponse>> {
   try {
-    console.log('API call: POST /api/v1/payments/stripe/pay/', data);
-    const response = await api.post<StripePaymentResponse>('/api/v1/payments/stripe/pay/', data);
-    
+    const response = await api.post<StripeCheckoutResponse>(
+      '/api/v1/payments/stripe/checkout/',
+      data
+    );
+
     if (!response.success || !response.data) {
       return {
         success: false,
-        data: {} as StripePaymentResponse,
-        error: response.error || 'Failed to initiate Stripe payment'
+        data: {} as StripeCheckoutResponse,
+        error: response.error || 'Failed to create checkout session',
       };
     }
-    
+
     return {
       success: true,
-      data: response.data
+      data: response.data,
     };
   } catch (error) {
-    console.error('Error initiating Stripe payment:', error);
     return {
       success: false,
-      data: {} as StripePaymentResponse,
-      error: error instanceof Error ? error.message : 'Failed to initiate Stripe payment'
+      data: {} as StripeCheckoutResponse,
+      error: error instanceof Error ? error.message : 'Failed to create checkout session',
+    };
+  }
+}
+
+/**
+ * Handle Stripe Checkout success return
+ */
+async function handleStripeCheckoutSuccess(
+  data: StripeCheckoutSuccessData
+): Promise<BillingApiResponse<StripeCheckoutSuccessResponse>> {
+  try {
+    const response = await api.post<StripeCheckoutSuccessResponse>(
+      '/api/v1/payments/stripe/checkout/success/',
+      data
+    );
+
+    if (!response.success || !response.data) {
+      return {
+        success: false,
+        data: {} as StripeCheckoutSuccessResponse,
+        error: response.error || 'Failed to process checkout success',
+      };
+    }
+
+    return {
+      success: true,
+      data: response.data,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: {} as StripeCheckoutSuccessResponse,
+      error: error instanceof Error ? error.message : 'Failed to process checkout success',
     };
   }
 }
@@ -751,6 +789,22 @@ async function testCryptoConnection(): Promise<BillingApiResponse<unknown>> {
   }
 }
 
+async function getExchangeRate(from: string, to: string): Promise<BillingApiResponse<ExchangeRateResponse>> {
+  try {
+    const response = await api.get<ExchangeRateResponse>(`/api/v1/payments/exchange-rate/?from=${from}&to=${to}`);
+    return {
+      success: response.success,
+      data: response.data || {} as ExchangeRateResponse
+    };
+  } catch (error) {
+    return {
+      success: false,
+      data: {} as ExchangeRateResponse,
+      error: error instanceof Error ? error.message : 'Failed to get exchange rate'
+    };
+  }
+}
+
 // ============================================================================
 // EXPORT
 // ============================================================================
@@ -779,7 +833,8 @@ export const billingService = {
   deletePaymentMethod,
   
   // Payment Processing
-  initiateStripePayment,
+  createStripeCheckoutSession,
+  handleStripeCheckoutSuccess,
   initiateMPesaPayment,
   checkMPesaStatus,
   createCryptoPayment,
@@ -789,4 +844,7 @@ export const billingService = {
   testStripeConnection,
   testMPesaConnection,
   testCryptoConnection,
+
+  // Exchange Rates
+  getExchangeRate
 };

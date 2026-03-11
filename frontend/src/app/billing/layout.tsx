@@ -3,7 +3,9 @@
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, CreditCard, Wallet, Receipt, Package } from 'lucide-react';
+import Link from 'next/link';
+import { LayoutDashboard, CreditCard, Wallet, Receipt, Package, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function BillingLayout({
   children,
@@ -13,7 +15,6 @@ export default function BillingLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  // Determine active tab based on pathname
   const getActiveTab = () => {
     if (pathname === '/billing') return 'dashboard';
     if (pathname.startsWith('/billing/plans')) return 'plans';
@@ -25,7 +26,6 @@ export default function BillingLayout({
 
   const activeTab = getActiveTab();
 
-  // Handle tab change
   const handleTabChange = (value: string) => {
     const routes: Record<string, string> = {
       dashboard: '/billing',
@@ -34,7 +34,7 @@ export default function BillingLayout({
       'payment-methods': '/billing/payment-methods',
       transactions: '/billing/transactions',
     };
-    
+
     if (routes[value]) {
       router.push(routes[value]);
     }
@@ -48,6 +48,10 @@ export default function BillingLayout({
       {showTabs && (
         <div className="border-b bg-background sticky top-0 z-10">
           <div className="container mx-auto px-4 py-4">
+            <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
             <Tabs value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-5 lg:w-auto">
                 <TabsTrigger value="dashboard" className="flex items-center gap-2">
@@ -75,8 +79,35 @@ export default function BillingLayout({
           </div>
         </div>
       )}
-      
+
       <main className="container mx-auto">
+        {/* Breadcrumb — only on subscription detail page */}
+        {!showTabs && (
+          <div className="px-4 pt-4 flex items-center gap-1">
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Dashboard
+            </Link>
+            <span className="text-muted-foreground text-sm">/</span>
+            <Link
+              href="/billing"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Billing
+            </Link>
+            <span className="text-muted-foreground text-sm">/</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push('/billing/subscriptions')}
+            >
+              Subscriptions
+            </Button>
+          </div>
+        )}
         {children}
       </main>
     </div>

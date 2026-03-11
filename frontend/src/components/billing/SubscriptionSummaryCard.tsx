@@ -5,15 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  CreditCard, 
-  Calendar, 
-  TrendingUp, 
-  AlertCircle,
-  CheckCircle2,
-  Crown,
-  Zap
-} from 'lucide-react';
+import { CreditCard, Calendar, TrendingUp, AlertCircle, CheckCircle2, Crown, Zap } from 'lucide-react';
 import Link from 'next/link';
 import type { UserSubscription } from '@/types/billing.types';
 import { format } from 'date-fns';

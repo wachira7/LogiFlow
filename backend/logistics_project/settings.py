@@ -448,7 +448,7 @@ SUPPORTED_CRYPTOCURRENCIES = [
 
 
 # Currency Conversion Configuration
-EXCHANGE_RATE_API_KEY = os.getenv('EXCHANGE_RATE_API_KEY', None)  # Optional - uses free API if not set
+EXCHANGE_RATE_API_KEY = os.getenv('EXCHANGE_RATE_API_KEY', None)  
 
 # Default Exchange Rates (fallback if API fails)
 DEFAULT_EXCHANGE_RATES = {
