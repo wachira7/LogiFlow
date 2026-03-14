@@ -3,7 +3,6 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-//import { PrivateRoute } from '@/components/auth/AuthGuard'
 import { usePlatformAdmin } from '@/hooks/usePlatformAdmin'
 import { SubscriptionOverview } from '@/components/platform-admin/SubscriptionOverview'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

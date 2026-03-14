@@ -211,8 +211,8 @@ def validate_crypto_amount(value, currency='BTC'):
     
     # Set decimal precision based on currency
     max_decimals = {
-        'BTC': 8, 'ETH': 18, 'LTC': 8, 'XRP': 6,
-        'USDT': 6, 'USDC': 6, 'ADA': 6, 'DOT': 10
+        'BTC': 8, 'ETH': 10, 'LTC': 8, 'XRP': 6,
+        'USDT': 8, 'USDC': 6, 'ADA': 6, 'DOT': 10
     }
     
     precision = max_decimals.get(currency.upper(), 8)
@@ -288,11 +288,18 @@ def validate_tax_id(value, country='US'):
     """
     if not value:
         return value  # Optional field
-    
+
     patterns = {
         'US': r'^\d{2}-\d{7}$',  # EIN format
         'KE': r'^[A-Z]\d{9}[A-Z]$',  # KRA PIN
-        'GB': r'^\d{10}$',  # UK UTR
+        'GB': r'^\d{10}$',
+        'UK': r'^\d{2} \d{3} \d{3} \d{2}$', # UK UTR
+        'DE': r'^\d{9}$',
+        'FR': r'^\d{11}$',
+        'IN': r'^[A-Z]{5}\d{4}[A-Z]$',  # PAN format
+        'ES': r'^\d{9}$',
+        'IT': r'^\d{11}$',
+        'CA': r'^\d{9}$',
     }
     
     pattern = patterns.get(country.upper())

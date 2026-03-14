@@ -3,7 +3,6 @@
 
 import { useEffect } from 'react'
 import Link from 'next/link'
-//import { PrivateRoute } from '@/components/auth/AuthGuard'
 import { usePlatformAdmin } from '@/hooks/usePlatformAdmin'
 import { PlatformSettings } from '@/components/platform-admin/PlatformSettings'
 import { AuditLogViewer } from '@/components/platform-admin/AuditLogViewer'

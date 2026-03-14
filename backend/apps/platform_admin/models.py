@@ -131,6 +131,8 @@ class PlatformNotification(TimeStampedModel):
     is_active = models.BooleanField(default=True)
     scheduled_for = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
+    is_sent = models.BooleanField(default=False)
+    sent_at = models.DateTimeField(null=True, blank=True)
     created_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True)
     
     class Meta:

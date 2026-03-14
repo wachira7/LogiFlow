@@ -165,8 +165,8 @@ export function PlatformAnalyticsComponent({ analytics, isLoading }: PlatformAna
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {analytics.monthly_revenue.slice(-6).map((item) => (
-              <div key={item.month} className="flex items-center justify-between">
+            {analytics.monthly_revenue.slice(-6).map((item, index) => (
+              <div key={`${item.month}-${index}`} className="flex items-center justify-between">
                 <span className="text-sm font-medium">{item.month}</span>
                 <div className="flex items-center space-x-3">
                   <div className="w-48 bg-gray-200 rounded-full h-2">

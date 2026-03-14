@@ -1,4 +1,4 @@
-// src/middleware.ts - FIXED VERSION
+// src/middleware.ts 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -16,7 +16,7 @@ const publicRoutes = [
   '/about',
 ]
 
-// ✅ PROTECTED ROUTES - Auth required (regular users)
+// PROTECTED ROUTES - Auth required (regular users)
 const protectedRoutes = [
   '/dashboard',
   '/inventory',
@@ -30,7 +30,7 @@ const protectedRoutes = [
   '/company',
 ]
 
-// ✅ PLATFORM ADMIN ROUTES - Auth + platform admin role required
+//  PLATFORM ADMIN ROUTES - Auth + platform admin role required
 const platformAdminRoutes = [
   '/platform-admin',
 ]
@@ -125,7 +125,7 @@ export function middleware(request: NextRequest) {
     role: userData?.role
   })
 
-  // ✅ ALLOW PUBLIC ROUTES
+  // ALLOW PUBLIC ROUTES
   if (matchesRoute(pathname, publicRoutes)) {
     // Redirect authenticated users away from auth pages
     if (isAuthenticated && pathname.startsWith('/auth/')) {
@@ -137,7 +137,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // ✅ PLATFORM ADMIN ROUTES
+  // PLATFORM ADMIN ROUTES
   if (matchesRoute(pathname, platformAdminRoutes)) {
     console.log('🛡️ Platform Admin Route Check')
     
@@ -155,11 +155,11 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
-    console.log('✅ Platform admin authenticated - allowing access')
+    console.log('Platform admin authenticated - allowing access')
     return NextResponse.next()
   }
 
-  // ✅ PROTECTED ROUTES (Regular Users)
+  // PROTECTED ROUTES (Regular Users)
   if (matchesRoute(pathname, protectedRoutes)) {
     console.log('🏠 Protected Route Check')
     
@@ -172,7 +172,7 @@ export function middleware(request: NextRequest) {
       return response
     }
 
-    // ✅ REDIRECT PLATFORM ADMIN TO THEIR DASHBOARD
+    // REDIRECT PLATFORM ADMIN TO THEIR DASHBOARD
     if (userData?.isPlatformAdmin || userData?.role === 'platform_admin') {
       console.log('🚀 Platform admin accessing regular route - redirecting to /platform-admin')
       return NextResponse.redirect(new URL('/platform-admin', request.url))
@@ -182,7 +182,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // ✅ API ROUTES
+  // API ROUTES
   if (pathname.startsWith('/api/')) {
     const publicApiRoutes = [
       '/api/auth/login',
@@ -218,7 +218,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // ✅ STATIC FILES - Always allow
+  // STATIC FILES - Always allow
   if (
     pathname.startsWith('/_next/') ||
     pathname.startsWith('/static/') ||
@@ -227,7 +227,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // ✅ DEFAULT - For unknown routes
+  // DEFAULT - For unknown routes
   console.log('❓ Unknown route:', pathname)
   return NextResponse.next()
 }

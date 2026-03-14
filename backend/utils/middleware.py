@@ -247,7 +247,7 @@ class PerformanceMonitoringMiddleware(MiddlewareMixin):
                 'user_id': request.user.id if request.user.is_authenticated else None,
             }
             
-            # Example: Store in cache for batch processing
+            #  Store in cache for batch processing
             cache_key = f"performance_metrics_{timezone.now().strftime('%Y%m%d_%H')}"
             existing_metrics = cache.get(cache_key, [])
             existing_metrics.append(metrics)
@@ -287,6 +287,7 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
                 "img-src 'self' data: https:; "
                 "font-src 'self' https:; "
                 "connect-src 'self' https:;"
+                
             )
         
         # HTTPS enforcement (only in production)

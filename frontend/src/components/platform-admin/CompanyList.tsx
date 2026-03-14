@@ -13,6 +13,7 @@ import { Building2, MoreHorizontal, Search, Users, DollarSign, Activity, Ban, Ch
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import type { CompanyOverview, CompanyManagementData } from '@/types/platform.types'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
 
 interface CompanyListProps {
   companies: CompanyOverview[]
@@ -27,6 +28,7 @@ export function CompanyList({ companies, isLoading, onManageCompany, onRefresh }
   const [actionType, setActionType] = useState<'ACTIVATE' | 'SUSPEND' | 'DELETE' | 'RESET_TRIAL' | null>(null)
   const [reason, setReason] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
+  const router = useRouter()
 
   // Filter companies based on search
   const filteredCompanies = companies.filter(company =>
@@ -287,7 +289,9 @@ export function CompanyList({ companies, isLoading, onManageCompany, onRefresh }
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                               onClick={() => router.push(`/platform-admin/companies/${company.company_id}`)}
+                                >
                               <Eye className="w-4 h-4 mr-2" />
                               View Details
                             </DropdownMenuItem>

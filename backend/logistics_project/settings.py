@@ -69,7 +69,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'apps.tenants.middleware.CompanyTenantMiddleware',      
     'apps.tenants.middleware.TenantValidationMiddleware',
-    'apps.users.middleware.PlatformAdminProtectionMiddleware',  # new addition   
+    #'apps.users.middleware.PlatformAdminProtectionMiddleware',  # new addition   
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'utils.middleware.RequestLoggingMiddleware',

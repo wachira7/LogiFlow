@@ -132,6 +132,8 @@ export interface PlatformNotification {
   priority: NotificationPriority
   is_global: boolean
   is_active: boolean
+  is_sent: boolean
+  sent_at?: string
   scheduled_for?: string
   expires_at?: string
   created_by_email?: string

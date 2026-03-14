@@ -1,22 +1,76 @@
-// src/app/analytics/financial/page.tsx
+// src/app/platform-admin/financial/page.tsx
 'use client';
 
-import { useFinancialAnalytics } from '@/hooks/useAnalytics';
+import { useEffect } from 'react'
+import Link from 'next/link'
+import { usePlatformAdmin } from '@/hooks/usePlatformAdmin'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { DollarSign, TrendingUp, AlertTriangle, RefreshCw, CreditCard, Smartphone, Bitcoin, Users, Calendar, CheckCircle, XCircle, Clock, BarChart3 } from 'lucide-react';
+import { DollarSign, TrendingUp, AlertTriangle, RefreshCw, CreditCard, Smartphone, Bitcoin, Users, Calendar, CheckCircle, XCircle, Clock, BarChart3, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function FinancialAnalyticsPage() {
-  const { revenueReport, subscriptionsDashboard, loading, error, refetch } = useFinancialAnalytics();
+  const {
+    analytics,
+    companies,
+    isLoadingAnalytics,
+    isLoadingCompanies,
+    analyticsError,
+    fetchAnalytics,
+    fetchCompanies,
+  } = usePlatformAdmin()
+
+  useEffect(() => {
+    fetchAnalytics()
+    fetchCompanies()
+  }, [fetchAnalytics, fetchCompanies])
+
+  const loading = isLoadingAnalytics || isLoadingCompanies
+  const error = analyticsError
+
+  // Build the shape the rest of the page expects
+  const revenueReport = {
+    total_revenue: analytics?.total_revenue ?? 0,
+    transaction_count: 0, // not available from platform analytics endpoint
+    provider_revenue: { stripe: 0, mpesa: 0, crypto: 0 },
+    monthly_revenue: analytics?.monthly_revenue ?? [],
+  }
+
+  const subscriptionsDashboard = {
+    total_subscriptions: Object.values(analytics?.subscription_breakdown ?? {}).reduce((a, b) => a + b, 0),
+    active_subscriptions: analytics?.subscription_breakdown?.active ?? 0,
+    trial_subscriptions: analytics?.subscription_breakdown?.trialing ?? 0,
+    cancelled_subscriptions: analytics?.subscription_breakdown?.canceled ?? 0,
+    expired_subscriptions: analytics?.subscription_breakdown?.past_due ?? 0,
+    monthly_revenue: analytics ? analytics.total_revenue / 12 : 0,
+    total_revenue: analytics?.total_revenue ?? 0,
+    next_billing_date: null as string | null,
+  }
+
+   const stripePercentage = 0
+  const mpesaPercentage = 0
+  const cryptoPercentage = 0
+
+  const activeSubRate = subscriptionsDashboard.total_subscriptions > 0
+    ? Math.round((subscriptionsDashboard.active_subscriptions / subscriptionsDashboard.total_subscriptions) * 100)
+    : 0
+
+  const churnRate = subscriptionsDashboard.total_subscriptions > 0
+    ? Math.round((subscriptionsDashboard.cancelled_subscriptions / subscriptionsDashboard.total_subscriptions) * 100)
+    : 0
+
+  const highestRevenueMonth = revenueReport.monthly_revenue.reduce(
+    (max, month) => month.revenue > max.revenue ? month : max,
+    { month: '', revenue: 0 }
+  )
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner size="lg" />
+        <LoadingSpinner size="lg" text="Loading financial data..." />
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -24,51 +78,32 @@ export default function FinancialAnalyticsPage() {
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
         <AlertTriangle className="h-12 w-12 text-destructive" />
         <p className="text-lg text-muted-foreground">{error}</p>
-        <Button onClick={refetch} variant="outline">
+        <Button onClick={() => fetchAnalytics()} variant="outline">
           <RefreshCw className="h-4 w-4 mr-2" />
           Try Again
         </Button>
       </div>
-    );
+    )
   }
-
-  // Calculate percentages
-  const stripePercentage = revenueReport.total_revenue > 0
-    ? Math.round((revenueReport.provider_revenue.stripe / revenueReport.total_revenue) * 100)
-    : 0;
-
-  const mpesaPercentage = revenueReport.total_revenue > 0
-    ? Math.round((revenueReport.provider_revenue.mpesa / revenueReport.total_revenue) * 100)
-    : 0;
-
-  const cryptoPercentage = revenueReport.total_revenue > 0
-    ? Math.round((revenueReport.provider_revenue.crypto / revenueReport.total_revenue) * 100)
-    : 0;
-
-  const activeSubRate = subscriptionsDashboard.total_subscriptions > 0
-    ? Math.round((subscriptionsDashboard.active_subscriptions / subscriptionsDashboard.total_subscriptions) * 100)
-    : 0;
-
-  const churnRate = subscriptionsDashboard.total_subscriptions > 0
-    ? Math.round((subscriptionsDashboard.cancelled_subscriptions / subscriptionsDashboard.total_subscriptions) * 100)
-    : 0;
-
-  // Find highest revenue month
-  const highestRevenueMonth = revenueReport.monthly_revenue.reduce((max, month) => 
-    month.revenue > max.revenue ? month : max
-  , { month: '', revenue: 0 });
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Financial Analytics</h2>
-          <p className="text-muted-foreground">
-            Revenue, transactions, and subscription insights
-          </p>
+         <div className="flex items-center space-x-4">
+          <Link href="/platform-admin">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Financial Analytics</h2>
+            <p className="text-muted-foreground">
+              Revenue, transactions, and subscription insights
+            </p>
+          </div>
         </div>
-        <Button onClick={refetch} variant="outline" size="sm">
+        <Button onClick={() => fetchAnalytics()} variant="outline" size="sm">
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
@@ -434,6 +469,105 @@ export default function FinancialAnalyticsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Company Revenue Breakdown */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Users className="h-5 w-5" />
+              <CardTitle>Company Revenue Breakdown</CardTitle>
+            </div>
+            <Button
+              onClick={() => fetchCompanies()}
+              variant="outline"
+              size="sm"
+              disabled={isLoadingCompanies}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoadingCompanies ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoadingCompanies ? (
+            <div className="p-8">
+              <LoadingSpinner size="md" text="Loading companies..." />
+            </div>
+          ) : companies.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No company data available
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Summary bar */}
+              <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg mb-4">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Companies</p>
+                  <p className="text-2xl font-bold">{companies.length}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Total Users</p>
+                  <p className="text-2xl font-bold">
+                    {companies.reduce((sum, c) => sum + c.user_count, 0)}
+                  </p>
+                </div>
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">Combined Revenue</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    ${companies.reduce((sum, c) => sum + c.total_revenue, 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Per-company rows */}
+              {companies
+                .slice()
+                .sort((a, b) => b.total_revenue - a.total_revenue)
+                .map((company) => {
+                  const totalRevenue = companies.reduce((sum, c) => sum + c.total_revenue, 0)
+                  const revenueShare = totalRevenue > 0
+                    ? Math.round((company.total_revenue / totalRevenue) * 100)
+                    : 0
+
+                  return (
+                    <div key={company.company_id} className="p-4 rounded-lg border space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center">
+                            <Users className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{company.company_name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {company.user_count} user{company.user_count !== 1 ? 's' : ''} ·{' '}
+                              <span className={company.is_active ? 'text-green-600' : 'text-destructive'}>
+                                {company.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-green-600">
+                            ${company.total_revenue.toLocaleString()}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{revenueShare}% of total</p>
+                        </div>
+                      </div>
+                      {/* Revenue share bar */}
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div
+                          className="bg-primary h-2 rounded-full transition-all"
+                          style={{ width: `${revenueShare}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

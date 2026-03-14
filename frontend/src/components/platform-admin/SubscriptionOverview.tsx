@@ -4,17 +4,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { 
-  CreditCard, 
-  TrendingUp, 
-  Users, 
-  DollarSign,
-  Calendar,
-  CheckCircle,
-  Clock,
-  XCircle,
-  AlertCircle
-} from 'lucide-react'
+import { CreditCard, TrendingUp, Users, DollarSign, Calendar, CheckCircle, Clock, XCircle, AlertCircle } from 'lucide-react'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import type { PlatformAnalytics } from '@/types/platform.types'
 import { formatCurrency, formatNumber } from '@/lib/utils'

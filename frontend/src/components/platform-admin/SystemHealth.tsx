@@ -125,7 +125,7 @@ export function SystemHealth({
                   <Cpu className="w-5 h-5 text-blue-600" />
                   <span className="font-medium">CPU Usage</span>
                 </div>
-                <span className="text-2xl font-bold">{dashboard.cpu_usage.toFixed(1)}%</span>
+                <span className="text-2xl font-bold">{Number(dashboard.cpu_usage).toFixed(1)}%</span>
               </div>
               <Progress value={dashboard.cpu_usage} className="h-2" 
                 style={{ backgroundColor: getProgressColor(dashboard.cpu_usage) }}/>
@@ -143,7 +143,7 @@ export function SystemHealth({
                   <MemoryStick className="w-5 h-5 text-purple-600" />
                   <span className="font-medium">Memory</span>
                 </div>
-                <span className="text-2xl font-bold">{dashboard.memory_usage.toFixed(1)}%</span>
+                <span className="text-2xl font-bold">{Number(dashboard.memory_usage).toFixed(1)}%</span>
               </div>
               <Progress value={dashboard.memory_usage} className="h-2" 
                 style={{ backgroundColor: getProgressColor(dashboard.memory_usage) }}/>
@@ -161,7 +161,7 @@ export function SystemHealth({
                   <HardDrive className="w-5 h-5 text-orange-600" />
                   <span className="font-medium">Disk Space</span>
                 </div>
-                <span className="text-2xl font-bold">{dashboard.disk_usage.toFixed(1)}%</span>
+                <span className="text-2xl font-bold">{Number(dashboard.disk_usage).toFixed(1)}%</span>
               </div>
               <Progress value={dashboard.disk_usage} className="h-2" 
                 style={{ backgroundColor: getProgressColor(dashboard.disk_usage) }}/>
@@ -179,7 +179,7 @@ export function SystemHealth({
                   <Clock className="w-5 h-5 text-green-600" />
                   <span className="font-medium">Uptime</span>
                 </div>
-                <span className="text-2xl font-bold">{dashboard.uptime_percentage.toFixed(2)}%</span>
+                <span className="text-2xl font-bold">{Number(dashboard.uptime_percentage).toFixed(2)}%</span>
               </div>
               <Progress value={dashboard.uptime_percentage} className="h-2" />
               <p className="text-xs text-green-600 mt-2">Excellent</p>
@@ -209,7 +209,7 @@ export function SystemHealth({
                 <Clock className="w-8 h-8 text-purple-600" />
                 <div>
                   <p className="text-sm text-muted-foreground">Avg Response Time</p>
-                  <p className="text-2xl font-bold">{dashboard.response_time_avg.toFixed(0)}ms</p>
+                  <p className="text-2xl font-bold">{Number(dashboard.response_time_avg).toFixed(0)}ms</p>
                 </div>
               </div>
             </CardContent>
@@ -221,7 +221,7 @@ export function SystemHealth({
                 <AlertTriangle className="w-8 h-8 text-orange-600" />
                 <div>
                   <p className="text-sm text-muted-foreground">Error Rate</p>
-                  <p className="text-2xl font-bold">{dashboard.error_rate.toFixed(2)}%</p>
+                  <p className="text-2xl font-bold">{Number(dashboard.error_rate).toFixed(2)}%</p>
                 </div>
               </div>
             </CardContent>
@@ -260,7 +260,7 @@ export function SystemHealth({
                   </div>
                   <div className="text-right">
                     <p className="text-xl font-bold">
-                      {metric.metric_value.toFixed(2)} {metric.metric_unit}
+                      {Number(metric.metric_value).toFixed(2)} {metric.metric_unit}
                     </p>
                     {metric.threshold_critical && (
                       <p className="text-xs text-muted-foreground">

@@ -71,11 +71,13 @@ interface UsePlatformAdminReturn {
   createHealthMetric: (data: CreateHealthMetricData) => Promise<boolean>
   generateTestMetrics: () => Promise<boolean>
   
-  // Notification actions ✅ ADD THIS ENTIRE SECTION
+  // Notification actions
   fetchNotifications: (filters?: PlatformAdminFilters) => Promise<void>
   createNotification: (data: CreateNotificationData) => Promise<boolean>
   updateNotification: (id: string, data: Partial<CreateNotificationData>) => Promise<boolean>
   deleteNotification: (id: string) => Promise<boolean>
+  markNotificationSent: (id: string) => Promise<boolean>
+  sendNotificationNow: (id: string) => Promise<boolean>
 
   
   // Analytics actions
@@ -489,7 +491,42 @@ export function usePlatformAdmin(): UsePlatformAdminReturn {
       return false
     }
   }, [fetchNotifications, toast])
-  
+
+
+  const markNotificationSent = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const response = await PlatformAdminService.markNotificationSent(id)
+      if (response.success) {
+        await fetchNotifications()
+        toast({ title: 'Success', description: 'Notification marked as sent' })
+        return true
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: response.error || 'Failed to mark as sent' })
+        return false
+      }
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: error instanceof Error ? error.message : 'Failed to mark as sent' })
+      return false
+    }
+  }, [fetchNotifications, toast])
+
+  const sendNotificationNow = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const response = await PlatformAdminService.sendNotificationNow(id)
+      if (response.success) {
+        await fetchNotifications()
+        toast({ title: 'Success', description: response.data?.message || 'Notification sent successfully' })
+        return true
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: response.error || 'Failed to send notification' })
+        return false
+      }
+    } catch (error) {
+      toast({ variant: 'destructive', title: 'Error', description: error instanceof Error ? error.message : 'Failed to send notification' })
+      return false
+    }
+  }, [fetchNotifications, toast])
+    
   // ============================================
   // ANALYTICS ACTIONS
   // ============================================
@@ -640,6 +677,8 @@ export function usePlatformAdmin(): UsePlatformAdminReturn {
     createNotification,
     updateNotification,
     deleteNotification,
+    markNotificationSent,
+    sendNotificationNow,
     
     // Utils
     refreshAll,

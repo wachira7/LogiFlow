@@ -228,71 +228,56 @@ export class AuthService {
   /**
    * Verify if user is authenticated
    */
-  static async verifyAuth(): Promise<ApiResponse<User>> {
+ static async verifyAuth(): Promise<ApiResponse<User>> {
     try {
       if (!TokenManager.isAuthenticated()) {
-        return {
-          success: false,
-          error: 'Not authenticated',
-          status: 401,
-        }
+        return { success: false, error: 'Not authenticated', status: 401 }
       }
 
       if (TokenManager.needsRefresh()) {
         const refreshResult = await this.refreshToken()
         if (!refreshResult.success) {
-          return {
-            success: false,
-            error: 'Authentication expired',
-            status: 401,
-          }
+          return { success: false, error: 'Authentication expired', status: 401 }
         }
       }
 
+      //Use stored user — preserves is_platform_admin, all roles, company data
+      const storedUser = TokenManager.getUser()
+      if (storedUser) {
+        return { success: true, data: storedUser, status: 200 }
+      }
+
+      //Fallback: profile endpoint (only hits if localStorage was cleared)
       const profileResponse = await this.getProfile()
-      
       if (profileResponse.success && profileResponse.data) {
         return {
           success: true,
           data: {
-            id: profileResponse.data.id,
-            email: profileResponse.data.email,
-            first_name: profileResponse.data.first_name,
-            last_name: profileResponse.data.last_name,
+            ...profileResponse.data,
             full_name: `${profileResponse.data.first_name} ${profileResponse.data.last_name}`,
-            phone_number: profileResponse.data.phone_number,
-            profile_picture: profileResponse.data.profile_picture,
-            company_id: 'temp_company_id',
-            company_name: 'Company Name',
+            company_id: '',
+            company_name: '',
             is_active: true,
+            is_platform_admin: false,
             is_company_owner: false,
             is_warehouse_manager: false,
             is_production_manager: false,
             is_logistics_coordinator: false,
             is_inventory_manager: false,
             is_driver: false,
+            role: 'user',
             date_joined: new Date().toISOString(),
-            last_login: undefined,
             name: `${profileResponse.data.first_name} ${profileResponse.data.last_name}`,
             avatar: profileResponse.data.profile_picture,
-            role: 'user',
           } as User,
           status: 200,
         }
       }
 
-      return {
-        success: false,
-        error: 'Failed to verify authentication',
-        status: 401,
-      }
+      return { success: false, error: 'Failed to verify authentication', status: 401 }
     } catch (error) {
       console.error('Auth verification failed:', error)
-      return {
-        success: false,
-        error: 'Authentication verification failed',
-        status: 500,
-      }
+      return { success: false, error: 'Authentication verification failed', status: 500 }
     }
   }
 

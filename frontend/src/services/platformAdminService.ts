@@ -339,6 +339,44 @@ export class PlatformAdminService {
     }
   }
 
+    /**
+   * Mark notification as sent
+   */
+  static async markNotificationSent(id: string): Promise<ApiResponse<{ message: string; sent_at: string }>> {
+    try {
+      const response = await api.post<{ message: string; sent_at: string }>(
+        `/api/v1/platform-admin/notifications/${id}/mark_sent/`,
+        {}
+      )
+      return response
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to mark notification as sent',
+        status: 500,
+      }
+    }
+  }
+
+  /**
+   * Send notification immediately
+   */
+  static async sendNotificationNow(id: string): Promise<ApiResponse<{ message: string; sent_at: string }>> {
+    try {
+      const response = await api.post<{ message: string; sent_at: string }>(
+        `/api/v1/platform-admin/notifications/${id}/send_now/`,
+        {}
+      )
+      return response
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to send notification',
+        status: 500,
+      }
+    }
+  }
+
   // ============================================
   // PLATFORM ANALYTICS
   // ============================================

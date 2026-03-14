@@ -6,32 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { 
-  Shield, 
-  Search, 
-  Filter,
-  RefreshCw,
-  Download,
-  Eye,
-  User,
-  Building2,
-  Clock
-} from 'lucide-react'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Shield, Search, Filter, RefreshCw, Download, Eye, User, Building2, Clock } from 'lucide-react'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import type { PlatformAuditLog, SecurityReport } from '@/types/platform.types'
 import { AUDIT_ACTIONS } from '@/types/platform.types'

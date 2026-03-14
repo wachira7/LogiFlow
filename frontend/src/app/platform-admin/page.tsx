@@ -1,4 +1,4 @@
-// app/platform-admin/page.tsx - FIXED VERSION
+// app/platform-admin/page.tsx 
 'use client'
 
 import { useEffect } from 'react'
@@ -32,7 +32,7 @@ function PlatformAdminDashboard() {
     generateTestMetrics,
   } = usePlatformAdmin()
 
-  // ✅ SINGLE AUTH CHECK - Only redirect if NOT platform admin
+  //SINGLE AUTH CHECK - Only redirect if NOT platform admin
   useEffect(() => {
     console.log('🔐 Platform Admin Page - Auth Check')
     console.log('Auth Loading:', authLoading)
@@ -49,12 +49,12 @@ function PlatformAdminDashboard() {
         console.log('❌ Not platform admin - redirecting to dashboard')
         router.push('/dashboard')
       } else {
-        console.log('✅ Platform admin authenticated - staying on page')
+        console.log(' Platform admin authenticated - staying on page')
       }
     }
   }, [authLoading, isAuthenticated, user, router])
 
-  // ✅ FETCH DATA only when user is confirmed platform admin
+  // FETCH DATA only when user is confirmed platform admin
   useEffect(() => {
     if (user?.is_platform_admin || user?.role === 'platform_admin') {
       console.log('📊 Fetching platform admin data...')
@@ -64,7 +64,7 @@ function PlatformAdminDashboard() {
     }
   }, [user, fetchAnalytics, fetchHealthDashboard, fetchHealthMetrics])
 
-  // ✅ LOADING STATE
+  // LOADING STATE
   if (authLoading) {
     return (
       <div className="container mx-auto py-6">
