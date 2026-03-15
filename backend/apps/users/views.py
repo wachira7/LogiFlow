@@ -19,8 +19,9 @@ from .serializers import (
     UserSerializer, RegisterSerializer, LoginSerializer,
     ChangePasswordSerializer, ProfileUpdateSerializer, InviteUserSerializer
 )
-from .models import User
+from .models import User, UserNotificationPreferences
 from utils.permissions import IsCompanyOwnerOrAdmin, IsCompanyMember
+from django.db import models
 
 
 def get_tokens_for_user(user):
@@ -377,6 +378,34 @@ class CustomTokenRefreshView(TokenRefreshView):
             set_auth_cookies(response, tokens)
         
         return response
+
+class NotificationPreferencesView(generics.RetrieveUpdateAPIView):
+    """Get and update notification preferences for the authenticated user."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        from .serializers import UserNotificationPreferencesSerializer
+        return UserNotificationPreferencesSerializer
+
+    def get_object(self):
+        prefs, _ = UserNotificationPreferences.objects.get_or_create(
+            user=self.request.user
+        )
+        return prefs
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', True)
+        instance = self.get_object()
+        from .serializers import UserNotificationPreferencesSerializer
+        serializer = UserNotificationPreferencesSerializer(
+            instance, data=request.data, partial=partial
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({
+            'preferences': serializer.data,
+            'message': 'Notification preferences updated successfully'
+        })
     
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
@@ -529,3 +558,34 @@ def dashboard_overview(request):
     }
     
     return Response(data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def get_platform_notifications(request):
+    """
+    Returns active platform notifications for the current user.
+    Global notifications are shown to all users.
+    Company-specific notifications are shown to users of that company.
+    """
+    from apps.platform_admin.models import PlatformNotification
+
+    notifications = PlatformNotification.objects.filter(
+        is_active=True,
+    ).filter(
+        models.Q(is_global=True) |
+        models.Q(target_companies=request.user.company)
+    ).distinct().order_by('-created_at')[:20]
+
+    data = [
+        {
+            'id': str(n.id),
+            'title': n.title,
+            'message': n.message,
+            'notification_type': n.notification_type,
+            'priority': n.priority,
+            'created_at': n.created_at,
+        }
+        for n in notifications
+    ]
+
+    return Response(data)    

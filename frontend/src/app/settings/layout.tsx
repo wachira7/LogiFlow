@@ -78,7 +78,7 @@ export default function SettingsLayout({
                           : 'text-muted-foreground'
                       )}
                     >
-                      <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                      <Icon className="w-5 h-5 mt-0.5 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium">{item.name}</p>
                         <p className="text-xs text-muted-foreground">

@@ -112,3 +112,36 @@ class User(AbstractUser):
             return 'driver'
         else:
             return 'user'
+
+class UserNotificationPreferences(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notification_preferences'
+    )
+    
+    # Email
+    email_order_updates = models.BooleanField(default=True)
+    email_inventory_alerts = models.BooleanField(default=True)
+    email_shipment_updates = models.BooleanField(default=True)
+    email_payment_confirmations = models.BooleanField(default=True)
+    email_team_invitations = models.BooleanField(default=True)
+    email_system_updates = models.BooleanField(default=False)
+    
+    # SMS
+    sms_critical_alerts = models.BooleanField(default=True)
+    sms_order_confirmations = models.BooleanField(default=False)
+    sms_delivery_updates = models.BooleanField(default=False)
+    
+    # Push
+    push_enabled = models.BooleanField(default=False)
+    push_order_updates = models.BooleanField(default=False)
+    push_inventory_alerts = models.BooleanField(default=False)
+    
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'user_notification_preferences'
+
+    def __str__(self):
+        return f"Notification preferences for {self.user.email}"

@@ -1,7 +1,9 @@
-// components/layout/Navbar.tsx - with AuthContext integration and Sidebar support
+// components/layout/Navbar.tsx 
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuth, useAuthUtils } from "@/hooks/useAuth"; 
+import { NotificationBell } from '@/components/shared/NotificationBell'
 import { Button } from "@/components/ui/button";
 import { Menu, X, User, LogOut, Settings, Building, ChevronDown } from "lucide-react";
 import { gsap } from "gsap";
@@ -10,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Image from "next/image";
 import Link from "next/link";
-import { useAuth, useAuthUtils } from "@/hooks/useAuth"; 
+
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -155,7 +157,7 @@ export function Navbar({ onMenuClick, sidebarCollapsed }: NavbarProps = {}) {
           {/* Desktop Right Side */}
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
-
+            {isAuthenticated && <NotificationBell />}
             {isLoading ? (
               <div className="w-8 h-8 bg-muted animate-pulse rounded-full" />
             ) : isAuthenticated && user ? (
@@ -242,7 +244,7 @@ export function Navbar({ onMenuClick, sidebarCollapsed }: NavbarProps = {}) {
           {/* Mobile menu button - Updated for dashboard sidebar */}
           <div className="md:hidden flex items-center space-x-2">
             <ThemeToggle />
-
+            {isAuthenticated && <NotificationBell />}
             {/* Dashboard sidebar menu button - only show when authenticated and onMenuClick is provided */}
             {isAuthenticated && onMenuClick && (
               <Button

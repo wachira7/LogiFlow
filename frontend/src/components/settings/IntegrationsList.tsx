@@ -1,4 +1,4 @@
-// components/settings/IntegrationsList.tsx - TYPESCRIPT FIXED VERSION
+// components/settings/IntegrationsList.tsx 
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
@@ -14,7 +14,7 @@ import { CreditCard, Smartphone, Bitcoin, Key, Webhook, ExternalLink, Copy, Chec
 import { SettingsCard } from './SettingsCard'
 import { api } from '@/services/api'
 
-// ✅ Proper type definitions
+// Proper type definitions
 type IntegrationStatusType = 'active' | 'inactive' | 'error'
 
 interface IntegrationState {
@@ -147,9 +147,9 @@ export function IntegrationsList() {
   
   // ✅ Properly typed state
   const [integrations, setIntegrations] = useState<IntegrationsState>({
-    stripe: { connected: false, status: 'inactive', message: '' },
-    mpesa: { connected: false, status: 'inactive', message: '' },
-    crypto: { connected: false, status: 'inactive', message: '' },
+    stripe: { connected: false, status: 'active', message: 'Configured via platform settings' },
+    mpesa: { connected: false, status: 'active', message: 'Configured via platform settings' },
+    crypto: { connected: false, status: 'active', message: 'Configured via platform settings' },
   })
   
   const [testing, setTesting] = useState<TestingState>({

@@ -1,12 +1,10 @@
 // app/settings/general/page.tsx
 'use client'
 
-import { PrivateRoute } from '@/components/auth/AuthGuard'
 import { GeneralSettingsForm } from '@/components/settings/GeneralSettingsForm'
 
 export default function GeneralSettingsPage() {
   return (
-    <PrivateRoute>
       <div>
         <div className="mb-6">
           <h2 className="text-2xl font-bold">General Settings</h2>
@@ -17,6 +15,6 @@ export default function GeneralSettingsPage() {
         
         <GeneralSettingsForm />
       </div>
-    </PrivateRoute>
+    
   )
 }

@@ -5,7 +5,7 @@ from django.contrib.auth.password_validation import validate_password
 
 from rest_framework_simplejwt.tokens import RefreshToken
 import uuid
-from .models import User
+from .models import User, UserNotificationPreferences
 from apps.tenants.models import Company, CompanyInvitation
 
 class UserSerializer(serializers.ModelSerializer):
@@ -274,3 +274,8 @@ def _send_invitation_email(self, invitation):
         # You might want to set a flag on the invitation model
         # invitation.email_sent = False
         # invitation.save()
+
+class UserNotificationPreferencesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserNotificationPreferences
+        exclude = ['id', 'user', 'updated_at']

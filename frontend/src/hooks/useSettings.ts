@@ -1,4 +1,3 @@
-// hooks/useSettings.ts
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
@@ -12,24 +11,18 @@ import type {
 } from '@/types/settings.types'
 
 const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
-  email_notifications: {
-    order_updates: true,
-    inventory_alerts: true,
-    shipment_updates: true,
-    payment_confirmations: true,
-    team_invitations: true,
-    system_updates: false,
-  },
-  sms_notifications: {
-    critical_alerts: true,
-    order_confirmations: false,
-    delivery_updates: false,
-  },
-  push_notifications: {
-    enabled: false,
-    order_updates: false,
-    inventory_alerts: false,
-  },
+  email_order_updates: true,
+  email_inventory_alerts: true,
+  email_shipment_updates: true,
+  email_payment_confirmations: true,
+  email_team_invitations: true,
+  email_system_updates: false,
+  sms_critical_alerts: true,
+  sms_order_confirmations: false,
+  sms_delivery_updates: false,
+  push_enabled: false,
+  push_order_updates: false,
+  push_inventory_alerts: false,
 }
 
 export function useSettings() {
@@ -38,11 +31,13 @@ export function useSettings() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [generalSettings, setGeneralSettings] = useState<GeneralSettings | null>(null)
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreferences>(DEFAULT_NOTIFICATION_PREFERENCES)
+  const [isLoadingPreferences, setIsLoadingPreferences] = useState(false)
 
   // Load general settings from user data
   useEffect(() => {
     if (user) {
-      const settings: GeneralSettings = {
+      setGeneralSettings({
         first_name: user.first_name || '',
         last_name: user.last_name || '',
         email: user.email || '',
@@ -53,42 +48,41 @@ export function useSettings() {
         language: 'en',
         date_format: 'MM/DD/YYYY',
         currency: 'USD',
-      }
-      setGeneralSettings(settings)
+      })
     }
   }, [user])
+
+  // Fetch notification preferences from backend
+  const fetchNotificationPreferences = useCallback(async (): Promise<void> => {
+    setIsLoadingPreferences(true)
+    try {
+      const response = await api.get<NotificationPreferences>('/api/v1/auth/notification-preferences/')
+      if (response.success && response.data) {
+        setNotificationPreferences(response.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch notification preferences:', error)
+    } finally {
+      setIsLoadingPreferences(false)
+    }
+  }, [])
+
+  // Auto-fetch preferences on mount
+  useEffect(() => {
+    if (user) {
+      fetchNotificationPreferences()
+    }
+  }, [user, fetchNotificationPreferences])
 
   // Get general settings
   const getGeneralSettings = useCallback((): GeneralSettings | null => {
     return generalSettings
   }, [generalSettings])
 
-  // Get notification preferences from localStorage
+  // Get notification preferences
   const getNotificationPreferences = useCallback((): NotificationPreferences => {
-    if (typeof window === 'undefined') return DEFAULT_NOTIFICATION_PREFERENCES
-    
-    try {
-      const stored = localStorage.getItem('notificationPreferences')
-      if (stored) {
-        return JSON.parse(stored)
-      }
-    } catch (error) {
-      console.error('Failed to load notification preferences:', error)
-    }
-    
-    return DEFAULT_NOTIFICATION_PREFERENCES
-  }, [])
-
-  // Save notification preferences to localStorage
-  const saveNotificationPreferences = useCallback((preferences: NotificationPreferences): boolean => {
-    try {
-      localStorage.setItem('notificationPreferences', JSON.stringify(preferences))
-      return true
-    } catch (error) {
-      console.error('Failed to save notification preferences:', error)
-      return false
-    }
-  }, [])
+    return notificationPreferences
+  }, [notificationPreferences])
 
   // Update general settings
   const updateGeneralSettings = useCallback(async (updates: UpdateGeneralSettingsRequest): Promise<boolean> => {
@@ -108,8 +102,7 @@ export function useSettings() {
         return false
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update settings'
-      setError(message)
+      setError(error instanceof Error ? error.message : 'Failed to update settings')
       return false
     } finally {
       setIsLoading(false)
@@ -123,24 +116,26 @@ export function useSettings() {
     setSuccess(null)
 
     try {
-      // Save to localStorage (since we don't have backend endpoint yet)
-      const saved = saveNotificationPreferences(preferences)
-      
-      if (saved) {
+      const response = await api.patch<NotificationPreferences>(
+        '/api/v1/auth/notification-preferences/',
+        preferences
+      )
+
+      if (response.success && response.data) {
+        setNotificationPreferences(response.data)
         setSuccess('Notification preferences updated successfully')
         return true
       } else {
-        setError('Failed to save notification preferences')
+        setError(response.error || 'Failed to update notification preferences')
         return false
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to update preferences'
-      setError(message)
+      setError(error instanceof Error ? error.message : 'Failed to update preferences')
       return false
     } finally {
       setIsLoading(false)
     }
-  }, [saveNotificationPreferences])
+  }, [])
 
   // Change password
   const changePassword = useCallback(async (request: ChangePasswordRequest): Promise<boolean> => {
@@ -163,8 +158,7 @@ export function useSettings() {
         return false
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to change password'
-      setError(message)
+      setError(error instanceof Error ? error.message : 'Failed to change password')
       return false
     } finally {
       setIsLoading(false)
@@ -189,8 +183,7 @@ export function useSettings() {
         return false
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to upload avatar'
-      setError(message)
+      setError(error instanceof Error ? error.message : 'Failed to upload avatar')
       return false
     } finally {
       setIsLoading(false)
@@ -207,17 +200,20 @@ export function useSettings() {
     // State
     user,
     isLoading,
+    isLoadingPreferences,
     error,
     success,
     generalSettings,
+    notificationPreferences,
 
     // Actions
     getGeneralSettings,
+    getNotificationPreferences,
+    fetchNotificationPreferences,
     updateGeneralSettings,
     updateNotificationPreferences,
     changePassword,
     uploadAvatar,
-    getNotificationPreferences,
     clearMessages,
   }
 }

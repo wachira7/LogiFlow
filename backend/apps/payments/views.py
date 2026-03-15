@@ -27,7 +27,7 @@ from .serializers import (
     PaymentTransactionSerializer, PaymentMethodSerializer
 )
 from utils.mixins import TenantViewSetMixin, BulkActionMixin
-from utils.permissions import IsCompanyMember, IsSameCompany
+from utils.permissions import IsCompanyMember, IsSameCompany, IsPlatformAdmin
 from .providers.mpesa import MPesaService
 from .providers.crypto import CryptoService
 import stripe 
@@ -622,7 +622,7 @@ def stripe_checkout_success(request):
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
 @api_view(['GET'])
-@api_permission_classes([IsAuthenticated])
+@api_permission_classes([IsAuthenticated, IsPlatformAdmin])
 def test_stripe_connection(request):
         """Test Stripe API connection."""
         try:
@@ -654,7 +654,7 @@ def test_stripe_connection(request):
         
 
 @api_view(['GET'])
-@api_permission_classes([IsAuthenticated])
+@api_permission_classes([IsAuthenticated, IsPlatformAdmin])
 def test_mpesa_connection(request):
     """Test M-Pesa API connection."""
     try:
@@ -1075,7 +1075,7 @@ def check_crypto_status(request):
 
 
 @api_view(['GET'])
-@api_permission_classes([IsAuthenticated])
+@api_permission_classes([IsAuthenticated, IsPlatformAdmin])
 def test_crypto_connection(request):
     """
     IMPROVED: Test Crypto API connection with better feedback.

@@ -4,7 +4,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     RegisterView, LoginView, logout_view, ProfileView,
     ChangePasswordView, InviteUserView, CompanyUsersView,
-    dashboard_overview, upload_avatar
+    dashboard_overview, upload_avatar, NotificationPreferencesView,
+    get_platform_notifications
 )
 
 urlpatterns = [
@@ -26,4 +27,10 @@ urlpatterns = [
 
      # Dashboard
     path('dashboard/overview/', dashboard_overview, name='dashboard_overview'),
+
+    # Notification Preferences
+    path('notification-preferences/', NotificationPreferencesView.as_view(), name='notification_preferences'),
+
+    # Platform Notifications
+    path('platform-notifications/', get_platform_notifications, name='platform_notifications'),
 ]

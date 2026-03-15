@@ -32,25 +32,25 @@ export interface SecuritySettings {
 }
 
 export interface NotificationPreferences {
-  email_notifications: {
-    order_updates: boolean
-    inventory_alerts: boolean
-    shipment_updates: boolean
-    payment_confirmations: boolean
-    team_invitations: boolean
-    system_updates: boolean
+  // Email
+  email_order_updates: boolean
+  email_inventory_alerts: boolean
+  email_shipment_updates: boolean
+  email_payment_confirmations: boolean
+  email_team_invitations: boolean
+  email_system_updates: boolean
+  
+  // SMS
+  sms_critical_alerts: boolean
+  sms_order_confirmations: boolean
+  sms_delivery_updates: boolean
+  
+  // Push
+  push_enabled: boolean
+  push_order_updates: boolean
+  push_inventory_alerts: boolean
   }
-  sms_notifications: {
-    critical_alerts: boolean
-    order_confirmations: boolean
-    delivery_updates: boolean
-  }
-  push_notifications: {
-    enabled: boolean
-    order_updates: boolean
-    inventory_alerts: boolean
-  }
-}
+
 
 export interface Integration {
   id: string
@@ -124,10 +124,7 @@ export interface ChangePasswordRequest {
   new_password_confirm: string
 }
 
-export interface UpdateNotificationPreferencesRequest {
-  preferences: NotificationPreferences
-}
-
+export type UpdateNotificationPreferencesRequest = Partial<NotificationPreferences> 
 export interface CreateAPIKeyRequest {
   name: string
   permissions: string[]
