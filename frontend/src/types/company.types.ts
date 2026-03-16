@@ -20,7 +20,7 @@ export interface Company {
   timezone: string                
   created_at: string
   updated_at: string
-  users_count: number  // Also note: change user_count to users_count in CompanyProfile.tsx line 313
+  users_count: number  
   subscription_status?: 'active' | 'inactive' | 'trial' | 'suspended'
   subscription_plan?: string     
   is_active: boolean              
@@ -70,11 +70,7 @@ export interface Invitation {
   email: string
   role: UserRole
   status: InvitationStatus
-  invited_by: {
-    id: string
-    name: string
-    email: string
-  }
+  invited_by_name: string        
   company_name: string
   created_at: string
   expires_at: string
@@ -196,6 +192,12 @@ export const INDUSTRIES = [
   'Pharmaceuticals',
   'Construction',
   'Agriculture',
+  'Logistics & Transportation',
+  'Real Estate',
+  'Energy',
+  'Government',
+  'Non-Profit',
+  'Media & Entertainment',  
   'Other'
 ] as const
 

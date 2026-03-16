@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { PrivateRoute } from '@/components/auth/AuthGuard'
 import { CompanySettings } from '@/components/company/CompanySettings'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -317,9 +316,5 @@ function CompanySettingsContent() {
 }
 
 export default function CompanySettingsPage() {
-  return (
-    <PrivateRoute>
-      <CompanySettingsContent />
-    </PrivateRoute>
-  )
+  return <CompanySettingsContent />
 }

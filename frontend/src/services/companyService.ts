@@ -1,14 +1,7 @@
 // frontend/src/services/companyService.ts
 import { api } from './api'
 import type { ApiResponse } from './api'
-import type { 
-  Company, 
-  Invitation, 
-  CompanySettings, 
-  AuditLog,
-  CreateInvitationData,
-  UpdateCompanyData 
-} from '@/types/company.types'
+import type { Company, Invitation, CompanySettings, AuditLog, CreateInvitationData, UpdateCompanyData } from '@/types/company.types'
 
 export class CompanyService {
   /**
@@ -90,7 +83,9 @@ export class CompanyService {
    */
   static async createInvitation(data: CreateInvitationData): Promise<ApiResponse<Invitation>> {
     try {
-      const response = await api.post<Invitation>('/api/v1/tenants/invitations/', data)
+      const { message, ...payload } = data
+      console.log('Message:', message)  
+      const response = await api.post<Invitation>('/api/v1/tenants/invitations/', payload)
       return response
     } catch (error) {
       console.error('Failed to create invitation:', error)

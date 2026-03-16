@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { PrivateRoute } from '@/components/auth/AuthGuard'
 import { UserInvitations } from '@/components/company/UserInvitations'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { CompanyService } from '@/services/companyService'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Users, Settings, UserPlus, Building, Mail, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Users, Settings, Building, Mail, Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import type { Company, Invitation } from '@/types/company.types'
 
 function CompanyUsersContent() {
@@ -94,10 +93,6 @@ function CompanyUsersContent() {
         
         {/* Quick actions */}
         <div className="flex space-x-2">
-          <Button>
-            <UserPlus className="w-4 h-4 mr-2" />
-            Invite Team Member
-          </Button>
           <Link href="/company/profile">
             <Button variant="outline" size="sm">
               <Building className="w-4 h-4 mr-2" />
@@ -246,9 +241,5 @@ function CompanyUsersContent() {
 }
 
 export default function CompanyUsersPage() {
-  return (
-    <PrivateRoute>
-      <CompanyUsersContent />
-    </PrivateRoute>
-  )
+  return <CompanyUsersContent/>
 }

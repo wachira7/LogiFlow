@@ -167,7 +167,7 @@ export function Navbar({ onMenuClick, sidebarCollapsed }: NavbarProps = {}) {
                   <Button variant="ghost" className="relative h-10 w-auto px-2">
                     <div className="flex items-center space-x-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar} alt={user.name || user.first_name} />
+                        <AvatarImage src={user.profile_picture || user.avatar || undefined} alt={user.name || user.first_name} />
                         <AvatarFallback className="text-xs">
                           {getUserInitials()}
                         </AvatarFallback>
@@ -276,7 +276,7 @@ export function Navbar({ onMenuClick, sidebarCollapsed }: NavbarProps = {}) {
             {/* Mobile user avatar */}
             {isAuthenticated && user && (
               <Avatar className="h-8 w-8">
-                <AvatarImage src={user.avatar} alt={user.name || user.first_name} />
+                <AvatarImage src={user.profile_picture || user.avatar || undefined} alt={user.name || user.first_name} />
                 <AvatarFallback className="text-xs">
                   {getUserInitials()}
                 </AvatarFallback>

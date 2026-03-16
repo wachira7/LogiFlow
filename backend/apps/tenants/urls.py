@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     CompanyDetailView, upload_company_logo, CompanyInvitationsView, 
     accept_invitation, resend_invitation, revoke_invitation, 
-    CompanySettingsView, AuditLogView
+    CompanySettingsView, AuditLogView, validate_invitation_token
 )
 
 urlpatterns = [
@@ -16,6 +16,7 @@ urlpatterns = [
     path('invitations/accept/', accept_invitation, name='accept-invitation'),
     path('invitations/<uuid:invitation_id>/resend/', resend_invitation, name='resend-invitation'),
     path('invitations/<uuid:invitation_id>/revoke/', revoke_invitation, name='revoke-invitation'),
+    path('invitations/validate/', validate_invitation_token, name='validate-invitation-token'),
     
     # Settings
     path('settings/', CompanySettingsView.as_view(), name='settings-list'),

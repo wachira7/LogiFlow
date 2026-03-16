@@ -32,5 +32,5 @@ urlpatterns = [
     path('notification-preferences/', NotificationPreferencesView.as_view(), name='notification_preferences'),
 
     # Platform Notifications
-    path('platform-notifications/', get_platform_notifications, name='platform_notifications'),
+    path('notifications/', get_platform_notifications, name='platform_notifications'),
 ]

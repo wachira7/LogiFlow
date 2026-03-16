@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 interface SidebarProps {
@@ -318,11 +319,12 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarP
           {!collapsed && (
             <div className="p-4 border-b">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
-                  <span className="text-sm font-medium text-primary-foreground">
+                 <Avatar className="w-10 h-10 shrink-0">
+                  <AvatarImage src={user?.profile_picture || user?.avatar || undefined} />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
                     {getUserDisplayName().split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </span>
-                </div>
+                  </AvatarFallback>
+                </Avatar>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{getUserDisplayName()}</p>
                   <p className="text-xs text-muted-foreground truncate">
@@ -339,11 +341,12 @@ export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarP
               <TooltipProvider>
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
-                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                      <span className="text-sm font-medium text-primary-foreground">
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={user?.profile_picture || user?.avatar || undefined} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
                         {getUserDisplayName().split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </span>
-                    </div>
+                      </AvatarFallback>
+                    </Avatar>
                   </TooltipTrigger>
                   <TooltipContent side="right">
                     <p className="font-medium">{getUserDisplayName()}</p>

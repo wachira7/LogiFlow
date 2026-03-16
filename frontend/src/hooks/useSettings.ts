@@ -9,6 +9,7 @@ import type {
   ChangePasswordRequest,
   UpdateGeneralSettingsRequest,
 } from '@/types/settings.types'
+import { TokenManager } from '@/utils/auth/tokenManager'
 
 const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   email_order_updates: true,
@@ -171,24 +172,34 @@ export function useSettings() {
     setError(null)
     setSuccess(null)
 
-    try {
-      const response = await api.upload('/api/v1/auth/profile/avatar/', file, 'profile_picture')
+     try {
+        const response = await api.upload<{ profile_picture: string }>('/api/v1/auth/profile/avatar/', file, 'avatar')
 
-      if (response.success) {
-        setSuccess('Avatar uploaded successfully')
-        await refreshAuth()
-        return true
-      } else {
-        setError(response.error || 'Failed to upload avatar')
+        if (response.success && response.data) {
+          //Update stored user with new profile_picture URL
+          const currentUser = TokenManager.getUser()
+          if (currentUser) {
+            const updatedUser = {
+              ...currentUser,
+              profile_picture: response.data.profile_picture,
+              avatar: response.data.profile_picture,
+            }
+            TokenManager.setUser(updatedUser)
+          }
+          setSuccess('Avatar uploaded successfully')
+          await refreshAuth()
+          return true
+        } else {
+          setError(response.error || 'Failed to upload avatar')
+          return false
+        }
+      } catch (error) {
+        setError(error instanceof Error ? error.message : 'Failed to upload avatar')
         return false
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to upload avatar')
-      return false
-    } finally {
-      setIsLoading(false)
-    }
-  }, [refreshAuth])
+    }, [refreshAuth])
 
   // Clear messages
   const clearMessages = useCallback(() => {

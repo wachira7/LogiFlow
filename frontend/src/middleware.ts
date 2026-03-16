@@ -14,6 +14,7 @@ const publicRoutes = [
   '/contact',
   '/pricing',
   '/about',
+  '/auth/accept-invitation',
 ]
 
 // PROTECTED ROUTES - Auth required (regular users)

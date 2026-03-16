@@ -77,7 +77,7 @@ export function GeneralSettingsForm() {
         date_format: settings.date_format,
         currency: settings.currency,
       })
-      setAvatarPreview(settings.profile_picture)
+      setAvatarPreview(settings.profile_picture || '')
     }
   }, [getGeneralSettings])
 
@@ -144,7 +144,7 @@ export function GeneralSettingsForm() {
       >
         <div className="flex items-center space-x-6">
           <Avatar className="w-24 h-24">
-            <AvatarImage src={avatarPreview} />
+            <AvatarImage src={avatarPreview || undefined} />
             <AvatarFallback className="text-2xl">
               {getUserInitials()}
             </AvatarFallback>

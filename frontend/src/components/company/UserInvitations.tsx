@@ -9,55 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { 
-  UserPlus, 
-  Mail, 
-  MoreVertical, 
-  RefreshCw, 
-  X, 
-  Clock,
-  CheckCircle,
-  XCircle 
-} from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { UserPlus, Mail, MoreVertical, RefreshCw, X, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { CompanyService } from '@/services/companyService'
 import { USER_ROLES } from '@/types/company.types'
 import type { Invitation, CreateInvitationData, UserRole } from '@/types/company.types'
@@ -417,7 +375,7 @@ export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvit
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {invitation.invited_by.name}
+                      {invitation.invited_by_name}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {formatDate(invitation.created_at)}
