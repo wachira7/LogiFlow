@@ -2,6 +2,8 @@
 .env
 .env.*
 *.env
+.env.local
+.env.development
 
 # Python
 venv/
@@ -20,4 +22,5 @@ build/
 # IDE
 .idea/
 .vscode/
-.DS_Store
+.DS_Storebackend/logs/*.log
+backend/logs/

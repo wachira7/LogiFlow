@@ -1,7 +1,7 @@
-#!/bin/bash
 # docker/scripts/entrypoint.sh
 # Backend entrypoint script
 
+#!/bin/bash
 set -e
 
 echo "🚀 Starting LogiFlow Backend..."
@@ -14,23 +14,27 @@ while ! pg_isready -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USER}"; do
 done
 echo "✅ PostgreSQL is up!"
 
-# Wait for Redis
+# Wait for Redis using URL instead of host/port
 echo "⏳ Waiting for Redis..."
-until redis-cli -h "${REDIS_HOST}" -p "${REDIS_PORT}" ping > /dev/null 2>&1; do
+until python -c "
+import redis, os, sys
+try:
+    r = redis.from_url(os.environ['REDIS_URL'])
+    r.ping()
+    sys.exit(0)
+except:
+    sys.exit(1)
+" > /dev/null 2>&1; do
   echo "⏳ Redis is unavailable - sleeping"
-  sleep 1
+  sleep 2
 done
 echo "✅ Redis is up!"
 
-# Run migrations
-echo "🔄 Running database migrations..."
-python manage.py migrate --noinput
-
-# Collect static files
+# Collect static files only
 echo "📦 Collecting static files..."
 python manage.py collectstatic --noinput --clear
 
-# Create superuser if it doesn't exist
+# Create superuser if needed
 echo "👤 Creating superuser if needed..."
 python manage.py shell <<EOF
 from django.contrib.auth import get_user_model
@@ -48,14 +52,7 @@ else:
     print('✅ Superuser already exists')
 EOF
 
-# Load initial data if needed
-if [ "$LOAD_INITIAL_DATA" = "true" ]; then
-    echo "📥 Loading initial data..."
-    python manage.py loaddata initial_data.json || true
-fi
-
 echo "✅ Backend initialization complete!"
 echo "🚀 Starting application..."
 
-# Execute the main command
 exec "$@"

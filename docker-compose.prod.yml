@@ -1,235 +1,86 @@
 # docker-compose.prod.yml
-# Production environment with nginx reverse proxy and monitoring
+# Production reference for Northflank + Vercel + Redis Cloud
+#
+# What this file does NOT include (handled externally):
+#   - PostgreSQL     → Northflank managed addon (logiflow-db)
+#   - Redis          → Redis Cloud free tier
+#   - Frontend       → Vercel (auto-deploy on push to main)
+#   - Nginx          → Northflank handles SSL termination + reverse proxy
+#   - Prometheus     → Set up separately on Oracle Cloud (like FlixVideo)
+#   - Grafana        → Set up separately on Oracle Cloud (like FlixVideo)
+#
+# What runs on Northflank (defined here for reference):
+#   - Backend        → Service 1
+#   - Celery         → Service 2 (worker + beat combined)
+#   - Migrations     → Job (triggered by CI pipeline)
 
 services:
-  # PostgreSQL Database
-  db:
-    image: postgres:15-alpine
-    container_name: logiflow_db_prod
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - logiflow_network
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: logiflow_redis_prod
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - logiflow_network
-
-  # Django Backend
+  # ─────────────────────────────────────────
+  # Backend — Northflank Service 1
+  # ─────────────────────────────────────────
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
+    image: ghcr.io/${GITHUB_REPOSITORY}/backend:latest
     container_name: logiflow_backend_prod
-    volumes:
-      - static_volume:/app/staticfiles
-      - media_volume:/app/mediafiles
     env_file:
-      - .env
+      - .env.production
     environment:
       - DEBUG=False
-      - DB_HOST=db
-      - DB_PORT=5432
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - SECURE_SSL_REDIRECT=False
+    ports:
+      - "8000:8000"
     restart: unless-stopped
-    networks:
-      - logiflow_network
+    command: >
+      gunicorn logistics_project.wsgi:application
+      --bind 0.0.0.0:8000
+      --workers ${GUNICORN_WORKERS:-3}
+      --timeout 120
+      --access-logfile -
+      --error-logfile -
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
 
-  # Celery Worker
-  celery_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
-    container_name: logiflow_celery_worker_prod
-    command: celery -A logistics_project worker -l info --concurrency=4
+  # ─────────────────────────────────────────
+  # Celery — Northflank Service 2
+  # Worker + Beat combined (free tier limit)
+  # ─────────────────────────────────────────
+  celery:
+    image: ghcr.io/${GITHUB_REPOSITORY}/backend:latest
+    container_name: logiflow_celery_prod
     env_file:
-      - .env
+      - .env.production
     environment:
       - DEBUG=False
-      - DB_HOST=db
-      - DB_PORT=5432
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - db
-      - redis
-      - backend
     restart: unless-stopped
-    networks:
-      - logiflow_network
+    command: >
+      bash -c "celery -A logistics_project beat -l info
+      --scheduler django_celery_beat.schedulers:DatabaseScheduler &
+      celery -A logistics_project worker -l info --concurrency=4 &
+      wait"
+    healthcheck:
+      test: ["CMD", "celery", "-A", "logistics_project", "inspect", "ping"]
+      interval: 60s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
 
-  # Celery Beat
-  celery_beat:
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
-    container_name: logiflow_celery_beat_prod
-    command: celery -A logistics_project beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+  # ─────────────────────────────────────────
+  # Migrations — Northflank Job
+  # Run manually or triggered by CI pipeline
+  # NOT a long-running service
+  # ─────────────────────────────────────────
+  migrate:
+    image: ghcr.io/${GITHUB_REPOSITORY}/backend:latest
+    container_name: logiflow_migrate
     env_file:
-      - .env
+      - .env.production
     environment:
       - DEBUG=False
-      - DB_HOST=db
-      - DB_PORT=5432
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-    depends_on:
-      - db
-      - redis
-      - backend
-    restart: unless-stopped
-    networks:
-      - logiflow_network
-
-  # Next.js Frontend (Production)
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    container_name: logiflow_frontend_prod
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=https://api.yourdomain.com
-    depends_on:
-      - backend
-    restart: unless-stopped
-    networks:
-      - logiflow_network
-
-  # Nginx Reverse Proxy
-  nginx:
-    image: nginx:alpine
-    container_name: logiflow_nginx
-    volumes:
-      - ./infrastructure/docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - static_volume:/app/staticfiles:ro
-      - media_volume:/app/mediafiles:ro
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - backend
-      - frontend
-    restart: unless-stopped
-    networks:
-      - logiflow_network
-
-  # Prometheus - Metrics Collection
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: logiflow_prometheus_prod
-    volumes:
-      - ./infrastructure/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.enable-lifecycle'
-    ports:
-      - "9090:9090"
-    networks:
-      - logiflow_network
-    restart: unless-stopped
-
-  # Grafana - Visualization
-  grafana:
-    image: grafana/grafana:latest
-    container_name: logiflow_grafana_prod
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning
-      - ./infrastructure/monitoring/grafana/dashboards:/etc/grafana/dashboards
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
-      - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=https://monitoring.yourdomain.com
-    ports:
-      - "3001:3000"
-    networks:
-      - logiflow_network
-    depends_on:
-      - prometheus
-    restart: unless-stopped
-
-  # Redis Exporter
-  redis-exporter:
-    image: oliver006/redis_exporter:latest
-    container_name: logiflow_redis_exporter_prod
-    environment:
-      - REDIS_ADDR=redis:6379
-    networks:
-      - logiflow_network
-    depends_on:
-      - redis
-    restart: unless-stopped
-
-  # PostgreSQL Exporter
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:latest
-    container_name: logiflow_postgres_exporter_prod
-    environment:
-      - DATA_SOURCE_NAME=postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?sslmode=disable
-    networks:
-      - logiflow_network
-    depends_on:
-      - db
-    restart: unless-stopped
-
-  # Node Exporter
-  node-exporter:
-    image: prom/node-exporter:latest
-    container_name: logiflow_node_exporter_prod
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    networks:
-      - logiflow_network
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-  redis_data:
-  static_volume:
-  media_volume:
-  prometheus_data:
-  grafana_data:
-
-networks:
-  logiflow_network:
-    driver: bridge
+    command: python manage.py migrate --noinput
+    profiles:
+      - migration  # only runs when explicitly called:
+                   # docker compose --profile migration up migrate
