@@ -1,4 +1,4 @@
-// src/middleware.ts 
+// src/proxy.ts 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -114,12 +114,12 @@ function clearAuthCookies(response: NextResponse): void {
   response.cookies.set('user', '', cookieOptions)
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isAuthenticated = hasValidToken(request)
   const userData = getUserFromRequest(request)
 
-  console.log('🔐 Middleware Check:', {
+  console.log('🔐 Proxy Check:', {
     pathname,
     isAuthenticated,
     isPlatformAdmin: userData?.isPlatformAdmin,
