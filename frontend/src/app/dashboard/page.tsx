@@ -1,4 +1,4 @@
-// app/dashboard/page.tsx - FIXED VERSION
+// app/dashboard/page.tsx 
 'use client'
 
 import { useEffect, useRef } from 'react'
