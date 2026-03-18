@@ -20,7 +20,7 @@ echo "⏳ Waiting for Redis..."
 until python -c "
 import redis, os, sys
 try:
-    r = redis.from_url(os.environ['REDIS_URL'])
+    r = redis.from_url(os.environ['REDIS_URL'], ssl=True, ssl_cert_reqs=None)
     r.ping()
     sys.exit(0)
 except:
