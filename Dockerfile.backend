@@ -49,7 +49,8 @@ COPY --chown=django:django backend/ .
 
 # Copy entrypoint script from infrastructure folder
 COPY --chown=django:django infrastructure/docker/scripts/entrypoint.sh /app/
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh && \
+    sed -i 's/\r//' /app/entrypoint.sh
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \

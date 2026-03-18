@@ -1,7 +1,8 @@
+#!/bin/bash
 # docker/scripts/entrypoint.sh
 # Backend entrypoint script
 
-#!/bin/bash
+
 set -e
 
 echo "🚀 Starting LogiFlow Backend..."
