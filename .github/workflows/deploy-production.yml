@@ -149,7 +149,7 @@ jobs:
 
           curl --silent --show-error --fail \
             --request POST \
-            --url "https://api.northflank.com/v1/projects/${{ secrets.NORTHFLANK_PROJECT_ID }}/services/deployment/${{ secrets.NORTHFLANK_BACKEND_SERVICE_ID }}/restart" \
+            --url "https://api.northflank.com/v1/projects/${{ secrets.NORTHFLANK_PROJECT_ID }}/services/deployment/${{ secrets.NORTHFLANK_BACKEND_SERVICE_ID }}/redeploy" \
             --header "Authorization: Bearer ${{ secrets.NORTHFLANK_API_TOKEN }}" \
             --header "Content-Type: application/json"
 
@@ -192,7 +192,7 @@ jobs:
 
           curl --silent --show-error --fail \
             --request POST \
-            --url "https://api.northflank.com/v1/projects/${{ secrets.NORTHFLANK_PROJECT_ID }}/services/deployment/${{ secrets.NORTHFLANK_CELERY_SERVICE_ID }}/restart" \
+            --url "https://api.northflank.com/v1/projects/${{ secrets.NORTHFLANK_PROJECT_ID }}/services/deployment/${{ secrets.NORTHFLANK_CELERY_SERVICE_ID }}/redeploy" \
             --header "Authorization: Bearer ${{ secrets.NORTHFLANK_API_TOKEN }}" \
             --header "Content-Type: application/json"
 
