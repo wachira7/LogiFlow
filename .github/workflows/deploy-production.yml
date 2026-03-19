@@ -144,7 +144,7 @@ jobs:
     steps:
       - name: Deploy Backend → Northflank
         run: |
-          IMAGE_TAG="ghcr.io/${{ env.IMAGE_NAME }}/backend:latest"
+          IMAGE_TAG="ghcr.io/wachira7/logiflow/backend:latest"
           echo "🚀 Deploying backend image: $IMAGE_TAG"
           curl --silent --show-error --fail \
             --request POST \
@@ -188,7 +188,7 @@ jobs:
     steps:
       - name: Deploy Celery → Northflank
         run: |
-          IMAGE_TAG="ghcr.io/${{ env.IMAGE_NAME }}/backend:latest"
+          IMAGE_TAG="ghcr.io/wachira7/logiflow/backend:latest"
           echo "🔄 Redeploying Celery worker..."
           curl --silent --show-error --fail \
             --request POST \
