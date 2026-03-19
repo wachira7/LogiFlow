@@ -142,18 +142,16 @@ jobs:
     needs: run-migrations
 
     steps:
-      - name: Update backend service image on Northflank
+      - name: Deploy Backend → Northflank
         run: |
           IMAGE_TAG="ghcr.io/${{ env.IMAGE_NAME }}/backend:latest"
           echo "🚀 Deploying backend image: $IMAGE_TAG"
-
           curl --silent --show-error --fail \
             --request POST \
-            --url "https://api.northflank.com/v1/projects/${{ secrets.NORTHFLANK_PROJECT_ID }}/services/deployment/${{ secrets.NORTHFLANK_BACKEND_SERVICE_ID }}/redeploy" \
+            --url "https://api.northflank.com/v1/projects/${{ secrets.NORTHFLANK_PROJECT_ID }}/services/logiflow-backend/deployment" \
             --header "Authorization: Bearer ${{ secrets.NORTHFLANK_API_TOKEN }}" \
             --header "Content-Type: application/json" \
-            --data "{\"image\": {\"tag\": \"$IMAGE_TAG\"}}"
-
+            --data "{\"external\": {\"imagePath\": \"$IMAGE_TAG\", \"credentials\": \"ghcr-logiflow\"}}"
 
           echo "✅ Backend redeploy triggered"
 
@@ -188,19 +186,18 @@ jobs:
     needs: run-migrations
 
     steps:
-      - name: Restart Celery worker service on Northflank
+      - name: Deploy Celery → Northflank
         run: |
           IMAGE_TAG="ghcr.io/${{ env.IMAGE_NAME }}/backend:latest"
           echo "🔄 Redeploying Celery worker..."
-
           curl --silent --show-error --fail \
             --request POST \
-            --url "https://api.northflank.com/v1/projects/${{ secrets.NORTHFLANK_PROJECT_ID }}/services/deployment/${{ secrets.NORTHFLANK_CELERY_SERVICE_ID }}/redeploy" \
+            --url "https://api.northflank.com/v1/projects/${{ secrets.NORTHFLANK_PROJECT_ID }}/services/logiflow-celery/deployment" \
             --header "Authorization: Bearer ${{ secrets.NORTHFLANK_API_TOKEN }}" \
             --header "Content-Type: application/json" \
-            --data "{\"image\": {\"tag\": \"$IMAGE_TAG\"}}"
+            --data "{\"external\": {\"imagePath\": \"$IMAGE_TAG\", \"credentials\": \"ghcr-logiflow\"}}"
 
-          echo "✅ Celery worker redeploy triggered"
+          echo "✅ Celery redeploy triggered"
 
 # ─────────────────────────────────────────────
 # JOB 5: Vercel deploys automatically via its
