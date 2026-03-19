@@ -159,11 +159,11 @@ jobs:
         run: |
           echo "⏳ Waiting for backend health check..."
 
-          for i in $(seq 1 24); do
+          for i in $(seq 1 60); do
             HTTP_CODE=$(curl --silent --output /dev/null --write-out "%{http_code}" \
               "${{ secrets.NORTHFLANK_BACKEND_URL }}/api/health/" || echo "000")
 
-            echo "  Attempt $i/24 — HTTP $HTTP_CODE"
+            echo "  Attempt $i/60 — HTTP $HTTP_CODE"
 
             if [ "$HTTP_CODE" = "200" ]; then
               echo "✅ Backend is healthy!"
@@ -173,7 +173,7 @@ jobs:
             sleep 10
           done
 
-          echo "❌ Backend health check failed after 4 minutes"
+          echo "❌ Backend health check failed after 10 minutes"
           exit 1
 
 # ─────────────────────────────────────────────
