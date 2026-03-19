@@ -261,7 +261,7 @@ if 'redis' in CACHE_BACKEND.lower():
     CACHES = {
         'default': {
             'BACKEND': CACHE_BACKEND,
-            'LOCATION': f'redis://{os.getenv("REDIS_HOST", "redis")}:{os.getenv("REDIS_PORT", "6379")}/1',
+            'LOCATION': os.getenv('CACHE_LOCATION', f'redis://{os.getenv("REDIS_HOST", "redis")}:{os.getenv("REDIS_PORT", "6379")}/1'),
             'OPTIONS': {}
         }
     }
