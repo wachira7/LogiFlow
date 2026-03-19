@@ -109,7 +109,7 @@ jobs:
         run: |
           echo "⏳ Polling migration job status..."
 
-          for i in $(seq 1 30); do
+          for i in $(seq 1 60); do
             STATUS=$(curl --silent --fail \
               --request GET \
               --url "https://api.northflank.com/v1/projects/${{ secrets.NORTHFLANK_PROJECT_ID }}/jobs/${{ secrets.NORTHFLANK_MIGRATION_JOB_ID }}/runs/${{ env.JOB_RUN_ID }}" \
@@ -129,7 +129,7 @@ jobs:
             sleep 10
           done
 
-          echo "❌ Migration job timed out after 5 minutes"
+          echo "❌ Migration job timed out after 10 minutes"
           exit 1
 
 # ─────────────────────────────────────────────
