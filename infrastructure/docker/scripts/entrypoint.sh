@@ -15,22 +15,6 @@ while ! pg_isready -h "${DB_HOST}" -p "${DB_PORT}" -U "${DB_USER}"; do
 done
 echo "✅ PostgreSQL is up!"
 
-# Wait for Redis using URL instead of host/port
-echo "⏳ Waiting for Redis..."
-until python -c "
-import redis, os, sys
-try:
-    r = redis.from_url(os.environ['REDIS_URL'], ssl=True, ssl_cert_reqs=None)
-    r.ping()
-    sys.exit(0)
-except:
-    sys.exit(1)
-" > /dev/null 2>&1; do
-  echo "⏳ Redis is unavailable - sleeping"
-  sleep 2
-done
-echo "✅ Redis is up!"
-
 # Collect static files only
 echo "📦 Collecting static files..."
 python manage.py collectstatic --noinput --clear
