@@ -2,6 +2,8 @@
 from rest_framework import serializers
 from .models import Company, CompanyInvitation, CompanySetting, PlatformAnalytics, AuditLog
 from apps.users.models import User
+from datetime import timedelta
+from django.utils import timezone
 
 
 class CompanySettingSerializer(serializers.ModelSerializer):
@@ -67,7 +69,11 @@ class CompanyInvitationSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='company.name', read_only=True)
     is_expired = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    
+    expires_at = serializers.DateTimeField(
+        required=False,
+        default=lambda: timezone.now() + timedelta(days=7)
+    )
+
     class Meta:
         model = CompanyInvitation
         fields = [

@@ -12,7 +12,7 @@ const benefits = [
   },
   {
     icon: Users,
-    text: "Join 500+ satisfied customers",
+    text: "Join other satisfied customers",
   },
   {
     icon: Shield,
@@ -39,9 +39,8 @@ export function CTA() {
             Ready to Revolutionize Your Logistics?
           </h2>
           <p className="text-xl text-primary-foreground/90 max-w-3xl mx-auto mb-8">
-            Join thousands of companies that have transformed their operations
-            with Logiflow. Start your free trial today and see the difference in
-            just minutes.
+            Built for logistics teams ready to modernize their operations. 
+            Experience a better way of logistics management with LogiFlow.
           </p>
 
           {/* Benefits */}
@@ -127,7 +126,7 @@ export function CTA() {
         {/* Trust Indicators */}
         <div className="text-center mt-16">
           <p className="text-primary-foreground/70 text-sm mb-4">
-            Trusted by industry leaders worldwide
+            Trusted by a range of companies
           </p>
           <div className="flex items-center justify-center space-x-8 opacity-60">
             <div className="text-primary-foreground/60 text-xs">

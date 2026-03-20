@@ -391,9 +391,8 @@ export function Pricing() {
           <div className="bg-linear-to-r from-muted to-muted/50 border border-border text-foreground rounded-2xl p-8 max-w-4xl mx-auto">
             <h3 className="text-2xl font-bold mb-4">Enterprise Plus</h3>
             <p className="text-muted-foreground mb-6">
-              Need custom solutions for your industry? We offer tailored
-              logistics platforms for Fortune 500 companies, government
-              agencies, and global logistics providers.
+               Need a custom solution for your specific industry or scale? 
+               We work with businesses of all sizes to build tailored logistics workflows.
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-sm mb-6">
               <span className="bg-primary/10 text-primary px-3 py-1 rounded-full">

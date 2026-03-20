@@ -288,7 +288,7 @@ STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / os.getenv('STATIC_ROOT', 'staticfiles')
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
-]
+] if os.path.exists(BASE_DIR / 'static') else []
 
 # Media files
 MEDIA_URL = 'media/'

@@ -2,59 +2,52 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import {
-  TrendingUp,
-  Users,
-  Package,
-  Globe,
-  Clock,
-  DollarSign,
-} from "lucide-react";
+import { TrendingUp, Users, Package, Globe, Clock, DollarSign } from "lucide-react";
 import { gsap } from "gsap";
 import { useFadeInUp, useCountUp } from "@/hooks/useGsap";
 
 const stats = [
   {
-    icon: Users,
-    value: 500,
-    suffix: "+",
-    label: "Active Companies",
-    description: "Businesses trust Logiflow",
-  },
-  {
     icon: Package,
     value: 10,
-    suffix: "M+",
-    label: "Shipments Processed",
-    description: "Monthly transaction volume",
+    suffix: "+",
+    label: "Modules Built",
+    description: "End-to-end logistics coverage",
   },
   {
     icon: Globe,
-    value: 50,
-    suffix: "+",
-    label: "Countries Served",
-    description: "Global logistics coverage",
+    value: 3,
+    suffix: "",
+    label: "Payment Integrations",
+    description: "Stripe, M-Pesa & Crypto",
   },
   {
     icon: TrendingUp,
     value: 30,
     suffix: "%",
-    label: "Cost Reduction",
-    description: "Average savings achieved",
+    label: "Average Cost Reduction",
+    description: "Reported by logistics teams",
   },
   {
     icon: Clock,
     value: 99.9,
     suffix: "%",
-    label: "Uptime Guarantee",
-    description: "Reliable service availability",
+    label: "Uptime Target",
+    description: "Built for reliability",
+  },
+  {
+    icon: Users,
+    value: 5,
+    suffix: "+",
+    label: "User Roles Supported",
+    description: "From warehouse staff to admins",
   },
   {
     icon: DollarSign,
-    value: 2.5,
-    suffix: "B+",
-    label: "Goods Managed",
-    description: "Total value processed annually",
+    value: 14,
+    suffix: "+",
+    label: "Supported Currencies",
+    description: "Including KES, USD, EUR",
   },
 ];
 
@@ -97,11 +90,10 @@ export function Stats() {
         {/* Section Header */}
         <div ref={headerRef} className="text-center mb-16">
           <h2 className="font-serif font-bold text-3xl sm:text-4xl lg:text-5xl mb-4">
-            Trusted by Industry Leaders
+            Built for Modern Logistics
           </h2>
           <p className="text-xl text-primary-foreground/80 max-w-3xl mx-auto">
-            Join thousands of companies that have transformed their logistics
-            operations with Logiflow.
+          A complete platform covering every aspect of your logistics operations.
           </p>
         </div>
 

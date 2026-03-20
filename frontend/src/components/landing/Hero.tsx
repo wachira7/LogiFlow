@@ -1,3 +1,4 @@
+//src/components/landing/Hero.tsx
 "use client";
 
 import { useEffect, useRef } from "react";
@@ -83,7 +84,7 @@ export function Hero() {
             className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-8"
           >
             <TrendingUp className="w-4 h-4 mr-2" />
-            Trusted by 500+ logistics companies worldwide
+            Built for growing logistics companies
           </div>
 
           {/* Main Headline */}
@@ -137,10 +138,10 @@ export function Hero() {
                 <Users className="w-6 h-6 text-primary" />
               </div>
               <div className="font-serif font-bold text-2xl text-foreground">
-                500+
+                10+
               </div>
               <div className="text-sm text-muted-foreground">
-                Active Companies
+                Core modules covering logistics needs
               </div>
             </div>
             <div className="text-center">
@@ -148,10 +149,10 @@ export function Hero() {
                 <TrendingUp className="w-6 h-6 text-primary" />
               </div>
               <div className="font-serif font-bold text-2xl text-foreground">
-                30%
+                3
               </div>
               <div className="text-sm text-muted-foreground">
-                Cost Reduction
+                payment methods supported
               </div>
             </div>
             <div className="text-center">
@@ -159,10 +160,10 @@ export function Hero() {
                 <Globe className="w-6 h-6 text-primary" />
               </div>
               <div className="font-serif font-bold text-2xl text-foreground">
-                50+
+                Multi-tenant 
               </div>
               <div className="text-sm text-muted-foreground">
-                Countries Served
+                Architecture
               </div>
             </div>
           </div>

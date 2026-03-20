@@ -4,101 +4,64 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Star,
-  Quote,
-  Play,
-  Pause,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Quote, Play, Pause } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 const testimonials = [
   {
     id: 1,
-    name: "Sarah Chen",
-    title: "VP of Operations",
-    company: "GlobalTech Logistics",
-    image: "/professional-woman-diverse.png",
+    name: "Inventory Management",
+    title: "Track every product",
+    company: "LogiFlow Feature",
+    image: "/modern-logistics-warehouse.png",
     content:
-      "Logiflow transformed our operations completely. We reduced our delivery times by 40% and cut operational costs significantly. The real-time visibility alone has been game-changing for our business.",
+      "Real-time inventory tracking across multiple warehouses. Set reorder points, track stock movements, and never run out of critical items again.",
     rating: 5,
-    companyLogo: "/placeholder.svg?height=40&width=120&text=GlobalTech",
   },
   {
     id: 2,
-    name: "Michael Rodriguez",
-    title: "Supply Chain Director",
-    company: "MegaCorp Industries",
-    image: "/professional-man.png",
+    name: "Distribution & Routing",
+    title: "Optimize every delivery",
+    company: "LogiFlow Feature",
+    image: "/warehousemovement.png",
     content:
-      "The integration capabilities of Logiflow are outstanding. We connected all our existing systems seamlessly, and the analytics provide insights we never had before. Highly recommended!",
+      "Plan delivery routes, track shipments in real-time with Leaflet maps, and manage your entire distribution network from one dashboard.",
     rating: 5,
-    companyLogo: "/placeholder.svg?height=40&width=120&text=MegaCorp",
   },
   {
     id: 3,
-    name: "Emily Watson",
-    title: "Logistics Manager",
-    company: "Swift Distribution",
-    image: "/businesswoman-ceo.png",
+    name: "Multi-tenant Architecture",
+    title: "Scale with confidence",
+    company: "LogiFlow Feature",
+    image: "/modernwarehousepic.png",
     content:
-      "As a growing company, we needed a solution that could scale with us. Logiflow has been perfect - it's powerful enough for our current needs but flexible enough to grow with our business.",
+      "Built for multiple companies on one platform. Each tenant gets isolated data, custom settings, and their own subscription plan.",
     rating: 5,
-    companyLogo: "/placeholder.svg?height=40&width=120&text=Swift",
   },
   {
     id: 4,
-    name: "David Kim",
-    title: "Warehouse Manager",
-    company: "Rapid Logistics",
-    image: "/warehouse-manager.png",
+    name: "Payments & Billing",
+    title: "Get paid your way",
+    company: "LogiFlow Feature",
+    image: "/professional-man.png",
     content:
-      "The customer support is exceptional, and the platform is incredibly intuitive. Our team was up and running in days, not weeks. The ROI has been substantial.",
+      "Accept payments via Stripe, M-Pesa, or cryptocurrency. Automated billing, subscription management, and financial reporting built in.",
     rating: 5,
-    companyLogo: "/placeholder.svg?height=40&width=120&text=Rapid",
   },
   {
     id: 5,
-    name: "Lisa Thompson",
-    title: "Logistics Coordinator",
-    company: "FlexiCorp",
-    image: "/logistics-coordinator.png",
+    name: "Analytics & Reporting",
+    title: "Data-driven decisions",
+    company: "LogiFlow Feature",
+    image: "/businesswoman-ceo.png",
     content:
-      "The automation features have saved us countless hours every week. What used to take our team days now happens automatically with incredible accuracy.",
+      "Comprehensive analytics across inventory, distribution, production and warehousing. Export reports and track KPIs that matter.",
     rating: 5,
-    companyLogo: "/placeholder.svg?height=40&width=120&text=FlexiCorp",
   },
 ];
 
-const companyLogos = [
-  {
-    name: "GlobalTech",
-    logo: "/placeholder.svg?height=60&width=140&text=GlobalTech",
-  },
-  {
-    name: "MegaCorp",
-    logo: "/placeholder.svg?height=60&width=140&text=MegaCorp",
-  },
-  {
-    name: "Swift Distribution",
-    logo: "/placeholder.svg?height=60&width=140&text=Swift",
-  },
-  {
-    name: "Rapid Logistics",
-    logo: "/placeholder.svg?height=60&width=140&text=Rapid",
-  },
-  {
-    name: "FlexiCorp",
-    logo: "/placeholder.svg?height=60&width=140&text=FlexiCorp",
-  },
-  {
-    name: "ProLogistics",
-    logo: "/placeholder.svg?height=60&width=140&text=ProLogistics",
-  },
-];
+
 
 export function Testimonials() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -136,11 +99,10 @@ export function Testimonials() {
             Customer Success Stories
           </div>
           <h2 className="font-serif font-bold text-3xl sm:text-4xl lg:text-5xl text-foreground mb-4">
-            Trusted by <span className="text-primary">Industry Leaders</span>
+            Everything Your <span className="text-primary">Logistics Team Needs</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            See how companies like yours have transformed their logistics
-            operations with Logiflow.
+            From inventory to distribution, production to warehousing — LogiFlow covers every corner of your operations.
           </p>
         </div>
 
@@ -255,34 +217,6 @@ export function Testimonials() {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* Company Logos */}
-        <div className="text-center">
-          <p className="text-muted-foreground mb-8">
-            Trusted by leading companies worldwide
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 items-center opacity-60">
-            {companyLogos.map((company, index) => (
-              <motion.div
-                key={index}
-                className="flex items-center justify-center"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.1, opacity: 1 }}
-              >
-                <Image
-                  src={company.logo || "/placeholder.svg"}
-                  alt={`${company.name} logo`}
-                  className="max-h-12 w-auto grayscale hover:grayscale-0 transition-all duration-300"
-                  width={40}
-                  height={40}
-                />
-              </motion.div>
-            ))}
-          </div>
         </div>
       </div>
     </section>
