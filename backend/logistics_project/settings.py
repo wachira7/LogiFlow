@@ -31,10 +31,10 @@ INSTALLED_APPS = [
     'cloudinary',
     'django.contrib.staticfiles',
     
-    
     # Third party apps
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',  
     'corsheaders',
     'drf_spectacular',
     'django_filters',
@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'apps.warehousing',
     'apps.payments',
     'apps.platform_admin',
-    'backup',  # Your backup app
+    'backup',
 ]
 
 # Enhanced Middleware with your new utils
@@ -139,6 +139,13 @@ AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
+]
+
+# Password Hashers
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',  # fallback for old passwords
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
 ]
 
 # Enhanced REST Framework Configuration
