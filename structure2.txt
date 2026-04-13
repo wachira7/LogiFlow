@@ -1,0 +1,1098 @@
+.
+├── add-empty-exports.js
+├── backend
+│   ├── apps
+│   │   ├── distribution
+│   │   │   ├── admin.py
+│   │   │   ├── apps.py
+│   │   │   ├── __init__.py
+│   │   │   ├── migrations
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_deliveryroute_description_and_more.py
+│   │   │   │   ├── 0003_routestop_latitude_routestop_longitude.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── 0001_initial.cpython-38.pyc
+│   │   │   │       └── __init__.cpython-38.pyc
+│   │   │   ├── models.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── admin.cpython-38.pyc
+│   │   │   │   ├── apps.cpython-38.pyc
+│   │   │   │   ├── __init__.cpython-38.pyc
+│   │   │   │   ├── models.cpython-38.pyc
+│   │   │   │   ├── serializers.cpython-38.pyc
+│   │   │   │   ├── urls.cpython-38.pyc
+│   │   │   │   └── views.cpython-38.pyc
+│   │   │   ├── serializers.py
+│   │   │   ├── tests.py
+│   │   │   ├── urls.py
+│   │   │   ├── utils.py
+│   │   │   └── views.py
+│   │   ├── __init__.py
+│   │   ├── inventory
+│   │   │   ├── admin.py
+│   │   │   ├── apps.py
+│   │   │   ├── filters.py
+│   │   │   ├── __init__.py
+│   │   │   ├── migrations
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_category_is_active.py
+│   │   │   │   ├── 0003_alter_product_image.py
+│   │   │   │   ├── 0004_warehouse_capacity_warehouse_code_and_more.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── 0001_initial.cpython-38.pyc
+│   │   │   │       ├── 0002_category_is_active.cpython-38.pyc
+│   │   │   │       └── __init__.cpython-38.pyc
+│   │   │   ├── models.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── admin.cpython-38.pyc
+│   │   │   │   ├── apps.cpython-38.pyc
+│   │   │   │   ├── __init__.cpython-38.pyc
+│   │   │   │   ├── models.cpython-38.pyc
+│   │   │   │   ├── serializers.cpython-38.pyc
+│   │   │   │   ├── urls.cpython-38.pyc
+│   │   │   │   └── views.cpython-38.pyc
+│   │   │   ├── serializers.py
+│   │   │   ├── tests.py
+│   │   │   ├── urls.py
+│   │   │   └── views.py
+│   │   ├── payments
+│   │   │   ├── admin.py
+│   │   │   ├── apps.py
+│   │   │   ├── __init__.py
+│   │   │   ├── management
+│   │   │   │   ├── commands
+│   │   │   │   │   ├── __init__.py
+│   │   │   │   │   └── test_stripe_webhook.py
+│   │   │   │   └── __init__.py
+│   │   │   ├── migrations
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── 0001_initial.cpython-38.pyc
+│   │   │   │       └── __init__.cpython-38.pyc
+│   │   │   ├── models.py
+│   │   │   ├── providers
+│   │   │   │   ├── crypto.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── mpesa.py
+│   │   │   │   ├── __pycache__
+│   │   │   │   │   ├── crypto.cpython-38.pyc
+│   │   │   │   │   ├── __init__.cpython-38.pyc
+│   │   │   │   │   ├── mpesa.cpython-38.pyc
+│   │   │   │   │   └── stripe.cpython-38.pyc
+│   │   │   │   └── stripe.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── admin.cpython-38.pyc
+│   │   │   │   ├── apps.cpython-38.pyc
+│   │   │   │   ├── __init__.cpython-38.pyc
+│   │   │   │   ├── models.cpython-38.pyc
+│   │   │   │   ├── serializers.cpython-38.pyc
+│   │   │   │   ├── urls.cpython-38.pyc
+│   │   │   │   ├── views.cpython-38.pyc
+│   │   │   │   └── webhooks.cpython-38.pyc
+│   │   │   ├── serializers.py
+│   │   │   ├── tasks.py
+│   │   │   ├── tests
+│   │   │   │   └── test_webhooks.py
+│   │   │   ├── urls.py
+│   │   │   ├── utils
+│   │   │   │   └── currency_converter.py
+│   │   │   ├── views.py
+│   │   │   └── webhooks.py
+│   │   ├── platform_admin
+│   │   │   ├── admin.py
+│   │   │   ├── analytics.py
+│   │   │   ├── apps.py
+│   │   │   ├── dashboard.py
+│   │   │   ├── __init__.py
+│   │   │   ├── migrations
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_platformnotification_is_sent_and_more.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── 0001_initial.cpython-38.pyc
+│   │   │   │       └── __init__.cpython-38.pyc
+│   │   │   ├── models.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── admin.cpython-38.pyc
+│   │   │   │   ├── apps.cpython-38.pyc
+│   │   │   │   ├── __init__.cpython-38.pyc
+│   │   │   │   ├── models.cpython-38.pyc
+│   │   │   │   ├── serializers.cpython-38.pyc
+│   │   │   │   ├── urls.cpython-38.pyc
+│   │   │   │   └── views.cpython-38.pyc
+│   │   │   ├── serializers.py
+│   │   │   ├── tests.py
+│   │   │   ├── urls.py
+│   │   │   └── views.py
+│   │   ├── production
+│   │   │   ├── admin.py
+│   │   │   ├── apps.py
+│   │   │   ├── __init__.py
+│   │   │   ├── migrations
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_productionorder_output_warehouse.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── 0001_initial.cpython-38.pyc
+│   │   │   │       └── __init__.cpython-38.pyc
+│   │   │   ├── models.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── admin.cpython-38.pyc
+│   │   │   │   ├── apps.cpython-38.pyc
+│   │   │   │   ├── __init__.cpython-38.pyc
+│   │   │   │   ├── models.cpython-38.pyc
+│   │   │   │   ├── serializers.cpython-38.pyc
+│   │   │   │   ├── urls.cpython-38.pyc
+│   │   │   │   └── views.cpython-38.pyc
+│   │   │   ├── serializers.py
+│   │   │   ├── tests.py
+│   │   │   ├── urls.py
+│   │   │   └── views.py
+│   │   ├── __pycache__
+│   │   │   └── __init__.cpython-38.pyc
+│   │   ├── tenants
+│   │   │   ├── admin.py
+│   │   │   ├── apps.py
+│   │   │   ├── __init__.py
+│   │   │   ├── middleware.py
+│   │   │   ├── migrations
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_initial.py
+│   │   │   │   ├── 0003_rename_is_encrypted_companysetting_marketing_emails_and_more.py
+│   │   │   │   ├── 0004_alter_company_logo.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── 0001_initial.cpython-38.pyc
+│   │   │   │       ├── 0002_initial.cpython-38.pyc
+│   │   │   │       ├── 0003_rename_is_encrypted_companysetting_marketing_emails_and_more.cpython-38.pyc
+│   │   │   │       └── __init__.cpython-38.pyc
+│   │   │   ├── models.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── admin.cpython-38.pyc
+│   │   │   │   ├── apps.cpython-38.pyc
+│   │   │   │   ├── __init__.cpython-38.pyc
+│   │   │   │   ├── middleware.cpython-38.pyc
+│   │   │   │   ├── models.cpython-38.pyc
+│   │   │   │   ├── serializers.cpython-38.pyc
+│   │   │   │   ├── urls.cpython-38.pyc
+│   │   │   │   └── views.cpython-38.pyc
+│   │   │   ├── serializers.py
+│   │   │   ├── tests.py
+│   │   │   ├── urls.py
+│   │   │   ├── utils.py
+│   │   │   └── views.py
+│   │   ├── users
+│   │   │   ├── admin.py
+│   │   │   ├── apps.py
+│   │   │   ├── contact_view.py
+│   │   │   ├── __init__.py
+│   │   │   ├── management
+│   │   │   │   └── commands
+│   │   │   │       └── create_platform_admin.py
+│   │   │   ├── middleware.py
+│   │   │   ├── migrations
+│   │   │   │   ├── 0001_initial.py
+│   │   │   │   ├── 0002_alter_user_profile_picture.py
+│   │   │   │   ├── 0003_usernotificationpreferences.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── __pycache__
+│   │   │   │       ├── 0001_initial.cpython-38.pyc
+│   │   │   │       └── __init__.cpython-38.pyc
+│   │   │   ├── models.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── admin.cpython-38.pyc
+│   │   │   │   ├── apps.cpython-38.pyc
+│   │   │   │   ├── __init__.cpython-38.pyc
+│   │   │   │   ├── middleware.cpython-38.pyc
+│   │   │   │   ├── models.cpython-38.pyc
+│   │   │   │   ├── serializers.cpython-38.pyc
+│   │   │   │   ├── urls.cpython-38.pyc
+│   │   │   │   └── views.cpython-38.pyc
+│   │   │   ├── serializers.py
+│   │   │   ├── urls.py
+│   │   │   └── views.py
+│   │   └── warehousing
+│   │       ├── admin.py
+│   │       ├── apps.py
+│   │       ├── __init__.py
+│   │       ├── migrations
+│   │       │   ├── 0001_initial.py
+│   │       │   ├── __init__.py
+│   │       │   └── __pycache__
+│   │       │       ├── 0001_initial.cpython-38.pyc
+│   │       │       └── __init__.cpython-38.pyc
+│   │       ├── models.py
+│   │       ├── __pycache__
+│   │       │   ├── admin.cpython-38.pyc
+│   │       │   ├── apps.cpython-38.pyc
+│   │       │   ├── __init__.cpython-38.pyc
+│   │       │   ├── models.cpython-38.pyc
+│   │       │   ├── serializers.cpython-38.pyc
+│   │       │   ├── urls.cpython-38.pyc
+│   │       │   └── views.cpython-38.pyc
+│   │       ├── serializers.py
+│   │       ├── tests.py
+│   │       ├── urls.py
+│   │       └── views.py
+│   ├── backup
+│   │   ├── __init__.py
+│   │   ├── management
+│   │   │   ├── commands
+│   │   │   │   ├── backup_db.py
+│   │   │   │   ├── backup_tenant.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── restore_db.py
+│   │   │   └── __init__.py
+│   │   ├── __pycache__
+│   │   │   └── __init__.cpython-38.pyc
+│   │   └── services.py
+│   ├── db.sqlite3
+│   ├── docs
+│   │   └── database
+│   │       └── LogiFlow_database_schema.sql
+│   ├── entrypoint.sh
+│   ├── fixtures
+│   │   ├── initial_data.json
+│   │   ├── sample_companies.json
+│   │   └── test_data.json
+│   ├── logistics_project
+│   │   ├── asgi.py
+│   │   ├── celery.py
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── celery.cpython-38.pyc
+│   │   │   ├── __init__.cpython-38.pyc
+│   │   │   ├── settings.cpython-38.pyc
+│   │   │   ├── urls.cpython-38.pyc
+│   │   │   └── wsgi.cpython-38.pyc
+│   │   ├── settings_backup
+│   │   │   ├── base.py
+│   │   │   ├── development.py
+│   │   │   ├── __init__.py
+│   │   │   └── production.py
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── wsgi.py
+│   ├── manage.py
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── requirements
+│   │   ├── base.txt
+│   │   ├── dev.txt
+│   │   └── prod.txt
+│   ├── scripts
+│   │   └── create_subscription_plans.py
+│   ├── staticfiles
+│   │   ├── admin
+│   │   │   ├── css
+│   │   │   │   ├── autocomplete.css
+│   │   │   │   ├── base.css
+│   │   │   │   ├── changelists.css
+│   │   │   │   ├── dark_mode.css
+│   │   │   │   ├── dashboard.css
+│   │   │   │   ├── forms.css
+│   │   │   │   ├── login.css
+│   │   │   │   ├── nav_sidebar.css
+│   │   │   │   ├── responsive.css
+│   │   │   │   ├── responsive_rtl.css
+│   │   │   │   ├── rtl.css
+│   │   │   │   ├── vendor
+│   │   │   │   │   └── select2
+│   │   │   │   │       ├── LICENSE-SELECT2.md
+│   │   │   │   │       ├── select2.css
+│   │   │   │   │       └── select2.min.css
+│   │   │   │   └── widgets.css
+│   │   │   ├── img
+│   │   │   │   ├── calendar-icons.svg
+│   │   │   │   ├── gis
+│   │   │   │   │   ├── move_vertex_off.svg
+│   │   │   │   │   └── move_vertex_on.svg
+│   │   │   │   ├── icon-addlink.svg
+│   │   │   │   ├── icon-alert.svg
+│   │   │   │   ├── icon-calendar.svg
+│   │   │   │   ├── icon-changelink.svg
+│   │   │   │   ├── icon-clock.svg
+│   │   │   │   ├── icon-deletelink.svg
+│   │   │   │   ├── icon-no.svg
+│   │   │   │   ├── icon-unknown-alt.svg
+│   │   │   │   ├── icon-unknown.svg
+│   │   │   │   ├── icon-viewlink.svg
+│   │   │   │   ├── icon-yes.svg
+│   │   │   │   ├── inline-delete.svg
+│   │   │   │   ├── LICENSE
+│   │   │   │   ├── README.txt
+│   │   │   │   ├── search.svg
+│   │   │   │   ├── selector-icons.svg
+│   │   │   │   ├── sorting-icons.svg
+│   │   │   │   ├── tooltag-add.svg
+│   │   │   │   └── tooltag-arrowright.svg
+│   │   │   └── js
+│   │   │       ├── actions.js
+│   │   │       ├── admin
+│   │   │       │   ├── DateTimeShortcuts.js
+│   │   │       │   └── RelatedObjectLookups.js
+│   │   │       ├── autocomplete.js
+│   │   │       ├── calendar.js
+│   │   │       ├── cancel.js
+│   │   │       ├── change_form.js
+│   │   │       ├── collapse.js
+│   │   │       ├── core.js
+│   │   │       ├── filters.js
+│   │   │       ├── inlines.js
+│   │   │       ├── jquery.init.js
+│   │   │       ├── nav_sidebar.js
+│   │   │       ├── popup_response.js
+│   │   │       ├── prepopulate_init.js
+│   │   │       ├── prepopulate.js
+│   │   │       ├── SelectBox.js
+│   │   │       ├── SelectFilter2.js
+│   │   │       ├── theme.js
+│   │   │       ├── urlify.js
+│   │   │       └── vendor
+│   │   │           ├── jquery
+│   │   │           │   ├── jquery.js
+│   │   │           │   ├── jquery.min.js
+│   │   │           │   └── LICENSE.txt
+│   │   │           ├── select2
+│   │   │           │   ├── i18n
+│   │   │           │   │   ├── af.js
+│   │   │           │   │   ├── ar.js
+│   │   │           │   │   ├── az.js
+│   │   │           │   │   ├── bg.js
+│   │   │           │   │   ├── bn.js
+│   │   │           │   │   ├── bs.js
+│   │   │           │   │   ├── ca.js
+│   │   │           │   │   ├── cs.js
+│   │   │           │   │   ├── da.js
+│   │   │           │   │   ├── de.js
+│   │   │           │   │   ├── dsb.js
+│   │   │           │   │   ├── el.js
+│   │   │           │   │   ├── en.js
+│   │   │           │   │   ├── es.js
+│   │   │           │   │   ├── et.js
+│   │   │           │   │   ├── eu.js
+│   │   │           │   │   ├── fa.js
+│   │   │           │   │   ├── fi.js
+│   │   │           │   │   ├── fr.js
+│   │   │           │   │   ├── gl.js
+│   │   │           │   │   ├── he.js
+│   │   │           │   │   ├── hi.js
+│   │   │           │   │   ├── hr.js
+│   │   │           │   │   ├── hsb.js
+│   │   │           │   │   ├── hu.js
+│   │   │           │   │   ├── hy.js
+│   │   │           │   │   ├── id.js
+│   │   │           │   │   ├── is.js
+│   │   │           │   │   ├── it.js
+│   │   │           │   │   ├── ja.js
+│   │   │           │   │   ├── ka.js
+│   │   │           │   │   ├── km.js
+│   │   │           │   │   ├── ko.js
+│   │   │           │   │   ├── lt.js
+│   │   │           │   │   ├── lv.js
+│   │   │           │   │   ├── mk.js
+│   │   │           │   │   ├── ms.js
+│   │   │           │   │   ├── nb.js
+│   │   │           │   │   ├── ne.js
+│   │   │           │   │   ├── nl.js
+│   │   │           │   │   ├── pl.js
+│   │   │           │   │   ├── ps.js
+│   │   │           │   │   ├── pt-BR.js
+│   │   │           │   │   ├── pt.js
+│   │   │           │   │   ├── ro.js
+│   │   │           │   │   ├── ru.js
+│   │   │           │   │   ├── sk.js
+│   │   │           │   │   ├── sl.js
+│   │   │           │   │   ├── sq.js
+│   │   │           │   │   ├── sr-Cyrl.js
+│   │   │           │   │   ├── sr.js
+│   │   │           │   │   ├── sv.js
+│   │   │           │   │   ├── th.js
+│   │   │           │   │   ├── tk.js
+│   │   │           │   │   ├── tr.js
+│   │   │           │   │   ├── uk.js
+│   │   │           │   │   ├── vi.js
+│   │   │           │   │   ├── zh-CN.js
+│   │   │           │   │   └── zh-TW.js
+│   │   │           │   ├── LICENSE.md
+│   │   │           │   ├── select2.full.js
+│   │   │           │   └── select2.full.min.js
+│   │   │           └── xregexp
+│   │   │               ├── LICENSE.txt
+│   │   │               ├── xregexp.js
+│   │   │               └── xregexp.min.js
+│   │   ├── django_extensions
+│   │   │   ├── css
+│   │   │   │   └── jquery.autocomplete.css
+│   │   │   ├── img
+│   │   │   │   └── indicator.gif
+│   │   │   └── js
+│   │   │       ├── jquery.ajaxQueue.js
+│   │   │       ├── jquery.autocomplete.js
+│   │   │       └── jquery.bgiframe.js
+│   │   └── rest_framework
+│   │       ├── css
+│   │       │   ├── bootstrap.min.css
+│   │       │   ├── bootstrap.min.css.map
+│   │       │   ├── bootstrap-theme.min.css
+│   │       │   ├── bootstrap-theme.min.css.map
+│   │       │   ├── bootstrap-tweaks.css
+│   │       │   ├── default.css
+│   │       │   ├── font-awesome-4.0.3.css
+│   │       │   └── prettify.css
+│   │       ├── docs
+│   │       │   ├── css
+│   │       │   │   ├── base.css
+│   │       │   │   ├── highlight.css
+│   │       │   │   └── jquery.json-view.min.css
+│   │       │   ├── img
+│   │       │   │   ├── favicon.ico
+│   │       │   │   └── grid.png
+│   │       │   └── js
+│   │       │       ├── api.js
+│   │       │       ├── highlight.pack.js
+│   │       │       └── jquery.json-view.min.js
+│   │       ├── fonts
+│   │       │   ├── fontawesome-webfont.eot
+│   │       │   ├── fontawesome-webfont.svg
+│   │       │   ├── fontawesome-webfont.ttf
+│   │       │   ├── fontawesome-webfont.woff
+│   │       │   ├── glyphicons-halflings-regular.eot
+│   │       │   ├── glyphicons-halflings-regular.svg
+│   │       │   ├── glyphicons-halflings-regular.ttf
+│   │       │   ├── glyphicons-halflings-regular.woff
+│   │       │   └── glyphicons-halflings-regular.woff2
+│   │       ├── img
+│   │       │   ├── glyphicons-halflings.png
+│   │       │   ├── glyphicons-halflings-white.png
+│   │       │   └── grid.png
+│   │       └── js
+│   │           ├── ajax-form.js
+│   │           ├── bootstrap.min.js
+│   │           ├── coreapi-0.1.1.js
+│   │           ├── csrf.js
+│   │           ├── default.js
+│   │           ├── jquery-3.7.1.min.js
+│   │           ├── load-ajax-form.js
+│   │           └── prettify-min.js
+│   ├── utils
+│   │   ├── exceptions.py
+│   │   ├── __init__.py
+│   │   ├── middleware.py
+│   │   ├── mixins.py
+│   │   ├── pagination.py
+│   │   ├── permissions.py
+│   │   ├── __pycache__
+│   │   │   ├── exceptions.cpython-38.pyc
+│   │   │   ├── __init__.cpython-38.pyc
+│   │   │   ├── middleware.cpython-38.pyc
+│   │   │   ├── mixins.cpython-38.pyc
+│   │   │   ├── pagination.cpython-38.pyc
+│   │   │   └── permissions.cpython-38.pyc
+│   │   ├── throttling.py
+│   │   └── validators.py
+│   └── websockets
+│       ├── consumers.py
+│       ├── __init__.py
+│       ├── middleware.py
+│       └── routing.py
+├── CONTRIBUTING.md
+├── docker-compose.prod.yml
+├── docker-compose.yml
+├── Dockerfile.backend
+├── Dockerfile.frontend
+├── Dockerfile.frontend.dev
+├── frontend
+│   ├── components.json
+│   ├── eslint.config.mjs
+│   ├── jest.config.js
+│   ├── jest.setup.js
+│   ├── lighthouserc.json
+│   ├── next.config.ts
+│   ├── package.json
+│   ├── playwright.config.ts
+│   ├── postcss.config.mjs
+│   ├── public
+│   │   ├── businesswoman-ceo.png
+│   │   ├── file.svg
+│   │   ├── globe.svg
+│   │   ├── logiflow-logo.png
+│   │   ├── logistics-coordinator.png
+│   │   ├── modern-logistics-warehouse.png
+│   │   ├── modernwarehousepic.png
+│   │   ├── next.svg
+│   │   ├── placeholder-fe0bo.png
+│   │   ├── professional-man.png
+│   │   ├── professional-woman-diverse.png
+│   │   ├── site.webmanifest
+│   │   ├── vercel.svg
+│   │   ├── warehouse-manager.png
+│   │   ├── warehousemovement.png
+│   │   ├── warutech-logo.png
+│   │   └── window.svg
+│   ├── README.md
+│   ├── settings.json
+│   ├── src
+│   │   ├── app
+│   │   │   ├── analytics
+│   │   │   │   ├── distribution
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── inventory
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── production
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── warehousing
+│   │   │   │       └── page.tsx
+│   │   │   ├── auth
+│   │   │   │   ├── accept-invitation
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── company-setup
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── forgot-password
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── login
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── register
+│   │   │   │       └── page.tsx
+│   │   │   ├── billing
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── payment-methods
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── plans
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── subscriptions
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── transactions
+│   │   │   │       └── page.tsx
+│   │   │   ├── company
+│   │   │   │   ├── profile
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── settings
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── users
+│   │   │   │       └── page.tsx
+│   │   │   ├── dashboard
+│   │   │   │   ├── analytics
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── reports
+│   │   │   │       └── page.tsx
+│   │   │   ├── distribution
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── orders
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   ├── edit
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── routes
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   ├── edit
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── shipments
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   ├── edit
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── tracking
+│   │   │   │       └── page.tsx
+│   │   │   ├── favicon.ico
+│   │   │   ├── globals.css
+│   │   │   ├── inventory
+│   │   │   │   ├── categories
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   ├── edit
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── inventory-items
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── products
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   ├── edit
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── reports
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── transactions
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── warehouses
+│   │   │   │       ├── [id]
+│   │   │   │       │   ├── edit
+│   │   │   │       │   │   └── page.tsx
+│   │   │   │       │   └── page.tsx
+│   │   │   │       ├── new
+│   │   │   │       │   └── page.tsx
+│   │   │   │       └── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   ├── page.tsx
+│   │   │   ├── platform-admin
+│   │   │   │   ├── analytics
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── audit-logs
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── companies
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── financial
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── notifications
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── settings
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── subscriptions
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── system-health
+│   │   │   │       └── page.tsx
+│   │   │   ├── production
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── materials
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── orders
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   ├── edit
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── steps
+│   │   │   │       └── page.tsx
+│   │   │   ├── profile
+│   │   │   │   └── page.tsx
+│   │   │   ├── settings
+│   │   │   │   ├── general
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── integrations
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── notifications
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── security
+│   │   │   │       └── page.tsx
+│   │   │   └── warehousing
+│   │   │       ├── layout.tsx
+│   │   │       ├── movements
+│   │   │       │   └── page.tsx
+│   │   │       ├── page.tsx
+│   │   │       ├── reports
+│   │   │       │   └── page.tsx
+│   │   │       └── transfers
+│   │   │           ├── [id]
+│   │   │           │   ├── edit
+│   │   │           │   │   └── page.tsx
+│   │   │           │   └── page.tsx
+│   │   │           ├── new
+│   │   │           │   └── page.tsx
+│   │   │           └── page.tsx
+│   │   ├── components
+│   │   │   ├── analytics
+│   │   │   │   ├── DistributionChart.tsx
+│   │   │   │   ├── InventoryChart.tsx
+│   │   │   │   ├── KPICards.tsx
+│   │   │   │   ├── ProductionChart.tsx
+│   │   │   │   ├── ReportBuilder.tsx
+│   │   │   │   ├── TenantFinancialSummary.tsx
+│   │   │   │   └── WarehousingChart.tsx
+│   │   │   ├── auth
+│   │   │   │   ├── AuthGuard.tsx
+│   │   │   │   ├── ForgotPasswordForm.tsx
+│   │   │   │   ├── LoginForm.tsx
+│   │   │   │   ├── ProtectedRoute.tsx
+│   │   │   │   └── RegisterForm.tsx
+│   │   │   ├── billing
+│   │   │   │   ├── AddPaymentMethodDialog.tsx
+│   │   │   │   ├── BillingDashboard.tsx
+│   │   │   │   ├── CryptoPaymentForm.tsx
+│   │   │   │   ├── InvoiceList.tsx
+│   │   │   │   ├── MpesaPaymentForm.tsx
+│   │   │   │   ├── PaymentMethodForm.tsx
+│   │   │   │   ├── PaymentMethodsList.tsx
+│   │   │   │   ├── PlanCard.tsx
+│   │   │   │   ├── PlansComparison.tsx
+│   │   │   │   ├── StripePaymentForm.tsx
+│   │   │   │   ├── SubscribeDialog.tsx
+│   │   │   │   ├── SubscriptionDetail.tsx
+│   │   │   │   ├── SubscriptionSummaryCard.tsx
+│   │   │   │   ├── TransactionList.tsx
+│   │   │   │   └── UsageMetrics.tsx
+│   │   │   ├── company
+│   │   │   │   ├── CompanyProfile.tsx
+│   │   │   │   ├── CompanySettings.tsx
+│   │   │   │   └── UserInvitations.tsx
+│   │   │   ├── dashboard
+│   │   │   │   ├── AlertsPanel.tsx
+│   │   │   │   ├── DashboardStats.tsx
+│   │   │   │   ├── PerformanceCharts.tsx
+│   │   │   │   ├── QuickActions.tsx
+│   │   │   │   ├── RecentActivity.tsx
+│   │   │   │   ├── SetupProgress.tsx
+│   │   │   │   └── WelcomeCard.tsx
+│   │   │   ├── distribution
+│   │   │   │   ├── DeliveryStatus.tsx
+│   │   │   │   ├── OrderForm.tsx
+│   │   │   │   ├── OrderList.tsx
+│   │   │   │   ├── RouteForm.tsx
+│   │   │   │   ├── RouteList.tsx
+│   │   │   │   ├── RouteMap.tsx
+│   │   │   │   ├── RouteOptimizer.tsx
+│   │   │   │   ├── ShipmentForm.tsx
+│   │   │   │   ├── ShipmentList.tsx
+│   │   │   │   ├── ShipmentTracker.tsx
+│   │   │   │   ├── TrackingDashboard.tsx
+│   │   │   │   └── WarehouseSelectDialog.tsx
+│   │   │   ├── ErrorBoundary.tsx
+│   │   │   ├── inventory
+│   │   │   │   ├── categories
+│   │   │   │   │   ├── CategoryForm.tsx
+│   │   │   │   │   ├── CategoryList.tsx
+│   │   │   │   │   ├── CategorySelector.tsx
+│   │   │   │   │   ├── CategoryTree.tsx
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── inventory-items
+│   │   │   │   │   ├── BulkStockUpdate.tsx
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── InventoryItemForm.tsx
+│   │   │   │   │   ├── InventoryItemsList.tsx
+│   │   │   │   │   ├── StockAdjustment.tsx
+│   │   │   │   │   └── StockLevelIndicator.tsx
+│   │   │   │   ├── products
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── LowStockAlert.tsx
+│   │   │   │   │   ├── ProductDetails.tsx
+│   │   │   │   │   ├── ProductForm.tsx
+│   │   │   │   │   ├── ProductList.tsx
+│   │   │   │   │   └── ProductSearch.tsx
+│   │   │   │   ├── reports
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── InventoryAnalytics.tsx
+│   │   │   │   │   ├── ReportExport.tsx
+│   │   │   │   │   └── StockReport.tsx
+│   │   │   │   ├── shared
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── InventoryFilters.tsx
+│   │   │   │   │   ├── InventoryLayout.tsx
+│   │   │   │   │   └── InventorySearch.tsx
+│   │   │   │   ├── transactions
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── TransactionDetails.tsx
+│   │   │   │   │   ├── TransactionFilter.tsx
+│   │   │   │   │   └── TransactionList.tsx
+│   │   │   │   └── warehouses
+│   │   │   │       ├── index.ts
+│   │   │   │       ├── WarehouseDetails.tsx
+│   │   │   │       ├── WarehouseForm.tsx
+│   │   │   │       ├── WarehouseInventory.tsx
+│   │   │   │       ├── WarehouseList.tsx
+│   │   │   │       └── WarehouseStockSummary.tsx
+│   │   │   ├── landing
+│   │   │   │   ├── about.tsx
+│   │   │   │   ├── contact.tsx
+│   │   │   │   ├── CTA.tsx
+│   │   │   │   ├── Demo.tsx
+│   │   │   │   ├── faq.tsx
+│   │   │   │   ├── Features.tsx
+│   │   │   │   ├── Footer.tsx
+│   │   │   │   ├── Hero.tsx
+│   │   │   │   ├── Pricing.tsx
+│   │   │   │   ├── ProblemSolution.tsx
+│   │   │   │   ├── Stats.tsx
+│   │   │   │   └── Testimonials.tsx
+│   │   │   ├── layout
+│   │   │   │   ├── Breadcrumbs.tsx
+│   │   │   │   ├── CompanySelector.tsx
+│   │   │   │   ├── DashboardLayout.tsx
+│   │   │   │   ├── Navbar.tsx
+│   │   │   │   ├── PageHeader.tsx
+│   │   │   │   ├── PlatformAdminSidebar.tsx
+│   │   │   │   └── Sidebar.tsx
+│   │   │   ├── platform-admin
+│   │   │   │   ├── AuditLogViewer.tsx
+│   │   │   │   ├── CompanyList.tsx
+│   │   │   │   ├── PlatformAnalytics.tsx
+│   │   │   │   ├── PlatformSettings.tsx
+│   │   │   │   ├── RevenueChart.tsx
+│   │   │   │   ├── SubscriptionOverview.tsx
+│   │   │   │   └── SystemHealth.tsx
+│   │   │   ├── production
+│   │   │   │   ├── MaterialsList.tsx
+│   │   │   │   ├── ProductionDashboard.tsx
+│   │   │   │   ├── ProductionOrderDetail.tsx
+│   │   │   │   ├── ProductionOrderForm.tsx
+│   │   │   │   ├── ProductionOrderList.tsx
+│   │   │   │   ├── ProductionSteps.tsx
+│   │   │   │   └── QualityControl.tsx
+│   │   │   ├── settings
+│   │   │   │   ├── GeneralSettingsForm.tsx
+│   │   │   │   ├── IntegrationsList.tsx
+│   │   │   │   ├── NotificationPreferences.tsx
+│   │   │   │   ├── SecuritySettingsForm.tsx
+│   │   │   │   └── SettingsCard.tsx
+│   │   │   ├── shared
+│   │   │   │   ├── BulkActions.tsx
+│   │   │   │   ├── ConfirmDialog.tsx
+│   │   │   │   ├── DataTable.tsx
+│   │   │   │   ├── EmptyState.tsx
+│   │   │   │   ├── ExportButton.tsx
+│   │   │   │   ├── LoadingSpinner.tsx
+│   │   │   │   ├── NotificationBell.tsx
+│   │   │   │   ├── SearchFilter.tsx
+│   │   │   │   └── StatusBadge.tsx
+│   │   │   ├── tenants
+│   │   │   │   ├── CompanyCard.tsx
+│   │   │   │   ├── CompanySettings.tsx
+│   │   │   │   ├── CompanySetupForm.tsx
+│   │   │   │   └── UserInviteForm.tsx
+│   │   │   ├── theme
+│   │   │   │   ├── ThemeProvider.tsx
+│   │   │   │   └── ThemeToggle.tsx
+│   │   │   ├── ui
+│   │   │   │   ├── accordion.tsx
+│   │   │   │   ├── alert-dialog.tsx
+│   │   │   │   ├── alert.tsx
+│   │   │   │   ├── aspect-ratio.tsx
+│   │   │   │   ├── avatar.tsx
+│   │   │   │   ├── badge.tsx
+│   │   │   │   ├── breadcrumb.tsx
+│   │   │   │   ├── button.tsx
+│   │   │   │   ├── calendar.tsx
+│   │   │   │   ├── card.tsx
+│   │   │   │   ├── carousel.tsx
+│   │   │   │   ├── chart.tsx
+│   │   │   │   ├── checkbox.tsx
+│   │   │   │   ├── collapsible.tsx
+│   │   │   │   ├── command.tsx
+│   │   │   │   ├── context-menu.tsx
+│   │   │   │   ├── dialog.tsx
+│   │   │   │   ├── drawer.tsx
+│   │   │   │   ├── dropdown-menu.tsx
+│   │   │   │   ├── form.tsx
+│   │   │   │   ├── hover-card.tsx
+│   │   │   │   ├── input-otp.tsx
+│   │   │   │   ├── input.tsx
+│   │   │   │   ├── label.tsx
+│   │   │   │   ├── menubar.tsx
+│   │   │   │   ├── navigation-menu.tsx
+│   │   │   │   ├── pagination.tsx
+│   │   │   │   ├── popover.tsx
+│   │   │   │   ├── progress.tsx
+│   │   │   │   ├── radio-group.tsx
+│   │   │   │   ├── resizable.tsx
+│   │   │   │   ├── scroll-area.tsx
+│   │   │   │   ├── select.tsx
+│   │   │   │   ├── separator.tsx
+│   │   │   │   ├── sheet.tsx
+│   │   │   │   ├── sidebar.tsx
+│   │   │   │   ├── skeleton.tsx
+│   │   │   │   ├── slider.tsx
+│   │   │   │   ├── sonner.tsx
+│   │   │   │   ├── switch.tsx
+│   │   │   │   ├── table.tsx
+│   │   │   │   ├── tabs.tsx
+│   │   │   │   ├── textarea.tsx
+│   │   │   │   ├── toaster.tsx
+│   │   │   │   ├── toast.tsx
+│   │   │   │   ├── toggle-group.tsx
+│   │   │   │   ├── toggle.tsx
+│   │   │   │   ├── tooltip.tsx
+│   │   │   │   ├── use-mobile.tsx
+│   │   │   │   └── use-toast.ts
+│   │   │   └── warehousing
+│   │   │       ├── StockMovements.tsx
+│   │   │       ├── TransferDetail.tsx
+│   │   │       ├── TransferForm.tsx
+│   │   │       ├── TransferList.tsx
+│   │   │       └── WarehouseLayout.tsx
+│   │   ├── context
+│   │   │   ├── AuthContext.tsx
+│   │   │   ├── DashboardContext.tsx
+│   │   │   └── TenantContext.tsx
+│   │   ├── hooks
+│   │   │   ├── useAnalytics.ts
+│   │   │   ├── useAuth.ts
+│   │   │   ├── useBilling.ts
+│   │   │   ├── useCompany.ts
+│   │   │   ├── useDashboard.ts
+│   │   │   ├── useDistribution.ts
+│   │   │   ├── useGsap.ts
+│   │   │   ├── useInventory.ts
+│   │   │   ├── use-lazy-loading.ts
+│   │   │   ├── use-mobile.ts
+│   │   │   ├── usePlatformAdmin.ts
+│   │   │   ├── useProduction.ts
+│   │   │   ├── useRealTimeDate.ts
+│   │   │   ├── useSettings.ts
+│   │   │   ├── useTenant.ts
+│   │   │   ├── use-toast.ts
+│   │   │   └── useWarehousing.ts
+│   │   ├── lib
+│   │   │   ├── tenant.ts
+│   │   │   └── utils.ts
+│   │   ├── proxy.ts
+│   │   ├── services
+│   │   │   ├── analyticsService.ts
+│   │   │   ├── api.ts
+│   │   │   ├── authService.ts
+│   │   │   ├── billingService.ts
+│   │   │   ├── companyService.ts
+│   │   │   ├── dashboardService.ts
+│   │   │   ├── distributionService.ts
+│   │   │   ├── inventoryService.ts
+│   │   │   ├── platformAdminService.ts
+│   │   │   ├── productionService.ts
+│   │   │   ├── tenantService.ts
+│   │   │   ├── userService.ts
+│   │   │   └── warehousingService.ts
+│   │   ├── store
+│   │   │   ├── authStore.ts
+│   │   │   ├── dashboardStore.ts
+│   │   │   ├── distributionStore.ts
+│   │   │   ├── inventoryStore.ts
+│   │   │   ├── paymentsStore.ts
+│   │   │   ├── platformAdminStore.ts
+│   │   │   ├── productionStore.ts
+│   │   │   ├── tenantStore.ts
+│   │   │   └── warehousingStore.ts
+│   │   ├── types
+│   │   │   ├── analytics.types.ts
+│   │   │   ├── auth.types.ts
+│   │   │   ├── billing.types.ts
+│   │   │   ├── company.types.ts
+│   │   │   ├── css.d.ts
+│   │   │   ├── dashboard.types.ts
+│   │   │   ├── distribution.types.ts
+│   │   │   ├── inventory.types.ts
+│   │   │   ├── platform.types.ts
+│   │   │   ├── production.types.ts
+│   │   │   ├── settings.types.ts
+│   │   │   ├── tenant.types.ts
+│   │   │   └── warehousing.types.ts
+│   │   └── utils
+│   │       ├── auth
+│   │       │   ├── tokenManager.ts
+│   │       │   └── validation.ts
+│   │       ├── dateUtils.ts
+│   │       └── permissions.ts
+│   ├── tailwind.config.ts
+│   ├── tsconfig.json
+│   └── yarn.lock
+├── infrastructure
+│   ├── aws
+│   │   ├── scripts
+│   │   │   ├── backup-db.sh
+│   │   │   ├── deploy-app.sh
+│   │   │   └── setup-ec2.sh
+│   │   └── terraform
+│   │       ├── ec2.tf
+│   │       ├── main.tf
+│   │       ├── outputs.tf
+│   │       ├── security-groups.tf
+│   │       └── variables.tf
+│   ├── backup
+│   │   └── scripts
+│   │       ├── backup-daily.sh
+│   │       └── restore-backup.sh
+│   ├── docker
+│   │   ├── nginx
+│   │   │   └── nginx.conf
+│   │   ├── postgres
+│   │   │   └── init.sql
+│   │   └── scripts
+│   │       ├── entrypoint.sh
+│   │       └── quick-docker-setup.sh
+│   └── monitoring
+│       ├── grafana
+│       │   └── provisioning
+│       │       ├── dashboards
+│       │       │   └── dashboard.yml
+│       │       └── datasources
+│       │           └── prometheus.yml
+│       └── prometheus
+│           └── prometheus.yml
+├── mobile
+│   ├── app.json
+│   ├── App.tsx
+│   ├── assets
+│   │   ├── adaptive-icon.png
+│   │   ├── favicon.png
+│   │   ├── icon.png
+│   │   └── splash-icon.png
+│   ├── index.ts
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── src
+│   │   ├── components
+│   │   │   └── company
+│   │   │       ├── CompanyHeader.tsx
+│   │   │       └── CompanySelector.tsx
+│   │   ├── navigation
+│   │   │   └── CompanyNavigator.tsx
+│   │   ├── screens
+│   │   │   ├── Auth
+│   │   │   │   └── CompanySetupScreen.tsx
+│   │   │   └── Company
+│   │   │       ├── CompanyProfileScreen.tsx
+│   │   │       └── UserManagementScreen.tsx
+│   │   ├── services
+│   │   │   └── tenantService.ts
+│   │   ├── store
+│   │   │   ├── actions
+│   │   │   │   └── tenantActions.ts
+│   │   │   └── reducers
+│   │   │       └── tenantReducer.tsx
+│   │   ├── theme.ts
+│   │   └── types
+│   │       └── tenant.types.ts
+│   ├── tsconfig.json
+│   └── yarn.lock
+├── README.md
+├── scripts
+│   ├── build-all.sh
+│   ├── create-tenant.py
+│   ├── db-seed.py
+│   └── setup-dev.sh
+├── structure2.txt
+└── structure.txt
+
+242 directories, 854 files
