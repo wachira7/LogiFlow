@@ -16,7 +16,7 @@ export default function LandingPage() {
   return (
     <>
       <LandingNav />
-      <main id="main-content" className="min-h-screen">
+      <main className="min-h-screen">
         <Hero />
         <FactsStrip />
         <HowItWorks />

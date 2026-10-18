@@ -7,6 +7,8 @@ export interface ApiResponse<T = unknown> {
   data?: T
   error?: string
   message?: string
+  /** First error message per field, e.g. { password: "This password is too common." } */
+  fieldErrors?: Record<string, string>
   status: number
   success: boolean
 }
@@ -65,6 +67,7 @@ class ApiClient {
         return {
           data: undefined,
           error: errorMessage,
+          fieldErrors: this.getFieldErrors(data.details ?? data),
           status,
           success: false,
         }
@@ -86,6 +89,17 @@ class ApiClient {
         success: false,
       }
     }
+  }
+
+  /**
+   * Per-field messages from a DRF validation payload ({ field: ["msg", ...] } → { field: "msg" })
+   */
+  private getFieldErrors(details: unknown): Record<string, string> | undefined {
+    if (typeof details !== 'object' || details === null || Array.isArray(details)) return undefined
+    const entries = Object.entries(details as Record<string, unknown>)
+      .map(([field, value]) => [field, Array.isArray(value) ? value[0] : value] as const)
+      .filter(([, value]) => typeof value === 'string')
+    return entries.length ? Object.fromEntries(entries) as Record<string, string> : undefined
   }
 
   /**

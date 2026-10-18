@@ -27,7 +27,6 @@ export class AuthService {
           //  STORE USER DATA
           TokenManager.setUser(response.data.user)
 
-          console.log('Login successful - User stored:', response.data.user.email)
           
           return {
             success: true,
@@ -43,6 +42,7 @@ export class AuthService {
           return {
             success: false,
             error: response.error || 'Login failed. Please try again.',
+            fieldErrors: response.fieldErrors,
             status: response.status || 500,
           }
         }
@@ -84,7 +84,6 @@ export class AuthService {
           // STORE USER DATA
         TokenManager.setUser(response.data.user)
 
-        console.log('Registration successful - User stored:', response.data.user.email)
 
         return {
           success: true,
@@ -100,6 +99,7 @@ export class AuthService {
         return {
           success: false,
           error: response.error || 'Registration failed. Please try again.',
+          fieldErrors: response.fieldErrors,
           status: response.status || 500,
         }
       }

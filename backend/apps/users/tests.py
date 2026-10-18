@@ -7,7 +7,11 @@ from apps.distribution.models import CustomerOrder
 from apps.inventory.models import InventoryItem
 from utils.testing import (
     AuthenticatedAPITestCase, make_company, make_order, make_product, make_shipment, make_user, make_warehouse,
+    strong_password,
 )
+
+NEW_PASSWORD = strong_password()
+OTHER_PASSWORD = strong_password()
 
 DASHBOARD = '/api/v1/auth/dashboard/overview/'
 
@@ -121,3 +125,86 @@ class DashboardOverviewTests(AuthenticatedAPITestCase):
         activity = self.get()['recent_activity']
         self.assertTrue(any(a['type'] == 'order_created' and 'ORD-777' in a['message'] for a in activity))
         self.assertEqual([a['id'] for a in activity], list(range(1, len(activity) + 1)))
+
+
+class PasswordResetTests(APITestCase):
+    def setUp(self):
+        from django.core.cache import cache
+
+        cache.clear()  # throttle counters live in the cache
+        self.user = make_user(company=make_company(), email='driver@example.com', first_name='Wanjiru')
+
+    def request_link(self, email='driver@example.com'):
+        from django.core import mail
+
+        mail.outbox.clear()
+        r = self.client.post('/api/v1/auth/forgot-password/', {'email': email})
+        return r, mail.outbox
+
+    def token_from(self, outbox):
+        import re
+
+        return re.search(r'reset-password\?token=([^\s"<]+)', outbox[0].body).group(1)
+
+    def test_known_email_gets_a_link(self):
+        r, outbox = self.request_link()
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(len(outbox), 1)
+        self.assertEqual(outbox[0].to, ['driver@example.com'])
+        self.assertIn('/auth/reset-password?token=', outbox[0].body)
+
+    def test_unknown_email_gets_the_same_answer_and_no_email(self):
+        known, _ = self.request_link()
+        unknown, outbox = self.request_link('nobody@example.com')
+        self.assertEqual(unknown.status_code, 200)
+        self.assertEqual(unknown.json()['message'], known.json()['message'])
+        self.assertEqual(outbox, [])
+
+    def test_reset_sets_new_password_and_signs_out_everywhere(self):
+        from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        refresh = RefreshToken.for_user(self.user)
+        _, outbox = self.request_link()
+        token = self.token_from(outbox)
+
+        r = self.client.post('/api/v1/auth/reset-password/', {
+            'token': token, 'password': NEW_PASSWORD, 'password_confirm': NEW_PASSWORD,
+        })
+        self.assertEqual(r.status_code, 200, r.content)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password(NEW_PASSWORD))
+        self.assertTrue(BlacklistedToken.objects.filter(token__jti=refresh['jti']).exists())
+
+        # The link is single-use: it stops working once the password changes
+        again = self.client.post('/api/v1/auth/reset-password/', {
+            'token': token, 'password': OTHER_PASSWORD, 'password_confirm': OTHER_PASSWORD,
+        })
+        self.assertEqual(again.status_code, 400)
+
+    def test_rejects_bad_token_mismatch_and_weak_password(self):
+        _, outbox = self.request_link()
+        token = self.token_from(outbox)
+        cases = [
+            {'token': 'garbage', 'password': NEW_PASSWORD, 'password_confirm': NEW_PASSWORD},
+            {'token': token, 'password': NEW_PASSWORD, 'password_confirm': OTHER_PASSWORD},
+            {'token': token, 'password': '12345678', 'password_confirm': '12345678'},
+        ]
+        for data in cases:
+            self.assertEqual(self.client.post('/api/v1/auth/reset-password/', data).status_code, 400, data)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password('testpass123'))
+
+    def test_requests_are_rate_limited(self):
+        codes = [self.client.post('/api/v1/auth/forgot-password/', {'email': 'x@example.com'}).status_code for _ in range(6)]
+        self.assertEqual(codes[:5], [200] * 5)
+        self.assertEqual(codes[5], 429)
+
+
+class ErrorMessageTests(APITestCase):
+    def test_validation_errors_carry_a_readable_message(self):
+        r = self.client.post('/api/v1/auth/reset-password/', {'token': 'x', 'password': 'a', 'password_confirm': 'b'})
+        body = r.json()
+        self.assertEqual(r.status_code, 400)
+        self.assertIn('invalid or has expired', body['message'])
+        self.assertIn('token', body['details'])  # field errors still available

@@ -7,7 +7,7 @@ from django.conf import settings
 from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -24,9 +24,15 @@ User = get_user_model()
 
 
 class CompanyDetailView(generics.RetrieveUpdateAPIView):
-    """Company detail and update endpoint."""
+    """Company detail (any member) and update (owners/admins) endpoint."""
     permission_classes = [IsCompanyMember]
-    parser_classes = [MultiPartParser, FormParser]
+    # The frontend sends JSON; multipart stays supported for form posts
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_permissions(self):
+        if self.request.method in ('PUT', 'PATCH'):
+            return [IsCompanyMember(), IsCompanyOwnerOrAdmin()]
+        return super().get_permissions()
     
     def get_object(self):
         return self.request.user.company
@@ -210,6 +216,7 @@ def accept_invitation(request):
     with transaction.atomic():
         user_data = {
             'email': invitation.email,
+            'username': invitation.email,  # email doubles as username, as in registration
             'first_name': serializer.validated_data['first_name'],
             'last_name': serializer.validated_data['last_name'],
             'phone_number': serializer.validated_data.get('phone_number', ''),

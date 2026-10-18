@@ -6,6 +6,25 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def readable_error_message(data):
+    """
+    First human-readable message in a DRF error payload, e.g. "Passwords do not match." or
+    "Email: Enter a valid email address." (field name added only to generic field messages).
+    """
+    if isinstance(data, (list, tuple)):
+        return readable_error_message(data[0]) if data else 'An error occurred'
+    if isinstance(data, dict):
+        if 'detail' in data:
+            return str(data['detail'])
+        for field, value in data.items():
+            message = readable_error_message(value)
+            if field != 'non_field_errors' and message.startswith(('This field', 'Ensure this field', 'Enter a valid')):
+                return f"{field.replace('_', ' ').capitalize()}: {message}"
+            return message
+        return 'An error occurred'
+    return str(data)
+
+
 def custom_exception_handler(exc, context):
     """
     Custom exception handler for consistent error responses.
@@ -64,7 +83,7 @@ def custom_exception_handler(exc, context):
     if response is not None:
         response.data = {
             'error': True,
-            'message': 'An error occurred',
+            'message': readable_error_message(response.data),
             'details': response.data,
             'status_code': response.status_code,
         }

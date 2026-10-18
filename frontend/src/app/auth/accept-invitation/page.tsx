@@ -1,377 +1,202 @@
-//src/app/auth/accept-invitation/page.tsx
+// src/app/auth/accept-invitation/page.tsx
 'use client'
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect, Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Building2, CheckCircle2, Lock, MailX, Phone, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, Eye, EyeOff, CheckCircle, XCircle, Building2 } from 'lucide-react'
-import Image from 'next/image'
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { AuthHeader, Field, FormAlert, PasswordField, SubmitButton } from '@/components/auth/AuthFormParts'
+
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 interface InvitationDetails {
   email: string
   company_name: string
   role: string
   invited_by_name: string
-  expires_at: string
-  is_expired: boolean
+}
+
+/** Readable message + per-field errors from either error format the backend returns. */
+function parseError(data: Record<string, unknown>, fallback: string) {
+  const details = (data.details ?? data) as Record<string, unknown>
+  const fieldErrors: Record<string, string> = {}
+  for (const [k, v] of Object.entries(details ?? {})) {
+    const msg = Array.isArray(v) ? v[0] : v
+    if (typeof msg === 'string') fieldErrors[k] = msg
+  }
+  const message =
+    (typeof data.error === 'string' && data.error) ||
+    (typeof data.message === 'string' && data.message) ||
+    (typeof data.detail === 'string' && data.detail) ||
+    fallback
+  return { message, fieldErrors }
 }
 
 function AcceptInvitationContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+  const token = useSearchParams().get('token')
 
   const [invitation, setInvitation] = useState<InvitationDetails | null>(null)
-  const [isLoadingToken, setIsLoadingToken] = useState(true)
+  const [loadingToken, setLoadingToken] = useState(true)
   const [tokenError, setTokenError] = useState<string | null>(null)
-
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    phone_number: '',
-    password: '',
-    password_confirm: '',
-  })
-
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [form, setForm] = useState({ first_name: '', last_name: '', phone_number: '', password: '', password_confirm: '' })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [formError, setFormError] = useState<string>()
+  const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  // Validate token on mount
   useEffect(() => {
     if (!token) {
-      setTokenError('No invitation token found. Please check your invitation link.')
-      setIsLoadingToken(false)
+      setTokenError('This invitation link is incomplete. Open it again from your email.')
+      setLoadingToken(false)
       return
     }
-
-    const validateToken = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/tenants/invitations/validate/?token=${token}`
-        )
-        const data = await response.json()
-
-        if (!response.ok) {
-          setTokenError(data.error || 'Invalid or expired invitation.')
-        } else {
-          setInvitation(data)
-        }
-      } catch {
-        // If validate endpoint doesn't exist yet, just proceed with the form
-        setInvitation(null)
-      } finally {
-        setIsLoadingToken(false)
-      }
-    }
-
-    validateToken()
+    fetch(`${API}/api/v1/tenants/invitations/validate/?token=${encodeURIComponent(token)}`)
+      .then(async (res) => {
+        const data = await res.json()
+        if (res.ok) setInvitation(data)
+        else setTokenError(parseError(data, 'This invitation is invalid or has expired.').message)
+      })
+      .catch(() => setTokenError('We couldn’t check this invitation. Please try again.'))
+      .finally(() => setLoadingToken(false))
   }, [token])
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    if (formData.password !== formData.password_confirm) {
-        setError('Passwords do not match.')
-        return
-    }
-
-    if (formData.password.length < 8) {
-        setError('Password must be at least 8 characters.')
-        return
-    }
-
-    setIsSubmitting(true)
-
-    try {
-        const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1/tenants/invitations/accept/`,
-        {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-            token,
-            first_name: formData.first_name,
-            last_name: formData.last_name,
-            phone_number: formData.phone_number,
-            password: formData.password,
-            password_confirm: formData.password_confirm,
-            }),
-        }
-        )
-
-        const data = await response.json()
-
-        if (!response.ok) {
-        setError(data.error || data.detail || 'Failed to accept invitation.')
-        return
-        }
-
-        setSuccess(true)
-        setTimeout(() => router.push('/auth/login'), 3000)
-
-    } catch {
-        setError('Something went wrong. Please try again.')
-    } finally {
-        setIsSubmitting(false)
-    }
-    }
-
-  const getPasswordStrength = (password: string) => {
-    if (!password) return { strength: '', color: '' }
-    if (password.length < 6) return { strength: 'Weak', color: 'text-red-600' }
-    if (password.length < 10) return { strength: 'Medium', color: 'text-yellow-600' }
-    return { strength: 'Strong', color: 'text-green-600' }
+  const set = (field: keyof typeof form, value: string) => {
+    setForm((f) => ({ ...f, [field]: value }))
+    setErrors((e) => ({ ...e, [field]: '' }))
   }
 
-  const passwordStrength = getPasswordStrength(formData.password)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormError(undefined)
+    const next: Record<string, string> = {}
+    if (!form.first_name.trim()) next.first_name = 'Enter your first name'
+    if (!form.last_name.trim()) next.last_name = 'Enter your last name'
+    if (form.password.length < 8) next.password = 'Use at least 8 characters'
+    if (form.password !== form.password_confirm) next.password_confirm = 'Passwords don’t match'
+    setErrors(next)
+    if (Object.keys(next).length) return
 
-  // Loading token
-  if (isLoadingToken) {
+    setSubmitting(true)
+    try {
+      const res = await fetch(`${API}/api/v1/tenants/invitations/accept/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, ...form }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        const { message, fieldErrors } = parseError(data, 'We couldn’t accept this invitation.')
+        setErrors(fieldErrors)
+        if (!['first_name', 'last_name', 'password', 'password_confirm', 'phone_number'].some((f) => fieldErrors[f])) {
+          setFormError(message)
+        }
+        return
+      }
+      setSuccess(true)
+      setTimeout(() => router.push('/auth/login'), 2500)
+    } catch {
+      setFormError('Something went wrong. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (loadingToken) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-12 text-center">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-muted-foreground">Validating your invitation...</p>
-          </CardContent>
-        </Card>
+      <div className="flex flex-col items-center gap-3 py-16 text-sm text-muted-foreground" role="status">
+        <LoadingSpinner size="md" />
+        Checking your invitation…
       </div>
     )
   }
 
-  // Invalid token
   if (tokenError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-12 text-center">
-            <XCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Invalid Invitation</h2>
-            <p className="text-muted-foreground mb-6">{tokenError}</p>
-            <Button asChild variant="outline">
-              <Link href="/auth/login">Go to Login</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // Success state
-  if (success) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <Card className="w-full max-w-md">
-          <CardContent className="p-12 text-center">
-            <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Welcome to the team!</h2>
-            <p className="text-muted-foreground mb-2">
-              Your account has been created successfully.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Redirecting you to login...
-            </p>
-          </CardContent>
-        </Card>
+      <div className="text-center">
+        <span className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-danger-soft">
+          <MailX className="h-8 w-8 text-danger" />
+        </span>
+        <AuthHeader title="This invitation can’t be used" subtitle={`${tokenError} Ask your admin to send a new one.`} />
+        <Button asChild variant="outline">
+          <Link href="/auth/login">Go to sign in</Link>
+        </Button>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 py-12 px-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Logo */}
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center space-x-2">
-            <div className="relative w-10 h-10">
-              <Image
-                src="/logiflow-logo.png"
-                alt="LogiFlow"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <span className="font-bold text-xl">LogiFlow</span>
-          </Link>
-        </div>
-
-        <Card>
-          <CardHeader className="text-center">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-              <Building2 className="w-6 h-6 text-primary" />
-            </div>
-            <CardTitle>Accept Invitation</CardTitle>
-            <CardDescription>
-              {invitation ? (
+    <AnimatePresence mode="wait" initial={false}>
+      {success ? (
+        <motion.div key="done" initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="text-center" role="status">
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 16 }}
+            className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-success-soft"
+          >
+            <CheckCircle2 className="h-8 w-8 text-success" />
+          </motion.span>
+          <AuthHeader
+            title={`Welcome to ${invitation?.company_name ?? 'the team'}`}
+            subtitle="Your account is ready. Taking you to sign in…"
+          />
+        </motion.div>
+      ) : (
+        <motion.div key="form" exit={{ opacity: 0, y: -12 }}>
+          <AuthHeader
+            title="Join your team"
+            subtitle={
+              invitation ? (
                 <>
-                  <strong>{invitation.invited_by_name}</strong> has invited you to join{' '}
-                  <strong>{invitation.company_name}</strong> as{' '}
-                  <strong>{invitation.role.replace('_', ' ')}</strong>
+                  <strong className="text-foreground">{invitation.invited_by_name}</strong> invited you to join{' '}
+                  <strong className="text-foreground">{invitation.company_name}</strong> as {invitation.role.replace(/_/g, ' ')}.
                 </>
-              ) : (
-                'Create your account to join the team'
-              )}
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            {invitation && (
-              <div className="bg-muted rounded-lg p-3 mb-4 text-sm text-center text-muted-foreground">
-                Joining as: <strong>{invitation.email}</strong>
+              ) : undefined
+            }
+          />
+          {invitation && (
+            <div className="mb-6 flex items-center gap-3 rounded-xl border border-border bg-brand-soft/50 px-4 py-3">
+              <Building2 className="h-5 w-5 shrink-0 text-brand" />
+              <div className="min-w-0 text-sm">
+                <div className="text-muted-foreground">Signing up as</div>
+                <div className="truncate font-medium">{invitation.email}</div>
               </div>
-            )}
-
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="first_name">First Name *</Label>
-                  <Input
-                    id="first_name"
-                    placeholder="John"
-                    value={formData.first_name}
-                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">Last Name *</Label>
-                  <Input
-                    id="last_name"
-                    placeholder="Doe"
-                    value={formData.last_name}
-                    onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone_number">Phone Number (Optional)</Label>
-                <Input
-                  id="phone_number"
-                  type="tel"
-                  placeholder="+254 700 000 000"
-                  value={formData.phone_number}
-                  onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Create a password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {formData.password && (
-                  <p className={`text-xs ${passwordStrength.color}`}>
-                    Password strength: {passwordStrength.strength}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password_confirm">Confirm Password *</Label>
-                <div className="relative">
-                  <Input
-                    id="password_confirm"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Confirm your password"
-                    value={formData.password_confirm}
-                    onChange={(e) => setFormData({ ...formData, password_confirm: e.target.value })}
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
-                {formData.password_confirm && formData.password !== formData.password_confirm && (
-                  <p className="text-xs text-destructive">Passwords do not match</p>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isSubmitting || !formData.first_name || !formData.last_name || !formData.password || !formData.password_confirm}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Creating Account...
-                  </>
-                ) : (
-                  'Accept Invitation & Create Account'
-                )}
-              </Button>
-            </form>
-
-            <p className="text-center text-sm text-muted-foreground mt-4">
-              Already have an account?{' '}
-              <Link href="/auth/login" className="text-primary hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
-
-        <p className="text-center text-xs text-muted-foreground">
-          By accepting this invitation you agree to our{' '}
-          <Link href="/terms" className="hover:underline">Terms of Service</Link>
-          {' '}and{' '}
-          <Link href="/privacy" className="hover:underline">Privacy Policy</Link>
-        </p>
-      </div>
-    </div>
+            </div>
+          )}
+          <FormAlert message={formError} />
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+            <div className="grid grid-cols-2 gap-4">
+              <Field label="First name" icon={User} autoComplete="given-name" autoFocus value={form.first_name}
+                error={errors.first_name} onChange={(e) => set('first_name', e.target.value)} />
+              <Field label="Last name" autoComplete="family-name" value={form.last_name}
+                error={errors.last_name} onChange={(e) => set('last_name', e.target.value)} />
+            </div>
+            <Field label="Phone (optional)" icon={Phone} type="tel" autoComplete="tel" placeholder="+254 712 345678"
+              value={form.phone_number} error={errors.phone_number} onChange={(e) => set('phone_number', e.target.value)} />
+            <PasswordField label="Password" icon={Lock} autoComplete="new-password" value={form.password}
+              error={errors.password} hint="At least 8 characters. Mix letters, numbers and symbols."
+              onChange={(e) => set('password', e.target.value)} />
+            <PasswordField label="Confirm password" icon={Lock} autoComplete="new-password" value={form.password_confirm}
+              error={errors.password_confirm} onChange={(e) => set('password_confirm', e.target.value)} />
+            <SubmitButton loading={submitting} loadingText="Creating your account…">
+              Accept invitation
+            </SubmitButton>
+          </form>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
+
 export default function AcceptInvitationPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <div className="text-center">
-          <div className="w-8 h-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading invitation...</p>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={null}>
       <AcceptInvitationContent />
     </Suspense>
   )
