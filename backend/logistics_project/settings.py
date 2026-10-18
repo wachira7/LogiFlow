@@ -27,9 +27,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.staticfiles',
+    # After staticfiles: Cloudinary stores media only, so Django's own collectstatic must win
     'cloudinary_storage',
     'cloudinary',
-    'django.contrib.staticfiles',
     
     # Third party apps
     'rest_framework',
@@ -398,7 +399,10 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
-DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+STORAGES = {
+    'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+}
 
 # Security Settings from Environment
 if not DEBUG:

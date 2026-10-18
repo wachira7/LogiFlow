@@ -153,11 +153,7 @@ class CreateSubscriptionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Active subscription plan not found.")
     
     def create(self, validated_data):
-        """
-        Create subscription with proper company handling and payment method linking.
-        ✅ FIX: Remove 'company' from validated_data to prevent duplicate keyword argument
-        ✅ ENHANCEMENT: Properly link payment method to subscription
-        """
+        """Create subscription with proper company handling and payment method linking."""
         from django.utils import timezone
         from datetime import timedelta
         from django.db import transaction

@@ -110,24 +110,23 @@ jobs:
           SECRET_KEY: test-secret-key-for-ci
           DEBUG: True
 
-      # ⏸️ TESTS COMMENTED OUT - No tests written yet
-      # - name: Run tests with coverage
-      #   run: |
-      #     cd backend
-      #     coverage run --source='.' manage.py test --verbosity=2
-      #     coverage report -m
-      #     coverage xml
-      #   env:
-      #     DB_ENGINE: django.db.backends.postgresql
-      #     DB_NAME: test_logiflow
-      #     DB_USER: postgres
-      #     DB_PASSWORD: postgres
-      #     DB_HOST: localhost
-      #     DB_PORT: 5432
-      #     REDIS_HOST: localhost
-      #     REDIS_PORT: 6379
-      #     SECRET_KEY: test-secret-key-for-ci
-      #     DEBUG: True
+      - name: Run tests with coverage
+        run: |
+          cd backend
+          uv run coverage run --source=apps,utils,logistics_project manage.py test --verbosity=2
+          uv run coverage report -m
+          uv run coverage xml
+        env:
+          DB_ENGINE: django.db.backends.postgresql
+          DB_NAME: test_logiflow
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DB_HOST: localhost
+          DB_PORT: 5432
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          SECRET_KEY: test-secret-key-for-ci
+          DEBUG: True
       
       # ⏸️ CODECOV COMMENTED OUT - No tests yet
       # - name: Upload coverage to Codecov

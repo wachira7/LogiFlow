@@ -112,7 +112,7 @@ wheels = [
 
 [[package]]
 name = "celery"
-version = "5.3.4"
+version = "5.6.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "billiard" },
@@ -122,12 +122,12 @@ dependencies = [
     { name = "click-repl" },
     { name = "kombu" },
     { name = "python-dateutil" },
-    { name = "tzdata" },
+    { name = "tzlocal" },
     { name = "vine" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cc/2d/006ba66a8ee1bf1aef841d7a8a3d44733e9d4d45d7acdc7a675b06a8de22/celery-5.3.4.tar.gz", hash = "sha256:9023df6a8962da79eb30c0c84d5f4863d9793a466354cc931d7f72423996de28", size = 1540385, upload-time = "2023-09-03T20:16:18.184Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e8/b4/a1233943ab5c8ea05fb877a88a0a0622bf47444b99e4991a8045ac37ea1d/celery-5.6.3.tar.gz", hash = "sha256:177006bd2054b882e9f01be59abd8529e88879ef50d7918a7050c5a9f4e12912", size = 1742243, upload-time = "2026-03-26T12:14:51.76Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/98/e9/023b8f75128d747d4aee79da84e4ac58eff63bb21f1c0aa7c452a353d207/celery-5.3.4-py3-none-any.whl", hash = "sha256:1e6ed40af72695464ce98ca2c201ad0ef8fd192246f6c9eac8bba343b980ad34", size = 421351, upload-time = "2023-09-03T20:16:15.399Z" },
+    { url = "https://files.pythonhosted.org/packages/cf/c9/6eccdda96e098f7ae843162db2d3c149c6931a24fda69fe4ab84d0027eb5/celery-5.6.3-py3-none-any.whl", hash = "sha256:0808f42f80909c4d5833202360ffafb2a4f83f4d8e23e1285d926610e9a7afa6", size = 451235, upload-time = "2026-03-26T12:14:49.491Z" },
 ]
 
 [[package]]
@@ -290,14 +290,11 @@ wheels = [
 
 [[package]]
 name = "cron-descriptor"
-version = "2.0.8"
+version = "1.4.5"
 source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f2/ce/cd3cc454ea73e8a38be79723b925611d2556037f938372ad594373f187b4/cron_descriptor-2.0.8.tar.gz", hash = "sha256:7e487efe14a99a3c1c23bb5302bb75c8bf5d54bca82931bf71f5ae2855939772", size = 49971, upload-time = "2026-03-23T13:19:17.963Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/83/70bd410dc6965e33a5460b7da84cf0c5a7330a68d6d5d4c3dfdb72ca117e/cron_descriptor-1.4.5.tar.gz", hash = "sha256:f51ce4ffc1d1f2816939add8524f206c376a42c87a5fca3091ce26725b3b1bca", size = 30666, upload-time = "2024-08-24T18:16:48.654Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/78/8c/ae74b17ea1672844a14c176a88f6d2718fa2c10948dc8401824d62265e9e/cron_descriptor-2.0.8-py3-none-any.whl", hash = "sha256:21fae0e6e0e28b19fd6a08e032c700077fe759e9bc1deb1ebe32f277fbc8ba6c", size = 74703, upload-time = "2026-03-23T13:19:16.486Z" },
+    { url = "https://files.pythonhosted.org/packages/88/20/2cfe598ead23a715a00beb716477cfddd3e5948cf203c372d02221e5b0c6/cron_descriptor-1.4.5-py3-none-any.whl", hash = "sha256:736b3ae9d1a99bc3dbfc5b55b5e6e7c12031e7ba5de716625772f8b02dcd6013", size = 50370, upload-time = "2024-08-24T18:16:46.783Z" },
 ]
 
 [[package]]
@@ -311,21 +308,21 @@ wheels = [
 
 [[package]]
 name = "django"
-version = "4.2.30"
+version = "5.2.18"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
     { name = "sqlparse" },
     { name = "tzdata", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/11/b5/f1a53dc68da6429d6e0345bb848161e2381a2e9f02700148911e8582c2b3/django-4.2.30.tar.gz", hash = "sha256:4ebc7a434e3819db6cf4b399fb5b3f536310a30e8486f08b66886840be84b37c", size = 10468707, upload-time = "2026-04-07T14:05:45.57Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/85/fe/79e692b430c7721bf4b812c328bfe687e73e3f28f56611a6a18a97e887cc/django-5.2.18.tar.gz", hash = "sha256:461c5dd06d2ea16bd5ca37d3f46e4def1d6b0fe7588c6f4e2119517bb0af8b2d", size = 10910238, upload-time = "2026-10-06T13:01:09.371Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/39/b7/a7c96f239cf91313a6589233fed55111c7063b26683b226802732c455dbc/django-4.2.30-py3-none-any.whl", hash = "sha256:4d07aaf1c62f9984842b67c2874ebbf7056a17be253860299b93ae1881faad65", size = 7997231, upload-time = "2026-04-07T14:05:38.241Z" },
+    { url = "https://files.pythonhosted.org/packages/d6/01/6568ec52b26548ca1b83d33249f7274db3bf74698f42c0da42ec9db1a24a/django-5.2.18-py3-none-any.whl", hash = "sha256:92ed81d500be6408ecd704d7bd1366c534f30427bffcc63c5fefb129561aec7c", size = 8316071, upload-time = "2026-10-06T13:01:04.413Z" },
 ]
 
 [[package]]
 name = "django-celery-beat"
-version = "2.5.0"
+version = "2.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "celery" },
@@ -335,22 +332,22 @@ dependencies = [
     { name = "python-crontab" },
     { name = "tzdata" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/0b/97/ca63898f76dd43fc91f4791b05dbbecb60dc99215f16b270e9b1e29af974/django-celery-beat-2.5.0.tar.gz", hash = "sha256:cd0a47f5958402f51ac0c715bc942ae33d7b50b4e48cba91bc3f2712be505df1", size = 159635, upload-time = "2023-03-14T10:02:10.9Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/05/45/fc97bc1d9af8e7dc07f1e37044d9551a30e6793249864cef802341e2e3a8/django_celery_beat-2.9.0.tar.gz", hash = "sha256:92404650f52fcb44cf08e2b09635cb1558327c54b1a5d570f0e2d3a22130934c", size = 177667, upload-time = "2026-02-28T16:45:34.749Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c5/92/fa53396870566276357bb81e3fece5b7f8a00f99c91689ff777c481d40e0/django_celery_beat-2.5.0-py3-none-any.whl", hash = "sha256:ae460faa5ea142fba0875409095d22f6bd7bcc7377889b85e8cab5c0dfb781fe", size = 97223, upload-time = "2023-03-14T10:02:00.093Z" },
+    { url = "https://files.pythonhosted.org/packages/71/ae/9befa7ae37f5e5c41be636a254fcf47ff30dd5c88bd115070e252f6b9162/django_celery_beat-2.9.0-py3-none-any.whl", hash = "sha256:4a9e5ebe26d6f8d7215e1fc5c46e466016279dc102435a28141108649bdf2157", size = 105013, upload-time = "2026-02-28T16:45:32.822Z" },
 ]
 
 [[package]]
 name = "django-celery-results"
-version = "2.5.1"
+version = "2.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "celery" },
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/75/24/a13ad6a276f62385da6d83a1995ded452d173841b6e0a83a899c3b75062e/django_celery_results-2.5.1.tar.gz", hash = "sha256:3ecb7147f773f34d0381bac6246337ce4cf88a2ea7b82774ed48e518b67bb8fd", size = 80944, upload-time = "2023-05-08T14:22:24.486Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a6/b5/9966c28e31014c228305e09d48b19b35522a8f941fe5af5f81f40dc8fa80/django_celery_results-2.6.0.tar.gz", hash = "sha256:9abcd836ae6b61063779244d8887a88fe80bbfaba143df36d3cb07034671277c", size = 83985, upload-time = "2025-04-10T08:23:52.677Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/2e/aa82857354d5227922c2ae6e83e5214537d8f108184bfeea6704d0b045d8/django_celery_results-2.5.1-py3-none-any.whl", hash = "sha256:0da4cd5ecc049333e4524a23fcfc3460dfae91aa0a60f1fae4b6b2889c254e01", size = 36293, upload-time = "2023-05-08T14:22:12.955Z" },
+    { url = "https://files.pythonhosted.org/packages/2c/da/70f0f3c5364735344c4bc89e53413bcaae95b4fc1de4e98a7a3b9fb70c88/django_celery_results-2.6.0-py3-none-any.whl", hash = "sha256:b9ccdca2695b98c7cbbb8dea742311ba9a92773d71d7b4944a676e69a7df1c73", size = 38351, upload-time = "2025-04-10T08:23:49.965Z" },
 ]
 
 [[package]]
@@ -717,13 +714,13 @@ prod = [
 [package.metadata]
 requires-dist = [
     { name = "bcrypt", specifier = ">=5.0.0" },
-    { name = "celery", specifier = "==5.3.4" },
+    { name = "celery", specifier = ">=5.5" },
     { name = "channels", specifier = ">=4.3.2" },
     { name = "channels-redis", specifier = ">=4.3.0" },
     { name = "cloudinary", specifier = "==1.44.1" },
-    { name = "django", specifier = ">=4.2.30,<5.0" },
-    { name = "django-celery-beat", specifier = "==2.5.0" },
-    { name = "django-celery-results", specifier = "==2.5.1" },
+    { name = "django", specifier = ">=5.2.8,<5.3" },
+    { name = "django-celery-beat", specifier = ">=2.8" },
+    { name = "django-celery-results", specifier = ">=2.6" },
     { name = "django-cloudinary-storage", specifier = "==0.3.0" },
     { name = "django-cors-headers", specifier = ">=4.9.0" },
     { name = "django-extensions", specifier = ">=4.1" },
@@ -1256,6 +1253,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/19/f5/cd531b2d15a671a40c0f66cf06bc3570a12cd56eef98960068ebbad1bf5a/tzdata-2026.1.tar.gz", hash = "sha256:67658a1903c75917309e753fdc349ac0efd8c27db7a0cb406a25be4840f87f98", size = 197639, upload-time = "2026-04-03T11:25:22.002Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b0/70/d460bd685a170790ec89317e9bd33047988e4bce507b831f5db771e142de/tzdata-2026.1-py2.py3-none-any.whl", hash = "sha256:4b1d2be7ac37ceafd7327b961aa3a54e467efbdb563a23655fbfe0d39cfc42a9", size = 348952, upload-time = "2026-04-03T11:25:20.313Z" },
+]
+
+[[package]]
+name = "tzlocal"
+version = "5.4.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "tzdata", marker = "sys_platform == 'win32'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/81/5b/879b2f932adfa7a053c360d50bc896c977fa6426109185f7c12ebdd0cb9d/tzlocal-5.4.4.tar.gz", hash = "sha256:8dbb8660838688a7b6ba4fed31d18dedf842afb4d47ca050d6d891c2c15f3be4", size = 31170, upload-time = "2026-06-29T08:03:40.026Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9e/a4/017a7a6cbe387d961a688ec31364ae60a5c4e22c96ae9921b79a947c855d/tzlocal-5.4.4-py3-none-any.whl", hash = "sha256:aae09f0126a8a86fa736be266eb4a471380d26a0de3bc14844e7821fee3e2a15", size = 18115, upload-time = "2026-06-29T08:03:38.666Z" },
 ]
 
 [[package]]

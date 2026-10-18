@@ -10,6 +10,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.db import transaction
 from django.utils import timezone
+from datetime import datetime, timezone as dt_timezone
 from .models import UserSubscription, PaymentTransaction, PaymentMethod
 from .providers.stripe import StripeService
 
@@ -145,14 +146,14 @@ class StripeWebhookView(View):
             
             # Update trial end if changed
             if subscription.get('trial_end'):
-                user_subscription.trial_end = timezone.datetime.fromtimestamp(
-                    subscription['trial_end'], tz=timezone.utc
+                user_subscription.trial_end = datetime.fromtimestamp(
+                    subscription['trial_end'], tz=dt_timezone.utc
                 )
             
             # Update end date if changed
             if subscription.get('current_period_end'):
-                user_subscription.end_date = timezone.datetime.fromtimestamp(
-                    subscription['current_period_end'], tz=timezone.utc
+                user_subscription.end_date = datetime.fromtimestamp(
+                    subscription['current_period_end'], tz=dt_timezone.utc
                 )
             
             user_subscription.save()
