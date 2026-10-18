@@ -16,6 +16,7 @@ from .serializers import (
 from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
 from .utils import geocode_address, mark_shipment_delivered
+from .events import record_event, record_status_change
 import time
 
 class CustomerOrderViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
@@ -91,6 +92,10 @@ class CustomerOrderViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
                 status='PENDING'
             )
             
+            record_event(shipment, 'CREATED', actor=request.user,
+                         message=f'Created from order {order.order_number}',
+                         data={'order_number': order.order_number})
+
             # Create shipment items from order items
             for order_item in order.order_items.all():
                 ShipmentItem.objects.create(
@@ -184,6 +189,22 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
             return ShipmentDetailSerializer
         return ShipmentListSerializer
 
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        record_event(serializer.instance, 'CREATED', actor=self.request.user, message='Shipment created')
+
+    def perform_update(self, serializer):
+        before = serializer.instance
+        previous = {'status': before.status, 'driver_id': before.driver_id, 'vehicle_id': before.vehicle_id}
+        shipment = serializer.save()
+        record_status_change(shipment, previous['status'], actor=self.request.user)
+        if (shipment.driver_id, shipment.vehicle_id) != (previous['driver_id'], previous['vehicle_id']):
+            record_event(
+                shipment, 'ASSIGNED', actor=self.request.user,
+                message='Driver or vehicle changed',
+                data={'driver_id': str(shipment.driver_id or ''), 'vehicle_id': str(shipment.vehicle_id or '')},
+            )
+
     @action(detail=True, methods=['post'])
     def pick_shipment(self, request, pk=None):
         """Mark shipment as picked."""
@@ -194,8 +215,10 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
                 'error': 'Shipment must be in PENDING status to pick'
             }, status=status.HTTP_400_BAD_REQUEST)
         
+        previous_status = shipment.status
         shipment.status = 'PICKED'
         shipment.save()
+        record_status_change(shipment, previous_status, actor=request.user)
         
         return Response({
             'message': 'Shipment marked as picked',
@@ -212,8 +235,10 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
                 'error': 'Shipment must be picked before packing'
             }, status=status.HTTP_400_BAD_REQUEST)
         
+        previous_status = shipment.status
         shipment.status = 'PACKED'
         shipment.save()
+        record_status_change(shipment, previous_status, actor=request.user)
         
         return Response({
             'message': 'Shipment marked as packed',
@@ -235,6 +260,7 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
         carrier = request.data.get('carrier')
         estimated_delivery = request.data.get('estimated_delivery')
         
+        previous_status = shipment.status
         shipment.status = 'SHIPPED'
         shipment.shipping_date = timezone.now()
         
@@ -246,6 +272,8 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
             shipment.estimated_delivery = estimated_delivery
         
         shipment.save()
+        record_status_change(shipment, previous_status, actor=request.user,
+                             data={'carrier': shipment.carrier, 'tracking_number': shipment.tracking_number})
         
         return Response({
             'message': 'Shipment shipped successfully',
@@ -263,7 +291,7 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
                 'error': 'Shipment must be shipped before delivery'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        mark_shipment_delivered(shipment, timezone.now())
+        mark_shipment_delivered(shipment, timezone.now(), actor=request.user)
         
         return Response({
             'message': 'Shipment delivered successfully',
@@ -480,6 +508,9 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
         stop.status = 'ARRIVED'
         stop.actual_arrival = timezone.now()
         stop.save()
+        record_event(stop.shipment, 'STOP_ARRIVED', actor=request.user,
+                     message=f'Arrived at stop {stop.stop_number}', occurred_at=stop.actual_arrival,
+                     data={'route_id': str(stop.route_id), 'stop_id': str(stop.id)})
         
         return Response({
             'message': 'Arrival marked successfully',
@@ -503,7 +534,10 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
         
         # Mark associated shipment (and its order, if fully delivered) as delivered
         if stop.shipment:
-            mark_shipment_delivered(stop.shipment, stop.departure_time)
+            record_event(stop.shipment, 'STOP_COMPLETED', actor=request.user,
+                         message=f'Stop {stop.stop_number} completed', occurred_at=stop.departure_time,
+                         data={'route_id': str(stop.route_id), 'stop_id': str(stop.id)})
+            mark_shipment_delivered(stop.shipment, stop.departure_time, actor=request.user)
         
         return Response({
             'message': 'Stop completed successfully',
@@ -527,6 +561,9 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
         stop.status = 'FAILED'
         stop.notes = notes
         stop.save()
+        record_event(stop.shipment, 'STOP_FAILED', actor=request.user,
+                     message=f'Stop {stop.stop_number} failed' + (f': {notes}' if notes else ''),
+                     data={'route_id': str(stop.route_id), 'stop_id': str(stop.id), 'notes': notes})
         
         return Response({
             'message': 'Stop marked as failed',

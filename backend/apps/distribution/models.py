@@ -1,6 +1,7 @@
 # backend/apps/distribution/models.py
 import uuid
 from django.db import models
+from django.utils import timezone
 from utils.mixins import TimeStampedModel
 
 
@@ -102,7 +103,12 @@ class Shipment(TimeStampedModel):
         ('PACKED', 'Packed'),
         ('SHIPPED', 'Shipped'),
         ('DELIVERED', 'Delivered'),
+        ('FAILED', 'Failed'),
+        ('RETURNED', 'Returned'),
+        ('CANCELLED', 'Cancelled'),
     ]
+    # Statuses after which a shipment is no longer in play
+    TERMINAL_STATUSES = ('DELIVERED', 'RETURNED', 'CANCELLED')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     
     # Shipping details
@@ -117,7 +123,15 @@ class Shipment(TimeStampedModel):
     # Logistics
     warehouse = models.ForeignKey('inventory.Warehouse', on_delete=models.CASCADE, related_name='shipments')
     driver = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='driven_shipments')
-    vehicle_info = models.CharField(max_length=255, blank=True)
+    vehicle = models.ForeignKey('Vehicle', on_delete=models.SET_NULL, null=True, blank=True, related_name='shipments')
+    vehicle_info = models.CharField(max_length=255, blank=True)  # legacy free text; prefer `vehicle`
+    
+    # Destination and recipient (optional; the order's shipping address is used when blank)
+    destination_address = models.TextField(blank=True)
+    destination_latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    destination_longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    recipient_name = models.CharField(max_length=255, blank=True)
+    recipient_phone = models.CharField(max_length=20, blank=True)
     
     notes = models.TextField(blank=True)
     
@@ -173,7 +187,8 @@ class DeliveryRoute(TimeStampedModel):
     company = models.ForeignKey('tenants.Company', on_delete=models.CASCADE, related_name='delivery_routes')
     route_name = models.CharField(max_length=255)
     driver = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='delivery_routes')
-    vehicle_id = models.CharField(max_length=100, blank=True)
+    vehicle_id = models.CharField(max_length=100, blank=True)  # legacy free text (name clashes with a `vehicle` FK)
+    fleet_vehicle = models.ForeignKey('Vehicle', on_delete=models.SET_NULL, null=True, blank=True, related_name='routes')
     
     start_time = models.DateTimeField(null=True, blank=True)
     end_time = models.DateTimeField(null=True, blank=True)
@@ -255,3 +270,205 @@ class RouteStop(TimeStampedModel):
             duration = self.departure_time - self.actual_arrival
             return duration.total_seconds() / 60
         return None
+
+
+class Vehicle(TimeStampedModel):
+    """A fleet vehicle that can be assigned to shipments and delivery routes."""
+    company = models.ForeignKey('tenants.Company', on_delete=models.CASCADE, related_name='vehicles')
+    registration = models.CharField(max_length=20)  # number plate, e.g. KCD 214T
+    name = models.CharField(max_length=100, blank=True)  # optional nickname, e.g. "Cold van 2"
+
+    TYPE_CHOICES = [
+        ('MOTORBIKE', 'Motorbike'),
+        ('VAN', 'Van'),
+        ('PICKUP', 'Pickup'),
+        ('TRUCK', 'Truck'),
+        ('REFRIGERATED', 'Refrigerated truck'),
+        ('OTHER', 'Other'),
+    ]
+    vehicle_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='VAN')
+
+    STATUS_CHOICES = [
+        ('AVAILABLE', 'Available'),
+        ('IN_USE', 'In use'),
+        ('MAINTENANCE', 'Maintenance'),
+        ('INACTIVE', 'Inactive'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='AVAILABLE')
+
+    capacity_kg = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    capacity_m3 = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    default_driver = models.ForeignKey(
+        'users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='default_vehicles'
+    )
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'vehicles'
+        ordering = ['registration']
+        constraints = [
+            models.UniqueConstraint(fields=['company', 'registration'], name='unique_vehicle_registration_per_company'),
+        ]
+
+    def __str__(self):
+        return self.registration
+
+
+class ShipmentEvent(models.Model):
+    """
+    Append-only history of what happened to a shipment. Feeds the shipment
+    timeline and the activity feed, and doubles as its audit trail.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    company = models.ForeignKey('tenants.Company', on_delete=models.CASCADE, related_name='shipment_events')
+    shipment = models.ForeignKey(Shipment, on_delete=models.CASCADE, related_name='events')
+
+    TYPE_CHOICES = [
+        ('CREATED', 'Created'),
+        ('STATUS_CHANGED', 'Status changed'),
+        ('ASSIGNED', 'Driver or vehicle assigned'),
+        ('STOP_ARRIVED', 'Arrived at stop'),
+        ('STOP_COMPLETED', 'Stop completed'),
+        ('STOP_FAILED', 'Stop failed'),
+        ('EXCEPTION_RAISED', 'Exception raised'),
+        ('EXCEPTION_RESOLVED', 'Exception resolved'),
+        ('PROOF_OF_DELIVERY', 'Proof of delivery captured'),
+        ('NOTE', 'Note'),
+    ]
+    event_type = models.CharField(max_length=30, choices=TYPE_CHOICES)
+    from_status = models.CharField(max_length=20, blank=True)
+    to_status = models.CharField(max_length=20, blank=True)
+    message = models.CharField(max_length=500, blank=True)
+    actor = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='shipment_events')
+    data = models.JSONField(default=dict, blank=True)
+    occurred_at = models.DateTimeField(default=timezone.now, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'shipment_events'
+        ordering = ['-occurred_at']
+        indexes = [
+            models.Index(fields=['shipment', '-occurred_at']),
+            models.Index(fields=['company', '-occurred_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.shipment.shipment_number}: {self.get_event_type_display()}"
+
+
+class DeliveryException(TimeStampedModel):
+    """A problem that needs someone to act on it: a delay, failed delivery, damage, and so on."""
+    company = models.ForeignKey('tenants.Company', on_delete=models.CASCADE, related_name='delivery_exceptions')
+    shipment = models.ForeignKey(Shipment, on_delete=models.CASCADE, null=True, blank=True, related_name='exceptions')
+    route = models.ForeignKey(DeliveryRoute, on_delete=models.SET_NULL, null=True, blank=True, related_name='exceptions')
+    route_stop = models.ForeignKey(RouteStop, on_delete=models.SET_NULL, null=True, blank=True, related_name='exceptions')
+
+    TYPE_CHOICES = [
+        ('DELAY', 'Delay'),
+        ('FAILED_DELIVERY', 'Failed delivery'),
+        ('CUSTOMER_UNAVAILABLE', 'Customer unavailable'),
+        ('ADDRESS_ISSUE', 'Address issue'),
+        ('DAMAGED', 'Damaged goods'),
+        ('LOST', 'Lost goods'),
+        ('VEHICLE_BREAKDOWN', 'Vehicle breakdown'),
+        ('TEMPERATURE', 'Temperature out of range'),
+        ('OTHER', 'Other'),
+    ]
+    exception_type = models.CharField(max_length=30, choices=TYPE_CHOICES)
+
+    SEVERITY_CHOICES = [
+        ('LOW', 'Low'),
+        ('MEDIUM', 'Medium'),
+        ('HIGH', 'High'),
+        ('CRITICAL', 'Critical'),
+    ]
+    severity = models.CharField(max_length=10, choices=SEVERITY_CHOICES, default='MEDIUM')
+
+    STATUS_CHOICES = [
+        ('OPEN', 'Open'),
+        ('ACKNOWLEDGED', 'Acknowledged'),
+        ('RESOLVED', 'Resolved'),
+        ('DISMISSED', 'Dismissed'),
+    ]
+    OPEN_STATUSES = ('OPEN', 'ACKNOWLEDGED')
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='OPEN')
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    cause = models.TextField(blank=True)
+    impact = models.TextField(blank=True)
+    recommended_action = models.TextField(blank=True)
+
+    owner = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='owned_exceptions')
+    reported_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='reported_exceptions')
+    resolved_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_exceptions')
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolution_notes = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'delivery_exceptions'
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['company', 'status', 'severity'])]
+
+    def __str__(self):
+        return f"[{self.severity}] {self.title}"
+
+    @property
+    def is_open(self):
+        return self.status in self.OPEN_STATUSES
+
+
+def proof_upload_path(instance, filename):
+    return f"proof_of_delivery/{instance.shipment.company_id}/{instance.shipment_id}/{filename}"
+
+
+class ProofOfDelivery(TimeStampedModel):
+    """Evidence that a delivery happened: who received it, signature/photo and where."""
+    shipment = models.ForeignKey(Shipment, on_delete=models.CASCADE, related_name='proofs')
+    route_stop = models.ForeignKey(RouteStop, on_delete=models.SET_NULL, null=True, blank=True, related_name='proofs')
+    recipient_name = models.CharField(max_length=255, blank=True)
+    signature = models.ImageField(upload_to=proof_upload_path, null=True, blank=True)
+    photo = models.ImageField(upload_to=proof_upload_path, null=True, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    notes = models.TextField(blank=True)
+    captured_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='captured_proofs')
+    captured_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'proofs_of_delivery'
+        ordering = ['-captured_at']
+        verbose_name_plural = 'Proofs of delivery'
+
+    def __str__(self):
+        return f"POD {self.shipment.shipment_number} @ {self.captured_at:%Y-%m-%d %H:%M}"
+
+
+class LocationPing(models.Model):
+    """
+    A GPS position reported by a driver's device. High volume, so it uses an
+    integer key and no updated_at.
+    """
+    company = models.ForeignKey('tenants.Company', on_delete=models.CASCADE, related_name='location_pings')
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True, blank=True, related_name='location_pings')
+    driver = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='location_pings')
+    route = models.ForeignKey(DeliveryRoute, on_delete=models.SET_NULL, null=True, blank=True, related_name='location_pings')
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    accuracy_m = models.FloatField(null=True, blank=True)
+    speed_kmh = models.FloatField(null=True, blank=True)
+    heading = models.FloatField(null=True, blank=True)  # degrees from north
+    recorded_at = models.DateTimeField()  # device time
+    received_at = models.DateTimeField(auto_now_add=True)  # server time
+
+    class Meta:
+        db_table = 'location_pings'
+        ordering = ['-recorded_at']
+        indexes = [
+            models.Index(fields=['vehicle', '-recorded_at']),
+            models.Index(fields=['driver', '-recorded_at']),
+            models.Index(fields=['company', '-recorded_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.latitude},{self.longitude} @ {self.recorded_at:%H:%M:%S}"

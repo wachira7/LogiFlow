@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from django.utils import timezone
 
-from apps.distribution.models import CustomerOrder, DeliveryRoute, OrderItem, RouteStop, Shipment
+from apps.distribution.models import DeliveryRoute, OrderItem, RouteStop, Shipment
 from utils.testing import (
     AuthenticatedAPITestCase, make_company, make_order, make_product, make_shipment, make_user, make_warehouse,
 )
@@ -254,3 +254,111 @@ class RouteCreateTests(AuthenticatedAPITestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(len(r.json()['route_stops']), 1)
         self.assertEqual(self.client.get(f'{BASE}/route-stops/').status_code, 200)
+
+
+class ShipmentEventRecordingTests(AuthenticatedAPITestCase):
+    """Existing actions keep their behaviour and also append to the shipment's history."""
+
+    def setUp(self):
+        super().setUp()
+        self.warehouse = make_warehouse(self.company)
+
+    def events(self, shipment):
+        return list(shipment.events.order_by('occurred_at', 'created_at').values_list('event_type', 'from_status', 'to_status'))
+
+    def test_create_via_api_records_created(self):
+        r = self.client.post(f'{BASE}/shipments/', {'shipment_number': 'SH-EV-1', 'warehouse_id': str(self.warehouse.id)}, format='json')
+        self.assertEqual(r.status_code, 201, r.content)
+        shipment = Shipment.objects.get(shipment_number='SH-EV-1')
+        event = shipment.events.get()
+        self.assertEqual((event.event_type, event.actor, event.company), ('CREATED', self.user, self.company))
+
+    def test_status_flow_records_each_transition(self):
+        shipment = make_shipment(self.company, warehouse=self.warehouse)
+        for action in ('pick_shipment', 'pack_shipment', 'ship_shipment', 'deliver_shipment'):
+            self.client.post(f'{BASE}/shipments/{shipment.id}/{action}/', {'carrier': 'G4S'})
+        self.assertEqual(self.events(shipment), [
+            ('STATUS_CHANGED', 'PENDING', 'PICKED'),
+            ('STATUS_CHANGED', 'PICKED', 'PACKED'),
+            ('STATUS_CHANGED', 'PACKED', 'SHIPPED'),
+            ('STATUS_CHANGED', 'SHIPPED', 'DELIVERED'),
+        ])
+        self.assertEqual(shipment.events.get(to_status='SHIPPED').data['carrier'], 'G4S')
+
+    def test_rejected_transition_records_nothing(self):
+        shipment = make_shipment(self.company, warehouse=self.warehouse)
+        self.client.post(f'{BASE}/shipments/{shipment.id}/deliver_shipment/')
+        self.assertFalse(shipment.events.exists())
+
+    def test_ship_order_records_created(self):
+        order = make_order(self.company, status='PROCESSING')
+        r = self.client.post(f'{BASE}/orders/{order.id}/ship_order/', {'warehouse_id': str(self.warehouse.id)})
+        shipment = Shipment.objects.get(id=r.json()['shipment_id'])
+        self.assertEqual(shipment.events.get().event_type, 'CREATED')
+        self.assertIn(order.order_number, shipment.events.get().message)
+
+    def test_reassigning_driver_records_assigned(self):
+        shipment = make_shipment(self.company, warehouse=self.warehouse)
+        driver = make_user(company=self.company, is_driver=True)
+        r = self.client.patch(f'{BASE}/shipments/{shipment.id}/', {'driver_id': str(driver.id)}, format='json')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual(shipment.events.get().event_type, 'ASSIGNED')
+        # Saving without a change records nothing new
+        self.client.patch(f'{BASE}/shipments/{shipment.id}/', {'notes': 'Fragile'}, format='json')
+        self.assertEqual(shipment.events.count(), 1)
+
+    @patch('apps.distribution.views.time.sleep')
+    @patch('apps.distribution.views.geocode_address', return_value=None)
+    def test_route_stop_actions_record_stop_events(self, *_):
+        route = DeliveryRoute.objects.create(company=self.company, route_name='CBD')
+        delivered = make_shipment(self.company, warehouse=self.warehouse, status='SHIPPED')
+        failed = make_shipment(self.company, warehouse=self.warehouse, status='SHIPPED')
+        for s in (delivered, failed):
+            self.client.post(f'{BASE}/routes/{route.id}/add_stop/', {'shipment_id': str(s.id), 'address': 'Moi Ave'}, format='json')
+        stop_ok, stop_fail = route.route_stops.order_by('stop_number')
+
+        self.client.post(f'{BASE}/route-stops/{stop_ok.id}/arrive_at_stop/')
+        self.client.post(f'{BASE}/route-stops/{stop_ok.id}/complete_stop/')
+        self.client.post(f'{BASE}/route-stops/{stop_fail.id}/fail_stop/', {'notes': 'Gate locked'})
+
+        self.assertEqual(self.events(delivered), [
+            ('STOP_ARRIVED', '', ''),
+            ('STOP_COMPLETED', '', ''),
+            ('STATUS_CHANGED', 'SHIPPED', 'DELIVERED'),
+        ])
+        fail_event = failed.events.get()
+        self.assertEqual(fail_event.event_type, 'STOP_FAILED')
+        self.assertEqual(fail_event.data['notes'], 'Gate locked')
+
+
+class LogisticsModelTests(AuthenticatedAPITestCase):
+    def test_vehicle_registration_unique_per_company_only(self):
+        from django.db import IntegrityError, transaction
+        from apps.distribution.models import Vehicle
+
+        Vehicle.objects.create(company=self.company, registration='KCD 214T')
+        Vehicle.objects.create(company=make_company(), registration='KCD 214T')  # other company: allowed
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Vehicle.objects.create(company=self.company, registration='KCD 214T')
+
+    def test_exception_open_state(self):
+        from apps.distribution.models import DeliveryException
+
+        exc = DeliveryException.objects.create(company=self.company, exception_type='DELAY', title='Late truck')
+        self.assertTrue(exc.is_open)
+        exc.status = 'RESOLVED'
+        self.assertFalse(exc.is_open)
+
+    def test_company_less_children_resolve_their_company(self):
+        from apps.distribution.models import ProofOfDelivery
+        from utils.permissions import _owning_company
+
+        proof = ProofOfDelivery.objects.create(shipment=make_shipment(self.company), recipient_name='Achieng')
+        self.assertEqual(_owning_company(proof), self.company)
+
+    def test_cancelled_and_returned_shipments_are_not_active(self):
+        make_shipment(self.company, status='SHIPPED')
+        make_shipment(self.company, status='CANCELLED')
+        make_shipment(self.company, status='RETURNED')
+        stats = self.client.get('/api/v1/auth/dashboard/overview/').json()['stats']
+        self.assertEqual(stats['active_shipments'], 1)
