@@ -48,42 +48,40 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: backend/requirements/base.txt
-      
-      - name: Install dependencies
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      - name: Install Python and dependencies
         run: |
           cd backend
-          python -m pip install --upgrade pip
-          pip install -r requirements/base.txt
-          pip install flake8 black isort
+          uv python install
+          uv sync --frozen --all-groups
       
       - name: Run Black formatter check
         run: |
           cd backend
-          black --check .
+          uv run black --check .
         continue-on-error: true
       
       - name: Run isort import order check
         run: |
           cd backend
-          isort --check-only .
+          uv run isort --check-only .
         continue-on-error: true
       
       - name: Run flake8 linting
         run: |
           cd backend
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          uv run flake8 . --extend-exclude=.venv --count --select=E9,F63,F7,F82 --show-source --statistics
+          uv run flake8 . --extend-exclude=.venv --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       
       - name: Run Django system checks
         run: |
           cd backend
-          python manage.py check
+          uv run python manage.py check
         env:
           DB_ENGINE: django.db.backends.postgresql
           DB_NAME: test_logiflow
@@ -99,7 +97,7 @@ jobs:
       - name: Run migrations
         run: |
           cd backend
-          python manage.py migrate --noinput
+          uv run python manage.py migrate --noinput
         env:
           DB_ENGINE: django.db.backends.postgresql
           DB_NAME: test_logiflow

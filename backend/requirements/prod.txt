@@ -1,15 +1,9 @@
-#backend/requirements/prod.txt
-# Include base requirements
+# Generated from uv.lock - edit pyproject.toml instead (see README "Dependencies with uv").
 -r base.txt
-
-# Production server
-gunicorn>=21.0.0
-
-# Production utilities
-whitenoise>=6.5.0
-
-# Monitoring and logging
-sentry-sdk>=1.28.0
-
-# Security
-#django-security>=0.16.0
+certifi==2026.2.25
+    # via sentry-sdk
+gunicorn==26.2.0
+sentry-sdk==2.72.0
+urllib3==2.6.3
+    # via sentry-sdk
+whitenoise==6.12.0
