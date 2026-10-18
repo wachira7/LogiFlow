@@ -1,7 +1,7 @@
 # apps/platform_admin/analytics.py
 from django.db.models import Sum, Count
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 
 
 def get_platform_overview():
@@ -30,13 +30,13 @@ def get_platform_overview():
         month = (now.month - i - 1) % 12 + 1
         year = now.year - ((now.month - i - 1) // 12)
         
-        month_start = timezone.datetime(year, month, 1, tzinfo=timezone.utc)
+        month_start = datetime(year, month, 1, tzinfo=dt_timezone.utc)
         
         # Month end = first day of next month
         if month == 12:
-            month_end = timezone.datetime(year + 1, 1, 1, tzinfo=timezone.utc)
+            month_end = datetime(year + 1, 1, 1, tzinfo=dt_timezone.utc)
         else:
-            month_end = timezone.datetime(year, month + 1, 1, tzinfo=timezone.utc)
+            month_end = datetime(year, month + 1, 1, tzinfo=dt_timezone.utc)
 
         revenue = PaymentTransaction.objects.filter(
             status='COMPLETED',

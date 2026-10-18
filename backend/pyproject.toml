@@ -5,7 +5,7 @@ description = "LogiFlow logistics platform API (Django + DRF)"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     # Core Django & web framework
-    "django>=4.2.30,<5.0",
+    "django>=5.2.8,<5.3",
     "djangorestframework>=3.17.1",
     "django-cors-headers>=4.9.0",
     # Authentication & authorization
@@ -24,9 +24,9 @@ dependencies = [
     "channels>=4.3.2",
     "channels-redis>=4.3.0",
     # Task queue
-    "celery==5.3.4",
-    "django-celery-beat==2.5.0",
-    "django-celery-results==2.5.1",
+    "celery>=5.5",
+    "django-celery-beat>=2.8",
+    "django-celery-results>=2.6",
     # Environment variables
     "python-dotenv>=1.2.2",
     # File handling

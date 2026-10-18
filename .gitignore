@@ -23,3 +23,7 @@ build/
 .vscode/
 .DS_Storebackend/logs/*.log
 backend/logs/
+
+# Python test coverage
+.coverage
+coverage.xml

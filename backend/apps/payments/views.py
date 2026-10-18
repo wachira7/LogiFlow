@@ -10,7 +10,7 @@ from django.db.models import Q, Sum, Count
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.utils.decorators import method_decorator
@@ -545,19 +545,19 @@ def stripe_checkout_success(request):
     
         # Calculate dates from Stripe subscription
         if stripe_subscription and hasattr(stripe_subscription, 'current_period_end'):
-            end_date = timezone.datetime.fromtimestamp(
+            end_date = datetime.fromtimestamp(
                 stripe_subscription.current_period_end, 
-                tz=timezone.utc
+                tz=dt_timezone.utc
             )
-            start_date = timezone.datetime.fromtimestamp(
+            start_date = datetime.fromtimestamp(
                 stripe_subscription.current_period_start,
-                tz=timezone.utc
+                tz=dt_timezone.utc
             )
             trial_end = None
             if stripe_subscription.trial_end:
-                trial_end = timezone.datetime.fromtimestamp(
+                trial_end = datetime.fromtimestamp(
                     stripe_subscription.trial_end,
-                    tz=timezone.utc
+                    tz=dt_timezone.utc
                 )
         else:
             # Fallback dates
