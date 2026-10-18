@@ -1,0 +1,70 @@
+[project]
+name = "logiflow-backend"
+version = "0.1.0"
+description = "LogiFlow logistics platform API (Django + DRF)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # Core Django & web framework
+    "django>=4.2.30,<5.0",
+    "djangorestframework>=3.17.1",
+    "django-cors-headers>=4.9.0",
+    # Authentication & authorization
+    "djangorestframework-simplejwt>=5.5.1",
+    # API documentation
+    "drf-spectacular>=0.29.0",
+    # Database
+    "psycopg2-binary>=2.9.11",
+    # Filtering & pagination
+    "django-filter>=25.1",
+    "django-extensions>=4.1",
+    # Redis & caching
+    "django-redis>=6.0.0",
+    "redis>=7.4.0",
+    # WebSockets
+    "channels>=4.3.2",
+    "channels-redis>=4.3.0",
+    # Task queue
+    "celery==5.3.4",
+    "django-celery-beat==2.5.0",
+    "django-celery-results==2.5.1",
+    # Environment variables
+    "python-dotenv>=1.2.2",
+    # File handling
+    "pillow>=12.2.0",
+    # System monitoring
+    "psutil>=7.2.2",
+    # Utilities
+    "python-dateutil>=2.9.0",
+    # Payment integrations
+    "stripe==7.12.0",
+    "phonenumbers==8.13.11",
+    "requests>=2.33.1",
+    # Transactional email
+    "resend>=2.27.0",
+    # Media storage
+    "cloudinary==1.44.1",
+    "django-cloudinary-storage==0.3.0",
+    # Security
+    "bcrypt>=5.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "django-debug-toolbar>=6.3.0",
+    "pytest>=9.0.3",
+    "pytest-django>=4.12.0",
+    "pytest-cov>=7.1.0",
+    "factory-boy>=3.3.3",
+    "flake8>=7.3.0",
+    "black>=26.3.1",
+    "isort>=8.0.1",
+    "ipython>=9.12.0",
+]
+prod = [
+    "gunicorn>=21.0.0",
+    "whitenoise>=6.5.0",
+    "sentry-sdk>=1.28.0",
+]
+
+[tool.uv]
+package = false

@@ -165,14 +165,27 @@ docker-compose up -d
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+# Requires uv: https://docs.astral.sh/uv/ (installs Python 3.12.13 from .python-version)
+uv sync
 
-pip install -r requirements/base.txt
+uv run python manage.py migrate
+uv run python manage.py createsuperuser
+uv run python manage.py runserver
+```
 
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+#### Dependencies with uv
+
+`pyproject.toml` + `uv.lock` are the source of truth. To add or upgrade a package:
+
+```bash
+uv add <package>              # or: uv add --group dev <package>
+uv lock --upgrade-package <package>
+```
+
+`requirements/*.txt` are exported from the lockfile for tools that still need them:
+
+```bash
+uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements/base.txt
 ```
 
 ### 5. Start Celery workers
