@@ -15,7 +15,7 @@ from .serializers import (
 )
 from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
-from .utils import geocode_address 
+from .utils import geocode_address, mark_shipment_delivered
 import time
 
 class CustomerOrderViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
@@ -39,11 +39,6 @@ class CustomerOrderViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
             return CustomerOrderDetailSerializer
         return CustomerOrderListSerializer
 
-    @action(detail=True, methods=['post'])
-    def process_order(self, request, pk=None):
-        """Move order from NEW to PROCESSING status."""
-        order = self.get_object()
-        
     @action(detail=True, methods=['post'])
     def process_order(self, request, pk=None):
         """Move order from NEW to PROCESSING status."""
@@ -185,7 +180,7 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
         ).select_related('order', 'warehouse', 'driver').prefetch_related('shipment_items__product')
 
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        if self.action in ('retrieve', 'create', 'update', 'partial_update'):
             return ShipmentDetailSerializer
         return ShipmentListSerializer
 
@@ -268,19 +263,7 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
                 'error': 'Shipment must be shipped before delivery'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        shipment.status = 'DELIVERED'
-        shipment.actual_delivery = timezone.now()
-        shipment.save()
-        
-        # Update order status if all shipments are delivered
-        if shipment.order:
-            all_delivered = all(
-                s.status == 'DELIVERED' 
-                for s in shipment.order.shipments.all()
-            )
-            if all_delivered:
-                shipment.order.status = 'DELIVERED'
-                shipment.order.save()
+        mark_shipment_delivered(shipment, timezone.now())
         
         return Response({
             'message': 'Shipment delivered successfully',
@@ -367,7 +350,7 @@ class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
         ).select_related('driver').prefetch_related('route_stops__shipment')
 
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        if self.action in ('retrieve', 'create', 'update', 'partial_update'):
             return DeliveryRouteDetailSerializer
         return DeliveryRouteListSerializer
 
@@ -438,7 +421,13 @@ class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
         
         # Auto-assign stop number
         max_stop = route.route_stops.aggregate(max_stop=models.Max('stop_number'))['max_stop'] or 0
-        serializer.save(route=route, stop_number=max_stop + 1)
+        save_kwargs = {'route': route, 'stop_number': max_stop + 1}
+
+        coords = geocode_address(serializer.validated_data['address'])
+        time.sleep(1)  # Nominatim rate limit: 1 req/sec
+        if coords:
+            save_kwargs.update(latitude=coords[0], longitude=coords[1])
+        serializer.save(**save_kwargs)
         
         return Response({
             'message': 'Stop added successfully',
@@ -462,27 +451,21 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
 
 
     
-    def perform_create(self, serializer):
-        address = serializer.validated_data.get('address', '')
-        coords = geocode_address(address)
-        time.sleep(1)  # Nominatim rate limit: 1 req/sec
-        if coords:
-            serializer.save(
-                company=self.request.user.company,
-                latitude=coords[0],
-                longitude=coords[1],
-            )
-        else:
-            serializer.save(company=self.request.user.company)
+    def create(self, request, *args, **kwargs):
+        # Stops need a route and a stop number, which add_stop assigns
+        return Response({
+            'error': 'Create stops with POST /api/v1/distribution/routes/{route_id}/add_stop/'
+        }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
     def perform_update(self, serializer):
-        address = serializer.validated_data.get('address', '')
-        coords = geocode_address(address)
-        time.sleep(1)
-        if coords:
-            serializer.save(latitude=coords[0], longitude=coords[1])
-        else:
-            serializer.save()    
+        address = serializer.validated_data.get('address')
+        if address and address != serializer.instance.address:
+            coords = geocode_address(address)
+            time.sleep(1)  # Nominatim rate limit: 1 req/sec
+            if coords:
+                serializer.save(latitude=coords[0], longitude=coords[1])
+                return
+        serializer.save()
 
     @action(detail=True, methods=['post'])
     def arrive_at_stop(self, request, pk=None):
@@ -518,11 +501,9 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
         stop.departure_time = timezone.now()
         stop.save()
         
-        # Mark associated shipment as delivered
+        # Mark associated shipment (and its order, if fully delivered) as delivered
         if stop.shipment:
-            stop.shipment.status = 'DELIVERED'
-            stop.shipment.actual_delivery = stop.departure_time
-            stop.shipment.save()
+            mark_shipment_delivered(stop.shipment, stop.departure_time)
         
         return Response({
             'message': 'Stop completed successfully',
@@ -535,6 +516,11 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
     def fail_stop(self, request, pk=None):
         """Mark a route stop as failed."""
         stop = self.get_object()
+        
+        if stop.status == 'COMPLETED':
+            return Response({
+                'error': 'Cannot fail a completed stop'
+            }, status=status.HTTP_400_BAD_REQUEST)
         
         notes = request.data.get('notes', '')
         

@@ -20,6 +20,9 @@ from .serializers import (
     ChangePasswordSerializer, ProfileUpdateSerializer, InviteUserSerializer
 )
 from .models import User, UserNotificationPreferences
+from .dashboard import (
+    build_alerts, build_performance_metrics, build_recent_order_activity, build_setup_progress, build_stats,
+)
 from utils.permissions import IsCompanyOwnerOrAdmin, IsCompanyMember
 from django.db import models
 
@@ -432,9 +435,8 @@ def dashboard_overview(request):
     
     # Build recent activity from user registrations
     recent_activity = []
-    for idx, recent_user in enumerate(recent_users):
+    for recent_user in recent_users:
         recent_activity.append({
-            'id': idx + 1,
             'type': 'user_joined',
             'message': f'{recent_user.get_full_name() or recent_user.email} joined the company',
             'timestamp': recent_user.date_joined.isoformat(),
@@ -447,7 +449,6 @@ def dashboard_overview(request):
     # Add company creation activity if recent
     if days_since_creation <= 7:
         recent_activity.append({
-            'id': len(recent_activity) + 1,
             'type': 'company_created',
             'message': f'Company "{company.name}" was created',
             'timestamp': company.created_at.isoformat(),
@@ -457,8 +458,14 @@ def dashboard_overview(request):
             }
         })
     
+    recent_activity += build_recent_order_activity(company, timezone.now() - timedelta(days=7))
+
     # Sort by timestamp descending
     recent_activity = sorted(recent_activity, key=lambda x: x['timestamp'], reverse=True)[:10]
+    recent_activity = [{'id': i, **item} for i, item in enumerate(recent_activity, start=1)]
+
+    now = timezone.now()
+    setup_progress = build_setup_progress(company, total_users)
     
     # Prepare response data
     data = {
@@ -477,13 +484,7 @@ def dashboard_overview(request):
             'role': 'Company Owner' if user.is_company_owner else 'User',
             'joined_at': user.date_joined.isoformat(),
         },
-        'stats': {
-            'total_users': total_users,
-            'total_products': 0,  # Will connect to inventory later
-            'pending_orders': 0,  # Will connect to distribution later
-            'active_shipments': 0,  # Will connect to distribution later
-            'days_active': days_since_creation,
-        },
+        'stats': build_stats(company, total_users, days_since_creation),
         'recent_activity': recent_activity,
         'quick_actions': [
             {
@@ -519,42 +520,11 @@ def dashboard_overview(request):
                 'color': 'orange'
             }
         ],
-        'setup_progress': {
-            'completed_steps': 1,  # Company created
-            'total_steps': 5,
-            'steps': [
-                {
-                    'id': 1,
-                    'title': 'Create Company',
-                    'completed': True,
-                    'description': 'Company account created successfully'
-                },
-                {
-                    'id': 2,
-                    'title': 'Add Team Members',
-                    'completed': total_users > 1,
-                    'description': 'Invite team members to collaborate'
-                },
-                {
-                    'id': 3,
-                    'title': 'Set up Inventory',
-                    'completed': False,  # Will be true when products exist
-                    'description': 'Add your first products and warehouses'
-                },
-                {
-                    'id': 4,
-                    'title': 'Create First Order',
-                    'completed': False,  # Will be true when orders exist
-                    'description': 'Process your first order'
-                },
-                {
-                    'id': 5,
-                    'title': 'Configure Billing',
-                    'completed': False,  # Will be true when payment method added
-                    'description': 'Add payment method and billing info'
-                }
-            ]
-        }
+        'setup_progress': setup_progress,
+        'performance_metrics': build_performance_metrics(company, now),
+        'alerts': build_alerts(company, now, setup_progress),
+        # When these figures were computed, for "Updated Xs ago" in the UI
+        'generated_at': now.isoformat(),
     }
     
     return Response(data, status=status.HTTP_200_OK)

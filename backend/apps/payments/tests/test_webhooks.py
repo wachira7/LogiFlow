@@ -20,11 +20,13 @@ class StripeWebhookTestCase(TestCase):
         # Create test company and user
         self.company = Company.objects.create(
             name="Test Company",
+            slug="test-company",
             email="test@company.com"
         )
         
         self.user = User.objects.create_user(
             email="test@user.com",
+            username="testuser",
             password="testpass123",
             first_name="Test",
             last_name="User",
@@ -258,6 +260,7 @@ class StripeWebhookTestCase(TestCase):
         """Test webhook endpoint with valid signature."""
         # Mock the webhook event
         mock_event = {
+            'id': 'evt_test123',
             'type': 'customer.subscription.created',
             'data': {'object': {'id': 'sub_test123', 'status': 'active'}}
         }
@@ -327,11 +330,13 @@ class StripeWebhookIntegrationTest(TestCase):
         """Set up test data."""
         self.company = Company.objects.create(
             name="Integration Test Company",
+            slug="integration-test-company",
             email="integration@test.com"
         )
         
         self.user = User.objects.create_user(
             email="integration@user.com",
+            username="integrationuser",
             password="testpass123",
             first_name="Integration",
             last_name="User",

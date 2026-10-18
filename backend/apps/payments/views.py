@@ -1201,7 +1201,7 @@ def get_exchange_rate_view(request):
     to_currency = request.query_params.get('to', 'KES').upper()
 
     try:
-        from .utils.currency_converter import get_exchange_rate, convert_amount
+        from .utils.currency_converter import get_exchange_rate, convert_currency
         rate = get_exchange_rate(from_currency, to_currency)
         return Response({
             'from': from_currency,
@@ -1209,7 +1209,7 @@ def get_exchange_rate_view(request):
             'rate': rate,
             'example': {
                 'input': f'100 {from_currency}',
-                'output': f'{convert_amount(100, from_currency, to_currency)} {to_currency}'
+                'output': f'{convert_currency(100, from_currency, to_currency)} {to_currency}'
             }
         })
     except Exception as e:

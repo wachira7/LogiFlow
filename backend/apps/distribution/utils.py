@@ -20,3 +20,14 @@ def geocode_address(address: str) -> tuple[float, float] | None:
     except Exception:
         pass
     return None
+
+def mark_shipment_delivered(shipment, delivered_at):
+    """Mark a shipment delivered, and its order too once all of the order's shipments are delivered."""
+    shipment.status = 'DELIVERED'
+    shipment.actual_delivery = delivered_at
+    shipment.save()
+
+    order = shipment.order
+    if order and not order.shipments.exclude(status='DELIVERED').exists():
+        order.status = 'DELIVERED'
+        order.save()
