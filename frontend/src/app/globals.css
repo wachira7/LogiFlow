@@ -20,9 +20,21 @@
   --muted-foreground: oklch(0.554 0.046 257.417);
   --accent: oklch(0.968 0.007 247.896);
   --accent-foreground: oklch(0.208 0.042 265.755);
-  /* Added warm accent color for high-priority CTAs */
-  --cta: oklch(0.65 0.2 45);
+  /* Brand teal (from the logo) for primary actions; navy stays the text colour */
+  --cta: oklch(0.52 0.095 195);
   --cta-foreground: oklch(1 0 0);
+  --brand: oklch(0.52 0.095 195);
+  --brand-foreground: oklch(1 0 0);
+  --brand-soft: oklch(0.96 0.025 195);
+  /* Status colours: only for status, always paired with a text label */
+  --success: oklch(0.55 0.13 155);
+  --success-soft: oklch(0.96 0.03 155);
+  --warning: oklch(0.6 0.13 70);
+  --warning-soft: oklch(0.97 0.04 85);
+  --danger: oklch(0.55 0.2 27);
+  --danger-soft: oklch(0.97 0.02 27);
+  --info: oklch(0.55 0.13 250);
+  --info-soft: oklch(0.96 0.025 250);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.929 0.013 255.508);
@@ -42,8 +54,6 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
-  --font-open-sans: "Open Sans", sans-serif;
-  --font-work-sans: "Work Sans", sans-serif;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
 }
@@ -64,9 +74,19 @@
   --muted-foreground: oklch(0.704 0.04 256.788);
   --accent: oklch(0.279 0.041 260.031);
   --accent-foreground: oklch(0.984 0.003 247.858);
-  /* Added warm accent color for dark mode CTAs */
-  --cta: oklch(0.7 0.2 45);
-  --cta-foreground: oklch(0.08 0 0);
+  --cta: oklch(0.72 0.1 192);
+  --cta-foreground: oklch(0.18 0.04 260);
+  --brand: oklch(0.72 0.1 192);
+  --brand-foreground: oklch(0.18 0.04 260);
+  --brand-soft: oklch(0.3 0.05 200);
+  --success: oklch(0.72 0.14 155);
+  --success-soft: oklch(0.3 0.05 155);
+  --warning: oklch(0.8 0.13 80);
+  --warning-soft: oklch(0.32 0.05 80);
+  --danger: oklch(0.7 0.17 25);
+  --danger-soft: oklch(0.3 0.06 25);
+  --info: oklch(0.72 0.12 250);
+  --info-soft: oklch(0.3 0.05 250);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(1 0 0 / 10%);
@@ -88,9 +108,9 @@
 }
 
 @theme inline {
-  /* Updated font variables for Work Sans and Open Sans */
-  --font-sans: var(--font-open-sans);
-  --font-serif: var(--font-work-sans);
+  /* One typeface everywhere; font-serif headings use it too */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono:
     ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
@@ -111,6 +131,17 @@
   /* Added CTA color tokens to theme */
   --color-cta: var(--cta);
   --color-cta-foreground: var(--cta-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -195,7 +226,49 @@
   }
 }
 
+/* Landing page motion (globally disabled by the prefers-reduced-motion rule above) */
+@keyframes dash-flow {
+  to { stroke-dashoffset: -24; }
+}
+@keyframes pulse-ring {
+  0% { transform: scale(0.6); opacity: 0.6; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+@keyframes shine {
+  from { transform: translateX(-120%) skewX(-20deg); }
+  to { transform: translateX(220%) skewX(-20deg); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes float-slow {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(3%, -4%, 0) scale(1.06); }
+}
+
 @layer utilities {
+  .animate-dash-flow { animation: dash-flow 1.2s linear infinite; }
+  .animate-pulse-ring { animation: pulse-ring 2.4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+  .animate-float-slow { animation: float-slow 14s ease-in-out infinite; }
+  /* CSS-only entrance: runs before JavaScript loads (used above the fold) */
+  .animate-fade-up { animation: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+  /* Light sweep across a button on hover */
+  .btn-shine { position: relative; overflow: hidden; }
+  .btn-shine::after {
+    content: ""; position: absolute; inset: 0; width: 40%;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  .btn-shine:hover::after { animation: shine 0.9s ease; }
+  /* Card that lifts and picks up a brand edge on hover */
+  .card-lift { transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s, border-color 0.3s; }
+  .card-lift:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in oklch, var(--brand) 45%, var(--border));
+    box-shadow: 0 18px 40px -18px color-mix(in oklch, var(--brand) 35%, transparent);
+  }
+
   /* Text balance utility for better typography */
   .text-balance {
     text-wrap: balance;
