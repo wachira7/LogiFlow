@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Blocks commits that would add ignored files (env files, databases, node_modules, caches, ...)
+# or anything that looks like a secret file, even when forced with `git add -f`.
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+set -euo pipefail
+
+blocked=()
+while IFS= read -r -d '' file; do
+    # Anything .gitignore excludes must never be committed
+    if git check-ignore -q --no-index -- "$file"; then
+        blocked+=("$file (matches .gitignore)")
+        continue
+    fi
+    # Belt and braces for secret-looking files, in case .gitignore is edited
+    base=$(basename -- "$file")
+    case "$base" in
+        *.example) ;;
+        .env|.env.*|*.env|*.pem|*.key|*.p12|*.pfx|*.sqlite3|id_rsa*|id_ed25519*)
+            blocked+=("$file (secret or database file)") ;;
+    esac
+done < <(git diff --cached --name-only --diff-filter=ACR -z)
+
+if ((${#blocked[@]})); then
+    echo "✋ Commit blocked: these files must not be committed:" >&2
+    printf '   - %s\n' "${blocked[@]}" >&2
+    echo "Unstage them with: git restore --staged <file>" >&2
+    exit 1
+fi
