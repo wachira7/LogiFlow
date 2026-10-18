@@ -1,11 +1,11 @@
 // src/app/page.tsx
-import { Navbar } from "@/components/layout/Navbar";
+import { LandingNav } from "@/components/landing/LandingNav";
 import { Hero } from "@/components/landing/Hero";
-import { ProblemSolution } from "@/components/landing/ProblemSolution";
+import { FactsStrip } from "@/components/landing/FactsStrip";
+import { HowItWorks } from "@/components/landing/HowItWorks";
 import { Features } from "@/components/landing/Features";
-import { Stats } from "@/components/landing/Stats";
-import { About } from "@/components/landing/about";
-import { Testimonials } from "@/components/landing/Testimonials";
+import { LiveTracking } from "@/components/landing/LiveTracking";
+import { Payments } from "@/components/landing/Payments";
 import { Pricing } from "@/components/landing/Pricing";
 import { FAQ } from "@/components/landing/faq";
 import { Contact } from "@/components/landing/contact";
@@ -14,56 +14,21 @@ import { Footer } from "@/components/landing/Footer";
 
 export default function LandingPage() {
   return (
-    <main className="min-h-screen">
-      {/* Navigation */}
-      <Navbar />
-
-      {/* Hero Section */}
-      <section id="hero">
+    <>
+      <LandingNav />
+      <main id="main-content" className="min-h-screen">
         <Hero />
-      </section>
-
-      {/* Problem & Solution */}
-      <section id="problem-solution">
-        <ProblemSolution />
-      </section>
-
-      {/* Features Section */}
-      <section id="features">
+        <FactsStrip />
+        <HowItWorks />
         <Features />
-      </section>
-
-      {/* Stats Section */}
-      <Stats />
-
-      {/* About Section */}
-      <section id="about">
-        <About />
-      </section>
-
-      {/* Testimonials Section */}
-      <Testimonials />
-
-      {/* Pricing Section */}
-      <section id="pricing">
+        <LiveTracking />
+        <Payments />
         <Pricing />
-      </section>
-
-      {/* FAQ Section */}
-      <section id="faq">
         <FAQ />
-      </section>
-
-      {/* Contact Section */}
-      <section id="contact">
         <Contact />
-      </section>
-
-      {/* Final CTA Section */}
-      <CTA />
-
-      {/* Footer */}
+        <CTA />
+      </main>
       <Footer />
-    </main>
+    </>
   );
 }

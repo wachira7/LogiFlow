@@ -1,33 +1,27 @@
 // src/app/layout.tsx 
 import type React from "react";
 import type { Metadata, Viewport } from "next";
-import { Work_Sans, Open_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/context/AuthContext"; 
 import { Toaster } from "@/components/ui/toaster"; 
 
-const workSans = Work_Sans({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-work-sans",
-});
-
-const openSans = Open_Sans({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-open-sans",
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Logiflow - Logistics Management Platform",
-    template: "%s | Logiflow",
+    default: "LogiFlow — Logistics operations platform",
+    template: "%s | LogiFlow",
   },
   description:
-    "Revolutionize your logistics management with efficient, reliable, and tailored solutions for your business. Streamline operations, reduce costs, and scale with confidence.",
+    "Production, warehousing, inventory, dispatch and billing in one workspace. See what's moving, what's late and what to do next. Pay with M-Pesa, card or crypto.",
   generator: "Next.js",
-  applicationName: "Logiflow",
+  applicationName: "LogiFlow",
   referrer: "origin-when-cross-origin",
   keywords: [
     "logistics",
@@ -41,9 +35,9 @@ export const metadata: Metadata = {
     "supply chain optimization",
     "freight management",
   ],
-  authors: [{ name: "Logiflow Team", url: "https://logiflow.com" }],
-  creator: "Logiflow",
-  publisher: "Logiflow",
+  authors: [{ name: "LogiFlow Team", url: "https://logiflow.com" }],
+  creator: "LogiFlow",
+  publisher: "LogiFlow",
   formatDetection: {
     email: false,
     address: false,
@@ -56,27 +50,27 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Logiflow - Logistics Management Platform",
+    title: "LogiFlow — Logistics operations platform",
     description:
-      "Revolutionize your logistics management with efficient, reliable, and tailored solutions for your business.",
+      "Production, warehousing, inventory, dispatch and billing in one workspace. See what's moving, what's late and what to do next. Pay with M-Pesa, card or crypto.",
     type: "website",
     locale: "en_US",
     url: "/",
-    siteName: "Logiflow",
+    siteName: "LogiFlow",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Logiflow - Logistics Management Platform",
+        alt: "LogiFlow — Logistics operations platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Logiflow - Logistics Management Platform",
+    title: "LogiFlow — Logistics operations platform",
     description:
-      "Revolutionize your logistics management with efficient, reliable, and tailored solutions for your business.",
+      "Production, warehousing, inventory, dispatch and billing in one workspace. See what's moving, what's late and what to do next. Pay with M-Pesa, card or crypto.",
     images: ["/og-image.png"],
     creator: "@logiflow",
   },
@@ -100,7 +94,7 @@ export const metadata: Metadata = {
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
     other: [
-      { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#1e40af" },
+      { rel: "mask-icon", url: "/safari-pinned-tab.svg", color: "#0e7c86" },
     ],
   },
   manifest: "/site.webmanifest",
@@ -113,8 +107,8 @@ export const viewport: Viewport = {
   maximumScale: 5,
   userScalable: true,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#1e40af" },
-    { media: "(prefers-color-scheme: dark)", color: "#3b82f6" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
   ],
   colorScheme: "light dark",
 };
@@ -127,7 +121,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${workSans.variable} ${openSans.variable} antialiased`}
+      className={`${inter.variable} antialiased`}
       suppressHydrationWarning
     >
       <head>
@@ -149,7 +143,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
-              name: "Logiflow",
+              name: "LogiFlow",
               applicationCategory: "BusinessApplication",
               operatingSystem: "Web",
               description:
@@ -157,7 +151,7 @@ export default function RootLayout({
               url: "https://logiflow.com",
               creator: {
                 "@type": "Organization",
-                name: "Logiflow",
+                name: "LogiFlow",
               },
               offers: {
                 "@type": "Offer",

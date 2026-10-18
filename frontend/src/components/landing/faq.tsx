@@ -1,143 +1,63 @@
-"use client";
+// src/components/landing/faq.tsx
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Reveal } from "./motion";
+import { SectionHeader } from "./shared";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown } from "lucide-react";
-import { useGSAP } from "@/hooks/useGsap";
-import { gsap } from "gsap";
-
+// Answers describe what the product does today; keep them accurate when features change.
 const faqs = [
   {
-    question: "How long does it take to implement Logiflow?",
-    answer:
-      "Implementation typically takes 2-4 weeks depending on your current systems and data complexity. Our team provides full onboarding support, data migration assistance, and training to ensure a smooth transition.",
+    q: "Who is LogiFlow for?",
+    a: "Distributors, manufacturers, wholesalers, retailers and logistics providers that run warehouses, stock and deliveries, from a single depot to several sites. It was built in Africa and works for teams anywhere.",
   },
   {
-    question: "Can Logiflow integrate with our existing ERP and WMS systems?",
-    answer:
-      "Yes, Logiflow offers robust API integrations with popular ERP systems (SAP, Oracle, NetSuite), WMS platforms, and shipping carriers. Our integration team will work with you to ensure seamless data flow between systems.",
+    q: "How quickly can we get started?",
+    a: "You can create your company workspace and start adding warehouses, products and team members in minutes. For larger rollouts, talk to us and we will help you plan the setup and bring your existing data in.",
   },
   {
-    question: "Is my logistics data secure with Logiflow?",
-    answer:
-      "Absolutely. We maintain SOC 2 Type II compliance, use enterprise-grade encryption, and follow strict data privacy protocols. Your data is hosted on secure cloud infrastructure with regular backups and 99.9% uptime guarantee.",
+    q: "Which payment methods do you accept?",
+    a: "M-Pesa (charged in KES at the current exchange rate), card payments through Stripe, and cryptocurrency through NOWPayments. Plans are priced in USD.",
   },
   {
-    question: "What kind of support do you provide?",
-    answer:
-      "We offer 24/7 technical support, dedicated account management for Enterprise clients, comprehensive documentation, video tutorials, and regular training sessions. Our support team averages under 2-hour response times.",
+    q: "Is there a free trial?",
+    a: "Yes. Every plan includes a 14-day free trial. If you would like a walkthrough first, book a demo through the contact form below.",
   },
   {
-    question: "Can I customize Logiflow for my specific logistics needs?",
-    answer:
-      "Yes, Logiflow is highly configurable. You can customize workflows, reports, dashboards, and business rules. For unique requirements, we offer custom development services and API access for advanced integrations.",
+    q: "How is our data kept separate and secure?",
+    a: "Each company has its own workspace, and every request is scoped to your company, so other customers cannot see your data. Access is role-based, connections are encrypted, and passwords are stored as bcrypt hashes.",
   },
   {
-    question: "Do you offer a free trial or demo?",
-    answer:
-      "We provide a 14-day free trial with full platform access and sample data. Additionally, our sales team offers personalized demos tailored to your specific logistics challenges and use cases.",
+    q: "Can we change plans later?",
+    a: "You can move between plans from the billing section of your workspace. Quarterly billing saves 10% and annual billing saves 20% compared with paying monthly.",
   },
   {
-    question: "What happens to my data if I decide to leave Logiflow?",
-    answer:
-      "You maintain full ownership of your data. We provide complete data export capabilities in standard formats (CSV, JSON, XML) and offer migration assistance to ensure you can transition smoothly to another platform if needed.",
+    q: "Does LogiFlow integrate with other systems?",
+    a: "LogiFlow has a documented REST API, so your developers can connect it to the tools you already use. Custom integrations are available on the Professional and Enterprise plans.",
   },
   {
-    question: "How does pricing scale with my business growth?",
-    answer:
-      "Our pricing is designed to grow with your business. You can easily upgrade plans, add users, or increase transaction limits. We also offer volume discounts for large enterprises and custom pricing for unique requirements.",
+    q: "Who owns our data?",
+    a: "You do. If you decide to leave, contact us and we will help you export your data.",
   },
 ];
 
 export function FAQ() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const containerRef = useGSAP<HTMLElement>();
-
-  // Use proper useEffect for additional animations instead of incorrect hook usage
-  useEffect(() => {
-    if (containerRef.current) {
-      // Additional GSAP animations can be added here if needed
-      const faqItems = containerRef.current.querySelectorAll(".faq-item");
-      gsap.from(faqItems, { opacity: 0, duration: 1, stagger: 0.2 });
-    }
-  }, [containerRef]);
-
-  const toggleFAQ = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
   return (
-    <section className="py-24 bg-background" ref={containerRef}>
-      <div className="container mx-auto px-4 faq-container">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-serif font-bold text-foreground mb-4">
-            Frequently Asked Questions
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Get answers to common questions about implementing and using
-            Logiflow for your logistics operations.
-          </p>
-        </div>
-
-        <div className="max-w-4xl mx-auto space-y-4">
-          {faqs.map((faq, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="border border-border rounded-lg overflow-hidden bg-card faq-item"
-            >
-              <button
-                onClick={() => toggleFAQ(index)}
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-muted/50 transition-colors"
+    <section id="faq" className="scroll-mt-20 py-24">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <SectionHeader eyebrow="FAQ" title="Questions, answered" />
+        <Reveal delay={0.1} className="mt-12">
+          <Accordion type="single" collapsible className="space-y-3">
+            {faqs.map((f, i) => (
+              <AccordionItem
+                key={f.q}
+                value={`item-${i}`}
+                className="rounded-xl border border-border bg-card px-5 transition-colors data-[state=open]:border-brand/50 data-[state=open]:shadow-lg data-[state=open]:shadow-brand/5"
               >
-                <h3 className="text-lg font-semibold text-foreground pr-4">
-                  {faq.question}
-                </h3>
-                <motion.div
-                  animate={{ rotate: openIndex === index ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="shrink-0"
-                >
-                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                </motion.div>
-              </button>
-
-              <AnimatePresence>
-                {openIndex === index && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="px-6 pb-4 text-muted-foreground leading-relaxed">
-                      {faq.answer}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="text-center mt-12">
-          <p className="text-muted-foreground mb-4">
-            Still have questions? Our team is here to help.
-          </p>
-          <button
-            onClick={() => {
-              document.getElementById("contact")?.scrollIntoView({
-                behavior: "smooth",
-              });
-            }}
-            className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-          >
-            Contact Support
-          </button>
-        </div>
+                <AccordionTrigger className="text-left text-base font-medium hover:no-underline">{f.q}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </Reveal>
       </div>
     </section>
   );
