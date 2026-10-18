@@ -47,7 +47,7 @@ export default function InventoryItemsPage() {
   }
 
   const totalQuantity = inventoryItems.reduce((sum, item) => sum + item.quantity, 0)
-  const lowStockItems = inventoryItems.filter(item => item.product?.low_stock)
+  const lowStockItems = inventoryItems.filter(item => item.needs_reorder)
   const outOfStockItems = inventoryItems.filter(item => item.quantity === 0)
 
   if (isLoading) {
@@ -223,9 +223,7 @@ export default function InventoryItemsPage() {
                     <TableHead>Warehouse</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Quantity</TableHead>
-                    <TableHead>Reserved</TableHead>
-                    <TableHead>Available</TableHead>
-                    <TableHead>Batch/Expiry</TableHead>
+                    <TableHead>Stock value</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -235,17 +233,17 @@ export default function InventoryItemsPage() {
                     <TableRow key={item.id}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{item.product?.name}</div>
+                          <div className="font-medium">{item.product_name}</div>
                           <div className="text-sm text-muted-foreground font-mono">
-                            {item.product?.sku}
+                            {item.product_sku}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{item.warehouse?.name}</div>
+                          <div className="font-medium">{item.warehouse_name}</div>
                           <div className="text-sm text-muted-foreground">
-                            {item.warehouse?.code}
+                            {item.warehouse_code}
                           </div>
                         </div>
                       </TableCell>
@@ -258,49 +256,17 @@ export default function InventoryItemsPage() {
                         <div className="flex items-center space-x-2">
                           <span className="font-medium">{item.quantity}</span>
                           <span className="text-sm text-muted-foreground">
-                            {item.product?.unit_of_measure}
+                            {item.unit_of_measure}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {item.reserved_quantity || 0}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium">
-                            {item.available_quantity || item.quantity}
-                          </span>
-                          {item.quantity === 0 && (
-                            <Badge variant="destructive" className="text-xs">
-                              Out
-                            </Badge>
-                          )}
-                          {item.product?.low_stock && item.quantity > 0 && (
-                            <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
-                              Low
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {item.batch_number && (
-                            <div>Batch: {item.batch_number}</div>
-                          )}
-                          {item.expiration_date && (
-                            <div className="text-muted-foreground">
-                              Exp: {new Date(item.expiration_date).toLocaleDateString()}
-                            </div>
-                          )}
-                          {!item.batch_number && !item.expiration_date && '-'}
-                        </div>
+                      <TableCell className="tabular-nums text-sm">
+                        {Number(item.stock_value ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}
                       </TableCell>
                       <TableCell>
                         {item.quantity === 0 ? (
                           <Badge variant="destructive">Out of Stock</Badge>
-                        ) : item.product?.low_stock ? (
+                        ) : item.needs_reorder ? (
                           <Badge variant="secondary" className="bg-orange-100 text-orange-800">
                             Low Stock
                           </Badge>

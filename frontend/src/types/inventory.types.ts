@@ -70,6 +70,7 @@ export interface Warehouse {
   country?: string
   phone?: string            
   email?: string            // Add for component compatibility
+  manager_id?: string | null
   manager_name?: string
   manager_email?: string
   manager_phone?: string
@@ -79,7 +80,7 @@ export interface Warehouse {
   updated_at: string
   total_products?: number | undefined
   total_value?: number | undefined
-  utilization_percentage?: number | undefined
+  utilization_percentage?: number | null
 }
 
 export interface InventoryItem {
@@ -123,6 +124,7 @@ export interface InventoryItem {
   updated_at: string
   // Computed
   available_quantity?: number
+  warehouse_code?: string
 }
 
 export interface Transaction {
@@ -149,6 +151,12 @@ export interface Transaction {
   // Relations
   product?: Product
   warehouse?: Warehouse
+  product_name?: string
+  product_sku?: string
+  unit_of_measure?: string
+  performed_by_name?: string
+  balance_before?: number | null
+  balance_after?: number | null
 }
 
 export type TransactionType = 'RECEIPT' | 'SHIPMENT' | 'ADJUSTMENT' | 'TRANSFER' | 'RETURN'
@@ -221,6 +229,7 @@ export interface CreateWarehouseData {
   manager_phone?: string
   capacity?: number | null
   is_active?: boolean
+  manager_id?: string | null
 }
 
 export interface UpdateWarehouseData {
@@ -242,34 +251,11 @@ export interface UpdateWarehouseData {
 }
 
 export interface CreateInventoryItemData {
-  // Core required fields
+  /** Start stocking an existing product in a warehouse; a non-zero quantity is recorded as a receipt */
   product_id: string
-  warehouse_id?: string
-  quantity: number
-  // Additional fields from components
-  name: string
-  sku: string
-  description?: string
-  category_id: string
-  unit_of_measure?: string
-  cost_price?: number | undefined
-  unit_price?: number | undefined
-  current_stock?: number | null | 0
-  minimum_stock?: number | null
-  maximum_stock?: number | null
-  reorder_point?: number | null
-  supplier_name?: string
-  supplier_sku?: string
-  barcode?: string
-  weight?: number | null
-  dimensions?: string
-  notes?: string
-  is_active?: boolean
-  track_stock?: boolean
-  // Optional fields
+  warehouse_id: string
+  quantity?: number
   location?: string
-  batch_number?: string
-  expiration_date?: string
 }
 
 export interface UpdateInventoryItemData {

@@ -11,6 +11,12 @@ import { Switch } from '@/components/ui/switch'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { Save, Warehouse } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { AuthService } from '@/services/authService'
+import { inventoryService } from '@/services/inventoryService'
+import { useRecordById } from '@/hooks/useRecordById'
+
+type TeamMember = { id: string; first_name?: string; last_name?: string; email: string }
 
 interface WarehouseFormProps {
   warehouseId?: string
@@ -29,15 +35,22 @@ interface WarehouseFormData {
   country: string
   phone: string
   email: string
-  manager_name: string
-  manager_email: string
-  manager_phone: string
+  manager_id: string
   capacity: string
   is_active: boolean
 }
 
 export function WarehouseForm({ warehouseId, onSuccess, onCancel }: WarehouseFormProps) {
-  const { warehouses, createWarehouse, updateWarehouse, isLoading } = useWarehouses()
+  const { createWarehouse, updateWarehouse, isLoading } = useWarehouses()
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
+
+  useEffect(() => {
+    AuthService.getCompanyUsers().then((res) => {
+      const data = res.data as unknown
+      const list = Array.isArray(data) ? data : (data as { results?: TeamMember[] } | undefined)?.results ?? []
+      setTeamMembers(list as TeamMember[])
+    })
+  }, [])
   const [formData, setFormData] = useState<WarehouseFormData>({
     name: '',
     code: '',
@@ -49,9 +62,7 @@ export function WarehouseForm({ warehouseId, onSuccess, onCancel }: WarehouseFor
     country: '',
     phone: '',
     email: '',
-    manager_name: '',
-    manager_email: '',
-    manager_phone: '',
+    manager_id: '',
     capacity: '',
     is_active: true
   })
@@ -59,7 +70,7 @@ export function WarehouseForm({ warehouseId, onSuccess, onCancel }: WarehouseFor
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const isEditing = !!warehouseId
-  const currentWarehouse = warehouses.find(wh => wh.id === warehouseId)
+  const { record: currentWarehouse } = useRecordById(warehouseId, (id) => inventoryService.getWarehouse(id))
 
   // Load existing warehouse data for editing
   useEffect(() => {
@@ -75,9 +86,7 @@ export function WarehouseForm({ warehouseId, onSuccess, onCancel }: WarehouseFor
         country: currentWarehouse.country || '',
         phone: currentWarehouse.phone || '',
         email: currentWarehouse.email || '',
-        manager_name: currentWarehouse.manager_name || '',
-        manager_email: currentWarehouse.manager_email || '',
-        manager_phone: currentWarehouse.manager_phone || '',
+        manager_id: currentWarehouse.manager_id || '',
         capacity: currentWarehouse.capacity?.toString() || '',
         is_active: currentWarehouse.is_active
       })
@@ -103,9 +112,6 @@ export function WarehouseForm({ warehouseId, onSuccess, onCancel }: WarehouseFor
       newErrors.email = 'Please enter a valid email address'
     }
 
-    if (formData.manager_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.manager_email)) {
-      newErrors.manager_email = 'Please enter a valid manager email address'
-    }
 
     if (formData.capacity && isNaN(parseFloat(formData.capacity))) {
       newErrors.capacity = 'Capacity must be a valid number'
@@ -115,9 +121,6 @@ export function WarehouseForm({ warehouseId, onSuccess, onCancel }: WarehouseFor
       newErrors.phone = 'Phone number must be at least 10 digits'
     }
 
-    if (formData.manager_phone && formData.manager_phone.length > 0 && formData.manager_phone.length < 10) {
-      newErrors.manager_phone = 'Manager phone number must be at least 10 digits'
-    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -132,7 +135,8 @@ export function WarehouseForm({ warehouseId, onSuccess, onCancel }: WarehouseFor
     try {
       const submitData = {
         ...formData,
-        capacity: formData.capacity ? parseFloat(formData.capacity) : undefined
+        manager_id: formData.manager_id || null,
+        capacity: formData.capacity ? parseInt(formData.capacity, 10) : null,
       }
 
       if (isEditing) {
@@ -143,8 +147,7 @@ export function WarehouseForm({ warehouseId, onSuccess, onCancel }: WarehouseFor
 
       onSuccess?.()
     } catch (error) {
-      console.error('Failed to save warehouse:', error)
-      setErrors({ submit: 'Failed to save warehouse. Please try again.' })
+      setErrors({ submit: error instanceof Error && error.message ? error.message : 'Failed to save warehouse. Please try again.' })
     } finally {
       setIsSubmitting(false)
     }
@@ -314,44 +317,29 @@ export function WarehouseForm({ warehouseId, onSuccess, onCancel }: WarehouseFor
             </div>
           </div>
 
-          {/* Manager Information */}
+          {/* Manager: a member of your team */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium">Manager Information</h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <h3 className="text-lg font-medium">Manager</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="manager_name">Manager Name</Label>
-                <Input
-                  id="manager_name"
-                  value={formData.manager_name}
-                  onChange={(e) => handleInputChange('manager_name', e.target.value)}
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="manager_email">Manager Email</Label>
-                <Input
-                  id="manager_email"
-                  type="email"
-                  value={formData.manager_email}
-                  onChange={(e) => handleInputChange('manager_email', e.target.value)}
-                  placeholder="manager@company.com"
-                  className={errors.manager_email ? 'border-destructive' : ''}
-                />
-                {errors.manager_email && <p className="text-sm text-destructive">{errors.manager_email}</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="manager_phone">Manager Phone</Label>
-                <Input
-                  id="manager_phone"
-                  value={formData.manager_phone}
-                  onChange={(e) => handleInputChange('manager_phone', e.target.value)}
-                  placeholder="+1 (555) 123-4567"
-                  className={errors.manager_phone ? 'border-destructive' : ''}
-                />
-                {errors.manager_phone && <p className="text-sm text-destructive">{errors.manager_phone}</p>}
+                <Label htmlFor="manager_id">Warehouse manager</Label>
+                <Select
+                  value={formData.manager_id || 'none'}
+                  onValueChange={(value) => handleInputChange('manager_id', value === 'none' ? '' : value)}
+                >
+                  <SelectTrigger id="manager_id" className="w-full">
+                    <SelectValue placeholder="Choose a team member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No manager</SelectItem>
+                    {teamMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {[member.first_name, member.last_name].filter(Boolean).join(' ') || member.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Their email and phone come from their profile.</p>
               </div>
             </div>
           </div>
@@ -362,7 +350,7 @@ export function WarehouseForm({ warehouseId, onSuccess, onCancel }: WarehouseFor
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="capacity">Capacity (sq ft)</Label>
+                <Label htmlFor="capacity">Capacity (units of stock)</Label>
                 <Input
                   id="capacity"
                   type="number"

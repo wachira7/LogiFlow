@@ -1,9 +1,11 @@
 // src/app/inventory/inventory-items/[id]/page.tsx
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { useInventoryItems } from '@/hooks/useInventory'
+import { inventoryService } from '@/services/inventoryService'
+import type { InventoryItem } from '@/types/inventory.types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
@@ -13,9 +15,15 @@ import { ArrowLeft, Edit, Package, AlertTriangle } from 'lucide-react'
 export default function InventoryItemDetailPage() {
   const params = useParams()
   const itemId = params?.id as string
-  const { inventoryItems, isLoading } = useInventoryItems()
+  const [item, setItem] = useState<InventoryItem | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-  const item = inventoryItems.find(i => i.id === itemId)
+  useEffect(() => {
+    inventoryService.getInventoryItem(itemId).then((res) => {
+      setItem(res.success && res.data ? res.data : null)
+      setIsLoading(false)
+    })
+  }, [itemId])
 
   if (isLoading) {
     return (
@@ -98,13 +106,13 @@ export default function InventoryItemDetailPage() {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Cost Price</label>
                   <p className="mt-1 font-medium">
-                    ${(item.product_cost_price ?? 0).toFixed(2)}
+                    {Number(item.product_cost_price ?? 0).toFixed(2)}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Unit Price</label>
                   <p className="mt-1 font-medium">
-                    ${(item.product_unit_price ?? 0).toFixed(2)}
+                    {Number(item.product_unit_price ?? 0).toFixed(2)}
                   </p>
                 </div>
                 <div>

@@ -44,11 +44,12 @@ export function ProductList() {
     return true
   })
 
-  const getProductStockStatus = (product: Product) => { // Fix: Change from 'any' to 'Product'
-    if (!product.track_stock) return 'in_stock' // If not tracking stock, assume in stock
-    if (product.total_stock === undefined) return 'out_of_stock'
-    if (product.reorder_point && product.total_stock <= product.reorder_point) return 'low_stock'
-    if (product.maximum_stock && product.total_stock >= product.maximum_stock) return 'overstocked'
+  // Every product's stock is tracked: status comes from total stock vs reorder point / max level
+  const getProductStockStatus = (product: Product) => {
+    const stock = product.total_stock ?? 0
+    if (stock <= 0) return 'out_of_stock'
+    if (product.reorder_point && stock <= product.reorder_point) return 'low_stock'
+    if (product.max_stock_level && stock >= product.max_stock_level) return 'overstocked'
     return 'in_stock'
   }
 
@@ -70,8 +71,7 @@ export function ProductList() {
     }).format(amount)
   }
 
-  const getStockBadgeVariant = (product: Product) => { // Fix: Change from 'any' to 'Product'
-    if (!product.track_stock) return 'outline'
+  const getStockBadgeVariant = (product: Product) => {
     const status = getProductStockStatus(product)
     switch (status) {
       case 'out_of_stock': return 'destructive'
@@ -82,7 +82,6 @@ export function ProductList() {
   }
 
   const getStockDisplay = (product: Product) => {
-    if (!product.track_stock) return 'Not Tracked'
     const status = getProductStockStatus(product)
     switch (status) {
       case 'out_of_stock': return 'Out of Stock'
@@ -190,19 +189,16 @@ export function ProductList() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {product.track_stock ? (
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium">{product.total_stock || 0}</span>
-                          {product.reorder_point && (product.total_stock || 0) <= product.reorder_point && (
-                            <AlertTriangle className="h-4 w-4 text-destructive" />
-                          )}
-                          {(product.total_stock || 0) === 0 && (
-                            <TrendingDown className="h-4 w-4 text-destructive" />
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">Not tracked</span>
-                      )}
+                      <div className="flex items-center space-x-2">
+                        <span className="font-medium tabular-nums">{product.total_stock ?? 0}</span>
+                        {product.unit_of_measure && <span className="text-xs text-muted-foreground">{product.unit_of_measure}</span>}
+                        {!!product.reorder_point && (product.total_stock ?? 0) > 0 && (product.total_stock ?? 0) <= product.reorder_point && (
+                          <AlertTriangle className="h-4 w-4 text-warning" aria-label="At or below reorder point" />
+                        )}
+                        {(product.total_stock ?? 0) === 0 && (
+                          <TrendingDown className="h-4 w-4 text-danger" aria-label="Out of stock" />
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">

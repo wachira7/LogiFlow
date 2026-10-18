@@ -125,7 +125,7 @@ export default function ProductDetailPage() {
                 <div className="mt-1 flex items-center space-x-2">
                   <span className="text-2xl font-bold">{product.total_stock ?? 0}</span>
                   <span className="text-muted-foreground">{product.unit_of_measure}</span>
-                  {product.low_stock && (
+                  {product.needs_reorder && (
                     <Badge variant="destructive" className="text-xs">
                       <AlertTriangle className="mr-1 h-3 w-3" />
                       Low Stock
@@ -133,10 +133,12 @@ export default function ProductDetailPage() {
                   )}
                 </div>
               </div>
-              {product.total_stock && (
+              {!!product.total_stock && (
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Total Value</label>
-                  <p className="mt-1 text-lg font-semibold">${product.total_stock.toFixed(2)}</p>
+                  <label className="text-sm font-medium text-muted-foreground">Stock value (at cost)</label>
+                  <p className="mt-1 text-lg font-semibold tabular-nums">
+                    {(Number(product.total_stock) * Number(product.cost_price ?? 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </p>
                 </div>
               )}
             </CardContent>

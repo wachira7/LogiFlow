@@ -2,7 +2,8 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
-import { useCategories } from '@/hooks/useInventory'
+import { useRecordById } from '@/hooks/useRecordById'
+import { inventoryService } from '@/services/inventoryService'
 import { CategoryForm } from '@/components/inventory/categories/CategoryForm'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { Button } from '@/components/ui/button'
@@ -13,9 +14,7 @@ export default function EditCategoryPage() {
   const params = useParams()
   const router = useRouter()
   const categoryId = params?.id as string
-  const { categories, isLoading } = useCategories()
-
-  const category = categories.find(cat => cat.id === categoryId)
+  const { record: category, isLoading } = useRecordById(categoryId, (id) => inventoryService.getCategory(id))
 
   const handleSuccess = () => {
     // Navigate back to category detail page after successful update

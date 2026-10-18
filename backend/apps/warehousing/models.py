@@ -11,8 +11,8 @@ class WarehouseTransfer(TimeStampedModel):
     company = models.ForeignKey('tenants.Company', on_delete=models.CASCADE, related_name='warehouse_transfers')
     transfer_number = models.CharField(max_length=100)
     
-    source_warehouse = models.ForeignKey('inventory.Warehouse', on_delete=models.CASCADE, related_name='outbound_transfers')
-    destination_warehouse = models.ForeignKey('inventory.Warehouse', on_delete=models.CASCADE, related_name='inbound_transfers')
+    source_warehouse = models.ForeignKey('inventory.Warehouse', on_delete=models.RESTRICT, related_name='outbound_transfers')
+    destination_warehouse = models.ForeignKey('inventory.Warehouse', on_delete=models.RESTRICT, related_name='inbound_transfers')
     
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
@@ -83,7 +83,7 @@ class TransferItem(TimeStampedModel):
     Transfer items model - matches 'transfer_items' table from schema
     """
     transfer = models.ForeignKey(WarehouseTransfer, on_delete=models.CASCADE, related_name='transfer_items')
-    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='transfer_items')
+    product = models.ForeignKey('inventory.Product', on_delete=models.RESTRICT, related_name='transfer_items')
     quantity = models.PositiveIntegerField()
     
     source_location = models.CharField(max_length=100, blank=True)  # Location in source warehouse

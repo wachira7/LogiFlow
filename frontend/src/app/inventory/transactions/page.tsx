@@ -242,9 +242,8 @@ export default function TransactionsPage() {
                     <TableHead>Product</TableHead>
                     <TableHead>Warehouse</TableHead>
                     <TableHead>Quantity</TableHead>
-                    <TableHead>Before/After</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead>Reference</TableHead>
+                    <TableHead>Balance</TableHead>
+                    <TableHead>Reason / reference</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Created By</TableHead>
                   </TableRow>
@@ -265,60 +264,51 @@ export default function TransactionsPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{transaction.product?.name}</div>
+                          <div className="font-medium">{transaction.product_name}</div>
                           <div className="text-sm text-muted-foreground font-mono">
-                            {transaction.product?.sku}
+                            {transaction.product_sku}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{transaction.warehouse?.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {transaction.warehouse?.code}
-                          </div>
+                          <div className="font-medium">{transaction.warehouse_name}</div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-1">
-                          <span className={`font-medium ${
-                            transaction.transaction_type === 'RECEIPT' ? 'text-green-600' :
-                            transaction.transaction_type === 'SHIPMENT' ? 'text-red-600' :
-                            'text-blue-600'
-                          }`}>
-                            {transaction.transaction_type === 'SHIPMENT' ? '-' : '+'}
+                          {/* the stored quantity is signed: negative means stock went out */}
+                          <span className={`font-medium tabular-nums ${transaction.quantity < 0 ? 'text-danger' : 'text-success'}`}>
+                            {transaction.quantity < 0 ? '−' : '+'}
                             {Math.abs(transaction.quantity)}
                           </span>
                           <span className="text-sm text-muted-foreground">
-                            {transaction.product?.unit_of_measure}
+                            {transaction.unit_of_measure}
                           </span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <div className="text-muted-foreground">
-                            {transaction.previous_quantity || 0}
-                          </div>
-                          <div className="text-xs text-muted-foreground">→</div>
-                          <div className="font-medium">
-                            {transaction.new_quantity || 0}
-                          </div>
+                          {transaction.balance_after == null ? (
+                            <span className="text-muted-foreground">—</span>
+                          ) : (
+                            <span className="tabular-nums">
+                              <span className="text-muted-foreground">{transaction.balance_before}</span>
+                              <span className="mx-1 text-xs text-muted-foreground">→</span>
+                              <span className="font-medium">{transaction.balance_after}</span>
+                            </span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="text-sm font-medium">{transaction.reason}</div>
+                          <div className="text-sm font-medium">{transaction.reference || '-'}</div>
                           {transaction.notes && (
                             <div className="text-xs text-muted-foreground">
                               {transaction.notes}
                             </div>
                           )}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm font-mono">
-                          {transaction.reference || '-'}
-                        </span>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
@@ -330,7 +320,7 @@ export default function TransactionsPage() {
                       </TableCell>
                       <TableCell>
                         <span className="text-sm">
-                          {transaction.created_by || 'System'}
+                          {transaction.performed_by_name || 'System'}
                         </span>
                       </TableCell>
                     </TableRow>

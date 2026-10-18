@@ -3,7 +3,8 @@
 
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { useCategories } from '@/hooks/useInventory'
+import { useRecordById } from '@/hooks/useRecordById'
+import { inventoryService } from '@/services/inventoryService'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
@@ -13,9 +14,7 @@ import { ArrowLeft, Edit, FolderTree } from 'lucide-react'
 export default function CategoryDetailPage() {
   const params = useParams()
   const categoryId = params?.id as string
-  const { categories, isLoading } = useCategories()
-  
-  const category = categories.find(c => c.id === categoryId)
+  const { record: category, isLoading } = useRecordById(categoryId, (id) => inventoryService.getCategory(id))
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-64"><LoadingSpinner /></div>

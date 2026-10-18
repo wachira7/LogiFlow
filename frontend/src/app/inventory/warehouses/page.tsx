@@ -42,9 +42,10 @@ export default function WarehousesPage() {
   }
 
   const totalProducts = warehouses.reduce((sum, w) => sum + (w.total_products || 0), 0)
-  const averageUtilization = warehouses.length > 0 
-    ? warehouses.reduce((sum, w) => sum + (w.utilization_percentage || 0), 0) / warehouses.length 
-    : 0
+  const withCapacity = warehouses.filter((w) => w.utilization_percentage != null)
+  const averageUtilization = withCapacity.length > 0
+    ? withCapacity.reduce((sum, w) => sum + Number(w.utilization_percentage), 0) / withCapacity.length
+    : null
 
   if (isLoading) {
     return (
@@ -109,7 +110,7 @@ export default function WarehousesPage() {
             <Progress value={averageUtilization} className="h-2" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{averageUtilization.toFixed(1)}%</div>
+            <div className="text-2xl font-bold">{averageUtilization == null ? '—' : `${averageUtilization.toFixed(1)}%`}</div>
           </CardContent>
         </Card>
       </div>
@@ -223,7 +224,7 @@ export default function WarehousesPage() {
                           className="h-2 w-16" 
                         />
                         <span className="text-sm text-muted-foreground">
-                          {(warehouse.utilization_percentage || 0).toFixed(1)}%
+                          {warehouse.utilization_percentage == null ? '—' : `${Number(warehouse.utilization_percentage).toFixed(1)}%`}
                         </span>
                       </div>
                     </TableCell>
