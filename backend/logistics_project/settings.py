@@ -6,16 +6,34 @@ import os
 
 # Load environment variables
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-hg2iqi*hhg=)*_+^3eql!_vxj-_qk#y$(*9ts4p!+-tpl5d%yd')
-
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
+# Off unless explicitly enabled (local .env, docker-compose and CI set DEBUG=True).
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
+
+# SECURITY WARNING: keep the secret key used in production secret!
+# Without DEBUG, refuse to start on a missing, weak or known-public key: it signs JWTs and sessions.
+SECRET_KEY = os.getenv('SECRET_KEY', '')
+_PUBLIC_SECRET_KEYS = {
+    'your-secret-key-here-make-it-very-long-and-random',  # .env.example placeholder
+}
+_insecure_secret_key = (
+    len(SECRET_KEY) < 50
+    or SECRET_KEY.startswith('django-insecure-')
+    or SECRET_KEY in _PUBLIC_SECRET_KEYS
+)
+if _insecure_secret_key:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            'SECRET_KEY must be set to a unique random value of at least 50 characters when DEBUG is off. '
+            'Generate one with: python -c "import secrets; print(secrets.token_urlsafe(50))"'
+        )
+    SECRET_KEY = SECRET_KEY or 'django-insecure-local-development-only-not-for-production-use'
 
 # Parse allowed hosts from environment
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
