@@ -23,7 +23,7 @@ def build_stats(company, total_users, days_active):
         'total_users': total_users,
         'total_products': Product.objects.filter(company=company, is_active=True).count(),
         'pending_orders': CustomerOrder.objects.filter(company=company, status__in=['NEW', 'PROCESSING']).count(),
-        'active_shipments': Shipment.objects.filter(company=company).exclude(status='DELIVERED').count(),
+        'active_shipments': Shipment.objects.filter(company=company).exclude(status__in=Shipment.TERMINAL_STATUSES).count(),
         'days_active': days_active,
     }
 
