@@ -2,6 +2,8 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from django.db import transaction, models
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from .permissions import IsSameCompany, IsCompanyMember
 import uuid
 
@@ -30,10 +32,11 @@ class UUIDMixin:
             try:
                 lookup_value = uuid.UUID(lookup_value)
             except ValueError:
-                pass
+                raise Http404
         
         filter_kwargs = {self.lookup_field: lookup_value}
-        obj = queryset.get(**filter_kwargs)
+        # 404 (not 500) for missing or other-company objects
+        obj = get_object_or_404(queryset, **filter_kwargs)
         
         # May raise a permission denied
         self.check_object_permissions(self.request, obj)

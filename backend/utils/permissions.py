@@ -5,6 +5,27 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Parent relations that tie a company-less child object to its company, checked in order
+_PARENT_RELATIONS = (
+    'route', 'warehouse', 'inventory_item', 'production_order', 'order', 'shipment', 'transfer', 'product',
+)
+
+
+def _owning_company(obj, depth=0):
+    """Return the company an object belongs to via its parent relations, or None."""
+    if depth > 3:
+        return None
+    for name in _PARENT_RELATIONS:
+        parent = getattr(obj, name, None)
+        if parent is None or not hasattr(parent, '_meta'):
+            continue
+        if hasattr(parent, 'company'):
+            return parent.company
+        company = _owning_company(parent, depth + 1)
+        if company is not None:
+            return company
+    return None
+
 
 class IsSameCompany(permissions.BasePermission):
     """
@@ -35,6 +56,12 @@ class IsSameCompany(permissions.BasePermission):
         if hasattr(obj, 'company'):
             return obj.company == request.user.company
         
+        # For child objects owned through a parent (RouteStop -> route,
+        # InventoryItem -> warehouse, InventoryTransaction -> inventory_item -> warehouse, ...)
+        company = _owning_company(obj)
+        if company is not None:
+            return company == request.user.company
+
         # For objects that belong to users (check user's company)
         if hasattr(obj, 'user') and hasattr(obj.user, 'company'):
             return obj.user.company == request.user.company

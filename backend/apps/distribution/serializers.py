@@ -169,23 +169,30 @@ class ShipmentDetailSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'company_id', 'created_at', 'updated_at']
 
+    # These validators return the id (not the instance) because the values are
+    # saved straight onto the *_id attributes.
+    def validate_order_id(self, value):
+        """Validate that order belongs to the same company."""
+        if value:
+            company = self.context['request'].user.company
+            if not CustomerOrder.objects.filter(id=value, company=company).exists():
+                raise serializers.ValidationError("Order not found.")
+        return value
+
     def validate_warehouse_id(self, value):
         """Validate that warehouse belongs to the same company."""
         company = self.context['request'].user.company
-        try:
-            return Warehouse.objects.get(id=value, company=company)
-        except Warehouse.DoesNotExist:
+        if not Warehouse.objects.filter(id=value, company=company).exists():
             raise serializers.ValidationError("Warehouse not found.")
+        return value
 
     def validate_driver_id(self, value):
         """Validate that driver belongs to the same company."""
         if value:
             company = self.context['request'].user.company
-            try:
-                return User.objects.get(id=value, company=company, is_driver=True)
-            except User.DoesNotExist:
+            if not User.objects.filter(id=value, company=company, is_driver=True).exists():
                 raise serializers.ValidationError("Driver not found.")
-        return None
+        return value
 
 class RouteStopSerializer(serializers.ModelSerializer):
     """Serializer for RouteStop model."""
@@ -202,10 +209,19 @@ class RouteStopSerializer(serializers.ModelSerializer):
             'id', 'route_id', 'shipment_id', 'shipment_number', 'stop_number',
             'address', 'estimated_arrival', 'actual_arrival', 'departure_time',
             'status', 'notes', 'stop_duration_minutes', 'created_at', 'updated_at',
-            'latitude', 'longitude',
+            'latitude', 'longitude', 'customer_name',
         ]
         read_only_fields = ['id', 'route_id', 'created_at', 'updated_at']
-    
+        # add_stop assigns the next stop number when it isn't given
+        extra_kwargs = {'stop_number': {'required': False}}
+
+    def validate_shipment_id(self, value):
+        """Validate that shipment belongs to the same company."""
+        company = self.context['request'].user.company
+        if not Shipment.objects.filter(id=value, company=company).exists():
+            raise serializers.ValidationError("Shipment not found.")
+        return value
+
     def get_customer_name(self, obj):
         """Get customer name from related shipment's order."""
         if obj.shipment and obj.shipment.order:
@@ -248,3 +264,11 @@ class DeliveryRouteDetailSerializer(serializers.ModelSerializer):
             'start_location', 'estimated_duration', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'company_id', 'created_at', 'updated_at']
+
+    def validate_driver_id(self, value):
+        """Validate that driver belongs to the same company."""
+        if value:
+            company = self.context['request'].user.company
+            if not User.objects.filter(id=value, company=company, is_driver=True).exists():
+                raise serializers.ValidationError("Driver not found.")
+        return value
