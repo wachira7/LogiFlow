@@ -1,6 +1,7 @@
 # apps/users/urls.py
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
+from .password_reset import ForgotPasswordView, ResetPasswordView
 from .views import (
     RegisterView, LoginView, logout_view, ProfileView,
     ChangePasswordView, InviteUserView, CompanyUsersView,
@@ -14,6 +15,8 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', logout_view, name='logout'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
+    path('reset-password/', ResetPasswordView.as_view(), name='reset_password'),
     
     # Profile Management
     path('profile/', ProfileView.as_view(), name='profile'),

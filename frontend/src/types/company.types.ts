@@ -43,6 +43,7 @@ export interface UpdateCompanyData {
   country?: string
   postal_code?: string
   logo?: File | string 
+  onboarding_completed?: boolean
 }
 
 export interface User {
@@ -180,6 +181,7 @@ export interface SettingsFormData {
 
 // Constants
 export const INDUSTRIES = [
+  'Distribution & Wholesale',
   'Manufacturing',
   'Retail',
   'E-commerce',
@@ -239,7 +241,14 @@ export const CURRENCIES = [
   { code: 'KES', name: 'Kenyan Shilling', symbol: 'KSh' },
   { code: 'NGN', name: 'Nigerian Naira', symbol: '₦' },
   { code: 'ZAR', name: 'South African Rand', symbol: 'R' },
-  
+  { code: 'UGX', name: 'Ugandan Shilling', symbol: 'USh' },
+  { code: 'TZS', name: 'Tanzanian Shilling', symbol: 'TSh' },
+  { code: 'RWF', name: 'Rwandan Franc', symbol: 'FRw' },
+  { code: 'ETB', name: 'Ethiopian Birr', symbol: 'Br' },
+  { code: 'GHS', name: 'Ghanaian Cedi', symbol: 'GH₵' },
+  { code: 'EGP', name: 'Egyptian Pound', symbol: 'E£' },
+  { code: 'AED', name: 'UAE Dirham', symbol: 'AED' },
+  { code: 'INR', name: 'Indian Rupee', symbol: '₹' },
 ] as const
 
 export const TIMEZONES = [
@@ -250,6 +259,16 @@ export const TIMEZONES = [
   'Europe/London',
   'Europe/Paris',
   'Africa/Nairobi',
+  'Africa/Kampala',
+  'Africa/Dar_es_Salaam',
+  'Africa/Kigali',
+  'Africa/Addis_Ababa',
+  'Africa/Lagos',
+  'Africa/Accra',
+  'Africa/Johannesburg',
+  'Africa/Cairo',
+  'Asia/Dubai',
+  'Asia/Kolkata',
   'Asia/Tokyo',
   'Asia/Shanghai',
   'Australia/Sydney',

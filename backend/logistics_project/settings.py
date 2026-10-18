@@ -189,7 +189,14 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
     'EXCEPTION_HANDLER': 'utils.exceptions.custom_exception_handler',
+    # Rates for views that opt in with ScopedRateThrottle
+    'DEFAULT_THROTTLE_RATES': {
+        'password_reset': os.getenv('PASSWORD_RESET_THROTTLE', '5/hour'),
+    },
 }
+
+# Password reset links expire after an hour
+PASSWORD_RESET_TIMEOUT = int(os.getenv('PASSWORD_RESET_TIMEOUT', 3600))
 
 # JWT Configuration from Environment
 SIMPLE_JWT = {

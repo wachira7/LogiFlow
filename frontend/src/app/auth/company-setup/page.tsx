@@ -1,42 +1,34 @@
 // frontend/src/app/auth/company-setup/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Building, MapPin, Globe, Phone, Users, ArrowRight, Loader2, CheckCircle, Settings } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
+import { ArrowLeft, Building2, Check, CheckCircle2, Globe, MapPin, Phone } from 'lucide-react'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useAuth } from '@/context/AuthContext'
-import { useToast } from '@/hooks/use-toast'
+import { PrivateRoute } from '@/components/auth/AuthGuard'
+import { AuthHeader, Field, FieldError, FormAlert, SubmitButton } from '@/components/auth/AuthFormParts'
 import { CompanyService } from '@/services/companyService'
-import { INDUSTRIES, CURRENCIES, TIMEZONES } from '@/types/company.types'
-import { PrivateRoute} from '@/components/auth/AuthGuard'
+import { CURRENCIES, INDUSTRIES, TIMEZONES } from '@/types/company.types'
+import { cn } from '@/lib/utils'
 
 const COMPANY_SIZES = [
-  { value: '1-10', label: '1–10 employees' },
-  { value: '11-50', label: '11–50 employees' },
-  { value: '51-200', label: '51–200 employees' },
-  { value: '201-500', label: '201–500 employees' },
-  { value: '500+', label: '500+ employees' },
+  { value: '1-10', label: '1–10 people' },
+  { value: '11-50', label: '11–50 people' },
+  { value: '51-200', label: '51–200 people' },
+  { value: '201-500', label: '201–500 people' },
+  { value: '500+', label: '500+ people' },
 ]
 
-const STEPS = [
-  { id: 1, title: 'Company Info', icon: Building },
-  { id: 2, title: 'Location', icon: MapPin },
-  { id: 3, title: 'Preferences', icon: Settings },
-]
+const STEPS = ['Company', 'Location', 'Preferences'] as const
 
-interface SetupFormData {
+type SetupForm = {
   name: string
   industry: string
   company_size: string
   website: string
   phone: string
-  description: string
   address: string
   city: string
   country: string
@@ -44,410 +36,236 @@ interface SetupFormData {
   currency: string
 }
 
+function SelectField({
+  id, label, value, onChange, placeholder, error, children,
+}: {
+  id: string; label: string; value: string; onChange: (v: string) => void; placeholder: string; error?: string; children: React.ReactNode
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-sm font-medium">{label}</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger id={id} className={cn('h-11 w-full', error && 'border-danger')} aria-invalid={!!error}>
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>{children}</SelectContent>
+      </Select>
+      <FieldError id={`${id}-error`} message={error} />
+    </div>
+  )
+}
+
 function CompanySetupContent() {
-  const { user } = useAuth()
   const router = useRouter()
-  const { toast } = useToast()
-
-  const [currentStep, setCurrentStep] = useState(1)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isComplete, setIsComplete] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
-
-  const [formData, setFormData] = useState<SetupFormData>({
-    name: '',
-    industry: '',
-    company_size: '',
-    website: '',
-    phone: '',
-    description: '',
-    address: '',
-    city: '',
-    country: 'Kenya',
-    timezone: 'Africa/Nairobi',
-    currency: 'KES',
+  const reduce = useReducedMotion()
+  const [step, setStep] = useState(0)
+  const [direction, setDirection] = useState(1)
+  const [form, setForm] = useState<SetupForm>({
+    name: '', industry: '', company_size: '', website: '', phone: '',
+    address: '', city: '', country: 'Kenya', timezone: 'Africa/Nairobi', currency: 'KES',
   })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [formError, setFormError] = useState<string>()
+  const [saving, setSaving] = useState(false)
+  const [done, setDone] = useState(false)
 
-  const handleChange = (field: keyof SetupFormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }))
-  }
-
-  const validateStep = (step: number): boolean => {
-    const newErrors: Record<string, string> = {}
-    if (step === 1) {
-      if (!formData.name.trim()) newErrors.name = 'Company name is required'
-      if (!formData.industry) newErrors.industry = 'Please select an industry'
-      if (!formData.company_size) newErrors.company_size = 'Please select company size'
-    }
-    if (step === 2) {
-      if (!formData.city.trim()) newErrors.city = 'City is required'
-      if (!formData.country.trim()) newErrors.country = 'Country is required'
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleNext = () => {
-    if (validateStep(currentStep)) setCurrentStep(prev => prev + 1)
-  }
-
-  const handleBack = () => setCurrentStep(prev => prev - 1)
-
-  const handleSubmit = async () => {
-    if (!validateStep(currentStep)) return
-    setIsLoading(true)
-
-    try {
-      const response = await CompanyService.updateCompany({
-        name: formData.name,
-        industry: formData.industry,
-        company_size: formData.company_size,
-        website: formData.website || undefined,
-        phone: formData.phone || undefined,
-        description: formData.description || undefined,
-        address: formData.address || undefined,
-        city: formData.city,
-        country: formData.country,
-        timezone: formData.timezone,
-      })
-
-      if (response.success) {
-        // Update settings (currency, timezone)
-        await CompanyService.updateSettings({
-          timezone: formData.timezone,
-          currency: formData.currency,
-        })
-
-        setIsComplete(true)
-        toast({
-          title: 'Setup complete!',
-          description: 'Your workspace is ready.',
-        })
-        setTimeout(() => router.push('/dashboard'), 2000)
-      } else {
-        toast({
-          title: 'Setup failed',
-          description: response.error || 'Please try again.',
-          variant: 'destructive',
-        })
+  // Pre-fill what we already know from sign-up
+  useEffect(() => {
+    CompanyService.getCompany().then((res) => {
+      if (res.success && res.data) {
+        const c = res.data
+        setForm((f) => ({
+          ...f,
+          name: c.name || f.name,
+          industry: c.industry && c.industry !== 'Not specified' ? c.industry : f.industry,
+          company_size: c.company_size || f.company_size,
+          website: c.website || f.website,
+          phone: c.phone || f.phone,
+        }))
       }
-    } catch {
-      toast({
-        title: 'Something went wrong',
-        description: 'Please check your connection and try again.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoading(false)
-    }
+    })
+  }, [])
+
+  const set = (field: keyof SetupForm, value: string) => {
+    setForm((f) => ({ ...f, [field]: value }))
+    setErrors((e) => ({ ...e, [field]: '' }))
   }
 
-  // Success screen
-  if (isComplete) {
+  const validate = (s: number) => {
+    const e: Record<string, string> = {}
+    if (s === 0) {
+      if (!form.name.trim()) e.name = 'Enter your company name'
+      if (!form.industry) e.industry = 'Choose an industry'
+      if (!form.company_size) e.company_size = 'Choose your team size'
+      if (form.website && !/^https?:\/\/\S+\.\S+/.test(form.website)) e.website = 'Start with https://, e.g. https://duka.co.ke'
+    }
+    if (s === 1) {
+      if (!form.city.trim()) e.city = 'Enter your city'
+      if (!form.country.trim()) e.country = 'Enter your country'
+    }
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+
+  const go = (next: number) => {
+    setDirection(next > step ? 1 : -1)
+    setStep(next)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormError(undefined)
+    if (!validate(step)) return
+    if (step < STEPS.length - 1) return go(step + 1)
+
+    setSaving(true)
+    // City and country are kept as part of the address (the company record has one address field)
+    const address = [form.address, form.city, form.country].map((p) => p.trim()).filter(Boolean).join(', ')
+    const company = await CompanyService.updateCompany({
+      name: form.name.trim(),
+      industry: form.industry,
+      company_size: form.company_size,
+      website: form.website || undefined,
+      phone: form.phone || undefined,
+      address,
+      timezone: form.timezone,
+      onboarding_completed: true,
+    })
+    if (!company.success) {
+      setSaving(false)
+      setErrors(company.fieldErrors ?? {})
+      if (company.fieldErrors?.name || company.fieldErrors?.industry) go(0)
+      if (!company.fieldErrors) setFormError(company.error || 'We couldn’t save your company details. Please try again.')
+      return
+    }
+    await CompanyService.updateSettings({ timezone: form.timezone, currency: form.currency })
+    setDone(true)
+    setTimeout(() => router.push('/dashboard'), 2200)
+  }
+
+  if (done) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="text-center space-y-6 py-8"
-      >
-        <motion.div
+      <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="text-center" role="status">
+        <motion.span
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-          className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto"
+          transition={{ type: 'spring', stiffness: 260, damping: 16 }}
+          className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-success-soft"
         >
-          <CheckCircle className="w-10 h-10 text-white" />
-        </motion.div>
-        <div>
-          <h2 className="font-serif font-bold text-2xl mb-2">You&apos;re all set!</h2>
-          <p className="text-muted-foreground">Taking you to your dashboard...</p>
-        </div>
-        <Loader2 className="w-5 h-5 animate-spin text-primary mx-auto" />
+          <CheckCircle2 className="h-8 w-8 text-success" />
+        </motion.span>
+        <AuthHeader title="Your workspace is ready" subtitle={`Welcome to LogiFlow, ${form.name}. Taking you to your dashboard…`} />
       </motion.div>
     )
   }
 
+  const variants = {
+    enter: (d: number) => ({ opacity: 0, x: reduce ? 0 : d * 40 }),
+    center: { opacity: 1, x: 0 },
+    exit: (d: number) => ({ opacity: 0, x: reduce ? 0 : d * -40 }),
+  }
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-          className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-4"
-        >
-          <Building className="w-7 h-7 text-primary-foreground" />
-        </motion.div>
-        <h1 className="font-serif font-bold text-2xl sm:text-3xl">
-          Set up your workspace
-        </h1>
-        <p className="text-muted-foreground">
-          Hi {user?.first_name || 'there'}! Let&apos;s configure your company.
-        </p>
-      </div>
+    <div>
+      <AuthHeader title="Set up your workspace" subtitle="A few details so LogiFlow fits how you work. You can change them later." />
 
-      {/* Step indicator */}
-      <div className="flex items-center justify-between">
-        {STEPS.map((step, index) => {
-          const Icon = step.icon
-          const isActive = currentStep === step.id
-          const isCompleted = currentStep > step.id
-
-          return (
-            <div key={step.id} className="flex items-center flex-1">
-              <div className="flex flex-col items-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                  isCompleted ? 'bg-primary' : isActive ? 'bg-cta' : 'bg-muted'
-                }`}>
-                  {isCompleted
-                    ? <CheckCircle className="w-5 h-5 text-primary-foreground" />
-                    : <Icon className={`w-5 h-5 ${isActive ? 'text-cta-foreground' : 'text-muted-foreground'}`} />
-                  }
-                </div>
-                <span className={`text-xs mt-1 font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  {step.title}
-                </span>
-              </div>
-              {index < STEPS.length - 1 && (
-                <div className="flex-1 h-px bg-border mx-2 mb-5" />
+      {/* progress */}
+      <ol className="mb-8 flex items-center gap-2" aria-label={`Step ${step + 1} of ${STEPS.length}`}>
+        {STEPS.map((label, i) => (
+          <li key={label} className="flex flex-1 items-center gap-2">
+            <span
+              className={cn(
+                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors duration-300',
+                step > i ? 'border-brand bg-brand text-brand-foreground' : step === i ? 'border-brand text-brand' : 'border-border text-muted-foreground',
               )}
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Step content */}
-      <motion.div
-        key={currentStep}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.25 }}
-        className="space-y-4"
-      >
-        {/* Company Info */}
-        {currentStep === 1 && (
-          <>
-            <div className="space-y-2">
-              <Label>Company Name *</Label>
-              <div className="relative">
-                <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Your company name"
-                  value={formData.name}
-                  onChange={e => handleChange('name', e.target.value)}
-                  className={`pl-10 h-11 ${errors.name ? 'border-destructive' : ''}`}
-                />
-              </div>
-              {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Industry *</Label>
-              <Select value={formData.industry} onValueChange={v => handleChange('industry', v)}>
-                <SelectTrigger className={`h-11 ${errors.industry ? 'border-destructive' : ''}`}>
-                  <SelectValue placeholder="Select your industry" />
-                </SelectTrigger>
-                <SelectContent>
-                  {INDUSTRIES.map(ind => (
-                    <SelectItem key={ind} value={ind}>{ind}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.industry && <p className="text-sm text-destructive">{errors.industry}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Company Size *</Label>
-              <div className="grid grid-cols-1 gap-2">
-                {COMPANY_SIZES.map(size => (
-                  <button
-                    key={size.value}
-                    type="button"
-                    onClick={() => handleChange('company_size', size.value)}
-                    className={`flex items-center space-x-3 p-3 rounded-lg border-2 text-left transition-colors ${
-                      formData.company_size === size.value
-                        ? 'border-primary bg-primary/5 text-foreground'
-                        : 'border-border hover:border-primary/50 text-muted-foreground'
-                    }`}
-                  >
-                    <Users className={`w-4 h-4 shrink-0 ${formData.company_size === size.value ? 'text-primary' : ''}`} />
-                    <span className="text-sm font-medium">{size.label}</span>
-                    {formData.company_size === size.value && (
-                      <CheckCircle className="w-4 h-4 text-primary ml-auto" />
-                    )}
-                  </button>
-                ))}
-              </div>
-              {errors.company_size && <p className="text-sm text-destructive">{errors.company_size}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label>Website</Label>
-              <div className="relative">
-                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="https://yourcompany.com"
-                  value={formData.website}
-                  onChange={e => handleChange('website', e.target.value)}
-                  className="pl-10 h-11"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Brief Description</Label>
-              <Textarea
-                placeholder="What does your company do?"
-                value={formData.description}
-                onChange={e => handleChange('description', e.target.value)}
-                rows={2}
-              />
-            </div>
-          </>
-        )}
-
-        {/*  Location */}
-        {currentStep === 2 && (
-          <>
-            <div className="space-y-2">
-              <Label>Street Address</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="123 Business Ave"
-                  value={formData.address}
-                  onChange={e => handleChange('address', e.target.value)}
-                  className="pl-10 h-11"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>City *</Label>
-                <Input
-                  placeholder="Nairobi"
-                  value={formData.city}
-                  onChange={e => handleChange('city', e.target.value)}
-                  className={`h-11 ${errors.city ? 'border-destructive' : ''}`}
-                />
-                {errors.city && <p className="text-sm text-destructive">{errors.city}</p>}
-              </div>
-              <div className="space-y-2">
-                <Label>Country *</Label>
-                <Input
-                  placeholder="Kenya"
-                  value={formData.country}
-                  onChange={e => handleChange('country', e.target.value)}
-                  className={`h-11 ${errors.country ? 'border-destructive' : ''}`}
-                />
-                {errors.country && <p className="text-sm text-destructive">{errors.country}</p>}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Phone Number</Label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="+254 700 000 000"
-                  value={formData.phone}
-                  onChange={e => handleChange('phone', e.target.value)}
-                  className="pl-10 h-11"
-                />
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Preferences */}
-        {currentStep === 3 && (
-          <>
-            <div className="space-y-2">
-              <Label>Timezone</Label>
-              <Select value={formData.timezone} onValueChange={v => handleChange('timezone', v)}>
-                <SelectTrigger className="h-11">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIMEZONES.map(tz => (
-                    <SelectItem key={tz} value={tz}>{tz}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Currency</Label>
-              <Select value={formData.currency} onValueChange={v => handleChange('currency', v)}>
-                <SelectTrigger className="h-11">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map(c => (
-                    <SelectItem key={c.code} value={c.code}>
-                      {c.symbol} {c.name} ({c.code})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="rounded-lg bg-muted/50 border border-border p-4 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground mb-1">You can change these anytime</p>
-              <p>All settings can be updated later from <strong>Company → Settings</strong> in your dashboard.</p>
-            </div>
-          </>
-        )}
-      </motion.div>
-
-      {/* Navigation */}
-      <div className="flex gap-3">
-        {currentStep > 1 && (
-          <Button
-            variant="outline"
-            onClick={handleBack}
-            className="flex-1 h-11 bg-transparent"
-            disabled={isLoading}
-          >
-            Back
-          </Button>
-        )}
-
-        {currentStep < STEPS.length ? (
-          <Button
-            onClick={handleNext}
-            className="flex-1 h-11 bg-cta hover:bg-cta/90 text-cta-foreground font-semibold"
-          >
-            Continue
-            <ArrowRight className="ml-2 w-4 h-4" />
-          </Button>
-        ) : (
-          <Button
-            onClick={handleSubmit}
-            className="flex-1 h-11 bg-cta hover:bg-cta/90 text-cta-foreground font-semibold"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Setting up...</>
-            ) : (
-              <>Complete Setup<ArrowRight className="ml-2 w-4 h-4" /></>
+            >
+              {step > i ? <Check className="h-3.5 w-3.5" /> : i + 1}
+            </span>
+            <span className={cn('hidden text-sm font-medium sm:inline', step >= i ? 'text-foreground' : 'text-muted-foreground')}>{label}</span>
+            {i < STEPS.length - 1 && (
+              <span className="relative h-0.5 flex-1 overflow-hidden rounded bg-border">
+                <motion.span className="absolute inset-y-0 left-0 bg-brand" animate={{ width: step > i ? '100%' : '0%' }} transition={{ duration: 0.4 }} />
+              </span>
             )}
-          </Button>
-        )}
-      </div>
+          </li>
+        ))}
+      </ol>
 
-      {/* Skip */}
-      <div className="text-center">
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors hover:underline underline-offset-4"
-        >
-          Skip for now, I&apos;ll set this up later
-        </button>
-      </div>
+      <FormAlert message={formError} />
+
+      <form onSubmit={handleSubmit} noValidate>
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
+          <motion.div
+            key={step}
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            className="space-y-5"
+          >
+            {step === 0 && (
+              <>
+                <Field label="Company name" icon={Building2} value={form.name} error={errors.name} autoFocus
+                  onChange={(e) => set('name', e.target.value)} />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <SelectField id="industry" label="Industry" value={form.industry} onChange={(v) => set('industry', v)}
+                    placeholder="Choose industry" error={errors.industry}>
+                    {INDUSTRIES.map((i) => <SelectItem key={i} value={i}>{i}</SelectItem>)}
+                  </SelectField>
+                  <SelectField id="company_size" label="Team size" value={form.company_size} onChange={(v) => set('company_size', v)}
+                    placeholder="Choose size" error={errors.company_size}>
+                    {COMPANY_SIZES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                  </SelectField>
+                </div>
+                <Field label="Website (optional)" icon={Globe} type="url" placeholder="https://duka.co.ke" value={form.website}
+                  error={errors.website} onChange={(e) => set('website', e.target.value)} />
+              </>
+            )}
+            {step === 1 && (
+              <>
+                <Field label="Street address (optional)" icon={MapPin} placeholder="Industrial Area, Enterprise Rd" value={form.address}
+                  autoComplete="street-address" error={errors.address} autoFocus onChange={(e) => set('address', e.target.value)} />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label="City" value={form.city} error={errors.city} autoComplete="address-level2"
+                    onChange={(e) => set('city', e.target.value)} />
+                  <Field label="Country" value={form.country} error={errors.country} autoComplete="country-name"
+                    onChange={(e) => set('country', e.target.value)} />
+                </div>
+                <Field label="Company phone (optional)" icon={Phone} type="tel" placeholder="+254 712 345678" value={form.phone}
+                  error={errors.phone} onChange={(e) => set('phone', e.target.value)} />
+              </>
+            )}
+            {step === 2 && (
+              <>
+                <SelectField id="timezone" label="Time zone" value={form.timezone} onChange={(v) => set('timezone', v)} placeholder="Choose time zone">
+                  {TIMEZONES.map((t) => <SelectItem key={t} value={t}>{t.replace(/_/g, ' ')}</SelectItem>)}
+                </SelectField>
+                <SelectField id="currency" label="Currency for reports and prices" value={form.currency} onChange={(v) => set('currency', v)} placeholder="Choose currency">
+                  {CURRENCIES.map((c) => <SelectItem key={c.code} value={c.code}>{c.code} · {c.name}</SelectItem>)}
+                </SelectField>
+              </>
+            )}
+
+            <SubmitButton loading={saving} loadingText="Saving…">
+              {step < STEPS.length - 1 ? 'Continue' : 'Finish setup'}
+            </SubmitButton>
+            <div className="flex items-center justify-between text-sm">
+              {step > 0 ? (
+                <button type="button" onClick={() => go(step - 1)} disabled={saving}
+                  className="group flex items-center gap-1.5 font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" /> Back
+                </button>
+              ) : <span />}
+              <button type="button" onClick={() => router.push('/dashboard')} disabled={saving}
+                className="font-medium text-muted-foreground transition-colors hover:text-foreground">
+                Skip for now
+              </button>
+            </div>
+          </motion.div>
+        </AnimatePresence>
+      </form>
     </div>
   )
 }

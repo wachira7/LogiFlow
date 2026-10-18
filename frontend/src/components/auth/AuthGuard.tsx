@@ -74,9 +74,14 @@ export function AuthGuard({
     return null
   }
 
-  // If authentication is not required but user is authenticated (auth pages), don't render children
+  // Signed in on an auth page: show a brief state while the redirect happens
   if (!requireAuth && isAuthenticated) {
-    return null
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-16 text-sm text-muted-foreground" role="status">
+        <LoadingSpinner size="md" />
+        Signing you in…
+      </div>
+    )
   }
 
   // If role is required but user doesn't have it, don't render children

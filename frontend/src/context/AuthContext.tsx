@@ -7,6 +7,13 @@ import { TokenManager } from '@/utils/auth/tokenManager'
 import type { User, Company, LoginCredentials, RegisterCredentials, ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest, AuthError, UpdateProfileRequest } from '@/types/auth.types'
 import { useRouter } from 'next/navigation'
 
+/** Outcome of an auth action, with the backend's message and per-field errors on failure. */
+export interface AuthResult {
+  success: boolean
+  error?: string
+  fieldErrors?: Record<string, string>
+}
+
 interface AuthState {
   user: User | null
   company?: Company | undefined
@@ -16,11 +23,11 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<boolean>
-  register: (credentials: RegisterCredentials) => Promise<boolean>
+  login: (credentials: LoginCredentials) => Promise<AuthResult>
+  register: (credentials: RegisterCredentials) => Promise<AuthResult>
   logout: () => Promise<void>
-  forgotPassword: (request: ForgotPasswordRequest) => Promise<boolean>
-  resetPassword: (request: ResetPasswordRequest) => Promise<boolean>
+  forgotPassword: (request: ForgotPasswordRequest) => Promise<AuthResult>
+  resetPassword: (request: ResetPasswordRequest) => Promise<AuthResult>
   changePassword: (request: ChangePasswordRequest) => Promise<boolean>
   updateProfile: (updates: UpdateProfileRequest) => Promise<boolean>
   uploadAvatar: (file: File) => Promise<boolean>
@@ -114,8 +121,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  const login = async (credentials: LoginCredentials): Promise<boolean> => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }))
+  const login = async (credentials: LoginCredentials): Promise<AuthResult> => {
+    setState(prev => ({ ...prev, error: null }))
 
     try {
       const response = await AuthService.login(credentials)
@@ -132,23 +139,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
           error: null,
         }))
 
-        // ✅ IMMEDIATE REDIRECT WITH FALLBACK
+        // Where to go next; PublicRoute performs the single redirect once the user is set.
+        // A deep link saved before login (redirectUrl) wins for regular users.
         if (user.is_platform_admin || user.role === 'platform_admin') {
-          console.log('🚀 Redirecting to platform-admin')
-          
-          // Try Next.js router
-          router.push('/platform-admin')
-          
-          // Fallback to window.location
-          setTimeout(() => {
-            window.location.href = '/platform-admin'
-          }, 300)
-        } else {
-          console.log('🚀 Redirecting to dashboard')
-          router.push('/dashboard')
+          TokenManager.setTemporaryData('redirectUrl', '/platform-admin')
+        } else if (!TokenManager.getTemporaryData('redirectUrl')) {
+          TokenManager.setTemporaryData('redirectUrl', '/dashboard')
         }
 
-        return true
+        return { success: true }
       } else {
         setState(prev => ({
           ...prev,
@@ -160,7 +159,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             message: response.error || 'Login failed',
           },
         }))
-        return false
+        return { success: false, error: response.error || 'Login failed', fieldErrors: response.fieldErrors }
       }
     } catch (error) {
       setState(prev => ({
@@ -173,11 +172,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           message: error instanceof Error ? error.message : 'Login failed',
         },
       }))
-      return false
+      return { success: false, error: error instanceof Error ? error.message : 'Login failed' }
     }
   }
-  const register = async (credentials: RegisterCredentials): Promise<boolean> => {
-    setState(prev => ({ ...prev, isLoading: true, error: null }))
+  const register = async (credentials: RegisterCredentials): Promise<AuthResult> => {
+    setState(prev => ({ ...prev, error: null }))
 
     try {
       const response = await AuthService.register(credentials)
@@ -195,14 +194,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
           error: null,
         }))
 
-        //ADD THIS REDIRECT LOGIC (platform admins shouldn't register, but just in case):
-      if (user.is_platform_admin || user.role === 'platform_admin') {
-        router.push('/platform-admin')
-      } else {
-        router.push('/auth/company-setup')
-      }
+        // New companies continue to setup; PublicRoute performs the redirect
+        TokenManager.setTemporaryData(
+          'redirectUrl',
+          user.is_platform_admin || user.role === 'platform_admin' ? '/platform-admin' : '/auth/company-setup',
+        )
 
-        return true
+        return { success: true }
       } else {
         setState(prev => ({
           ...prev,
@@ -214,7 +212,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             message: response.error || 'Registration failed',
           },
         }))
-        return false
+        return { success: false, error: response.error || 'Registration failed', fieldErrors: response.fieldErrors }
       }
     } catch (error) {
       setState(prev => ({
@@ -227,7 +225,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           message: error instanceof Error ? error.message : 'Registration failed',
         },
       }))
-      return false
+      return { success: false, error: error instanceof Error ? error.message : 'Registration failed' }
     }
   }
 
@@ -250,7 +248,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  const forgotPassword = async (request: ForgotPasswordRequest): Promise<boolean> => {
+  const forgotPassword = async (request: ForgotPasswordRequest): Promise<AuthResult> => {
     setState(prev => ({ ...prev, error: null }))
 
     try {
@@ -263,10 +261,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
             message: response.error || 'Failed to send reset email',
           },
         }))
-        return false
+        return { success: false, error: response.error || 'Failed to send reset email', fieldErrors: response.fieldErrors }
       }
       
-      return true
+      return { success: true }
     } catch (error) {
       setState(prev => ({
         ...prev,
@@ -274,11 +272,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
           message: error instanceof Error ? error.message : 'Failed to send reset email',
         },
       }))
-      return false
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to send reset email' }
     }
   }
 
-  const resetPassword = async (request: ResetPasswordRequest): Promise<boolean> => {
+  const resetPassword = async (request: ResetPasswordRequest): Promise<AuthResult> => {
     setState(prev => ({ ...prev, error: null }))
 
     try {
@@ -291,10 +289,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
             message: response.error || 'Password reset failed',
           },
         }))
-        return false
+        return { success: false, error: response.error || 'Password reset failed', fieldErrors: response.fieldErrors }
       }
       
-      return true
+      return { success: true }
     } catch (error) {
       setState(prev => ({
         ...prev,
@@ -302,7 +300,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           message: error instanceof Error ? error.message : 'Password reset failed',
         },
       }))
-      return false
+      return { success: false, error: error instanceof Error ? error.message : 'Password reset failed' }
     }
   }
 

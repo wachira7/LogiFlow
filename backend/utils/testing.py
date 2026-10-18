@@ -3,6 +3,7 @@
 Shared test helpers: minimal object builders and an authenticated API test case.
 """
 import itertools
+import secrets
 from decimal import Decimal
 
 from rest_framework.test import APITestCase
@@ -12,6 +13,11 @@ from apps.tenants.models import Company
 from apps.users.models import User
 
 _seq = itertools.count(1)
+
+
+def strong_password():
+    """A random password that passes Django's validators, generated per test run."""
+    return f"Lf{secrets.token_hex(6)}A1!"
 
 
 def make_company(**kwargs):

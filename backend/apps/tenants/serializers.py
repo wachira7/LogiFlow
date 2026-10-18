@@ -1,4 +1,5 @@
 # backend/apps/tenants/serializers.py
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from .models import Company, CompanyInvitation, CompanySetting, PlatformAnalytics, AuditLog
 from apps.users.models import User
@@ -59,7 +60,7 @@ class CompanyUpdateSerializer(serializers.ModelSerializer):
         model = Company
         fields = [
             'name', 'logo', 'address', 'phone', 'website', 
-            'industry', 'company_size', 'timezone'
+            'industry', 'company_size', 'timezone', 'onboarding_completed'
         ]
 
 
@@ -102,7 +103,8 @@ class CompanyInvitationSerializer(serializers.ModelSerializer):
 class AcceptInvitationSerializer(serializers.Serializer):
     """Serializer for accepting company invitations."""
     token = serializers.CharField()
-    password = serializers.CharField(write_only=True)
+    # Same password rules as registration
+    password = serializers.CharField(write_only=True, validators=[validate_password])
     password_confirm = serializers.CharField(write_only=True)
     first_name = serializers.CharField()
     last_name = serializers.CharField()

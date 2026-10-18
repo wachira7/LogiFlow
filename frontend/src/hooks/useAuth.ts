@@ -20,9 +20,9 @@ export function useAuthUtils() {
    * Login with toast notifications
    */
   const loginWithToast = async (credentials: { email: string; password: string; remember_me?: boolean }) => {
-    const success = await auth.login(credentials)
+    const result = await auth.login(credentials)
     
-    if (success) {
+    if (result.success) {
       toast({
         title: "Welcome back!",
         description: "You have been logged in successfully.",
@@ -44,44 +44,35 @@ export function useAuthUtils() {
     } else {
       toast({
         title: "Login failed",
-        description: auth.error?.message || "Please check your credentials and try again.",
+        description: result.error || "Please check your credentials and try again.",
         variant: "destructive",
       })
     }
     
-    return success
+    return result
   }
 
   /**
    * Register with toast notifications - FIXED to use password_confirm
    */
   const registerWithToast = async (credentials: RegisterCredentials) => {
-    const success = await auth.register(credentials)
+    // On success the auth context sends the new user to /auth/company-setup
+    const result = await auth.register(credentials)
     
-    if (success) {
+    if (result.success) {
       toast({
         title: "Account created!",
-        description: "Your account has been created successfully.",
+        description: "Let's finish setting up your company.",
       })
-      
-      // Check for pending plan selection
-      const pendingPlan = TokenManager.getTemporaryData('pendingPlan')
-      
-      if (pendingPlan) {
-        router.push('/billing/subscriptions')
-        TokenManager.clearTemporaryData('pendingPlan')
-      } else {
-        router.push('/dashboard')
-      }
     } else {
       toast({
         title: "Registration failed",
-        description: auth.error?.message || "Please check your information and try again.",
+        description: result.error || "Please check your information and try again.",
         variant: "destructive",
       })
     }
     
-    return success
+    return result
   }
 
   /**
@@ -104,9 +95,9 @@ export function useAuthUtils() {
    * Forgot password with toast
    */
   const forgotPasswordWithToast = async (email: string) => {
-    const success = await auth.forgotPassword({ email })
+    const result = await auth.forgotPassword({ email })
     
-    if (success) {
+    if (result.success) {
       toast({
         title: "Reset email sent!",
         description: "Please check your email for password reset instructions.",
@@ -114,25 +105,25 @@ export function useAuthUtils() {
     } else {
       toast({
         title: "Failed to send reset email",
-        description: auth.error?.message || "Please try again later.",
+        description: result.error || "Please try again later.",
         variant: "destructive",
       })
     }
     
-    return success
+    return result
   }
 
   /**
    * Reset password with toast - FIXED parameter names and logic
    */
   const resetPasswordWithToast = async (token: string, password: string, passwordConfirm: string) => {
-    const success = await auth.resetPassword({
+    const result = await auth.resetPassword({
       token,
       password,
       password_confirm: passwordConfirm
     })
     
-    if (success) {
+    if (result.success) {
       toast({
         title: "Password reset successful!",
         description: "You can now log in with your new password.",
@@ -142,12 +133,12 @@ export function useAuthUtils() {
     } else {
       toast({
         title: "Password reset failed",
-        description: auth.error?.message || "The reset link may be expired or invalid.",
+        description: result.error || "The reset link may be expired or invalid.",
         variant: "destructive",
       })
     }
     
-    return success
+    return result
   }
 
   /**
