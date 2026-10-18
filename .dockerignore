@@ -70,12 +70,14 @@ Jenkinsfile
 **/.parcel-cache
 **/out
 
-# Environment
-.env
-.env.local
-.env.*.local
-.env.production
+# Environment & secrets (any directory)
+**/.env
+**/.env.*
 **/*.env
+!**/.env.example
+**/*.pem
+**/*.key
+**/*.sqlite3
 
 # Testing
 **/coverage
@@ -92,8 +94,8 @@ lerna-debug.log*
 pnpm-debug.log*
 
 # Misc
-.venv
-venv
+**/.venv
+**/venv
 env
 ENV
 

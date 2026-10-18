@@ -145,13 +145,18 @@ Page (no guard needed — layout handles it)
 ```bash
 git clone https://github.com/wachira7/LogiFlow.git
 cd LogiFlow
+
+# Block commits of env files, databases and other ignored files
+git config core.hooksPath .githooks
 ```
 
 ### 2. Set up environment variables
 
 ```bash
-cp .env.example .env
-# Fill in your values
+cp backend/.env.example backend/.env
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > frontend/.env.local
+# Fill in development/test values only. Never commit real env files or production keys;
+# the pre-commit hook and the Repo Guard CI check will reject them.
 ```
 
 ### 3. Start with Docker Compose

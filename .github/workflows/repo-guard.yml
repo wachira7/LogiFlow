@@ -1,0 +1,26 @@
+name: Repo Guard
+
+# Fails any push or PR that tracks files .gitignore excludes (env files, databases,
+# node_modules, caches, ...), so they can't reach the public repo even if a local hook is skipped.
+on:
+  push:
+  pull_request:
+
+jobs:
+  no-ignored-or-secret-files:
+    name: No ignored or secret files tracked
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tracked files
+        run: |
+          ignored=$(git ls-files -ci --exclude-standard)
+          secrets=$(git ls-files | grep -E '(^|/)(\.env(\..+)?|[^/]+\.env|[^/]+\.(pem|key|p12|pfx|sqlite3)|id_(rsa|ed25519)[^/]*)$' | grep -vE '\.example$' || true)
+          if [ -n "$ignored$secrets" ]; then
+            echo "::error::Files that must not be committed are tracked:"
+            printf '%s\n' $ignored $secrets | sort -u
+            echo "Remove them with: git rm --cached <file>"
+            exit 1
+          fi
+          echo "✅ No ignored or secret files tracked"

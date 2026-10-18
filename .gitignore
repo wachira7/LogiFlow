@@ -1,29 +1,62 @@
-# Environment files
+# ── Secrets & environment ────────────────────────────────────────────────
+# Never commit real environment files or keys. Only *.example templates.
 .env
 .env.*
 *.env
-.env.development
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa*
+id_ed25519*
+credentials*.json
+service-account*.json
+.netrc
 
-# Python
-venv/
+# ── Databases & dumps ────────────────────────────────────────────────────
+*.sqlite3
+*.sqlite3-journal
+*.db
+*.dump
+*.sql.gz
+
+# ── Python ───────────────────────────────────────────────────────────────
 __pycache__/
-*.pyc
-*.pyo
-
-# Node
-node_modules/
-dist/
-build/
-
-# Logs
-*.log
-
-# IDE
-.idea/
-.vscode/
-.DS_Storebackend/logs/*.log
-backend/logs/
-
-# Python test coverage
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .coverage
 coverage.xml
+htmlcov/
+
+# ── Django generated files ───────────────────────────────────────────────
+backend/staticfiles/
+backend/media/
+backend/mediafiles/
+backend/logs/
+
+# ── Node / Next.js / Expo ────────────────────────────────────────────────
+node_modules/
+.next/
+dist/
+build/
+.vercel/
+.turbo/
+.expo/
+npm-debug.log*
+yarn-error.log*
+
+# ── Logs ─────────────────────────────────────────────────────────────────
+*.log
+
+# ── IDE & OS ─────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+.DS_Store
