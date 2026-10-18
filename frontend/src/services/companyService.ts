@@ -66,8 +66,10 @@ export class CompanyService {
    */
   static async getInvitations(): Promise<ApiResponse<Invitation[]>> {
     try {
-      const response = await api.get<Invitation[]>('/api/v1/tenants/invitations/')
-      return response
+      // The endpoint is paginated ({ results: [...] }); callers get a plain list
+      const response = await api.get<Invitation[] | { results: Invitation[] }>('/api/v1/tenants/invitations/?page_size=100')
+      const data = response.data
+      return { ...response, data: Array.isArray(data) ? data : data?.results ?? [] }
     } catch (error) {
       console.error('Failed to fetch invitations:', error)
       return {
@@ -83,9 +85,7 @@ export class CompanyService {
    */
   static async createInvitation(data: CreateInvitationData): Promise<ApiResponse<Invitation>> {
     try {
-      const { message, ...payload } = data
-      console.log('Message:', message)  
-      const response = await api.post<Invitation>('/api/v1/tenants/invitations/', payload)
+      const response = await api.post<Invitation>('/api/v1/tenants/invitations/', data)
       return response
     } catch (error) {
       console.error('Failed to create invitation:', error)
@@ -117,9 +117,9 @@ export class CompanyService {
   /**
    * Resend invitation
    */
-  static async resendInvitation(invitationId: string): Promise<ApiResponse<{ message: string }>> {
+  static async resendInvitation(invitationId: string): Promise<ApiResponse<{ message: string; email_sent: boolean; invitation_url: string }>> {
     try {
-      const response = await api.post<{ message: string }>(`/api/v1/tenants/invitations/${invitationId}/resend/`, {})
+      const response = await api.post<{ message: string; email_sent: boolean; invitation_url: string }>(`/api/v1/tenants/invitations/${invitationId}/resend/`, {})
       return response
     } catch (error) {
       console.error('Failed to resend invitation:', error)

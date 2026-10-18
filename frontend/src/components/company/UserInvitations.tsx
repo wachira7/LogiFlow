@@ -14,7 +14,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { UserPlus, Mail, MoreVertical, RefreshCw, X, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { UserPlus, Mail, MoreVertical, RefreshCw, X, Clock, CheckCircle, XCircle, Copy, Check, AlertTriangle, MessageCircle, Link2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { CompanyService } from '@/services/companyService'
 import { USER_ROLES } from '@/types/company.types'
@@ -62,11 +62,82 @@ const getStatusIcon = (status: Invitation['status']) => {
   }
 }
 
+type InviteOutcome = { email: string; emailSent: boolean; url?: string; reminder?: boolean }
+
+/** Honest outcome of an invite: was it emailed? Either way, a link to copy or share on WhatsApp. */
+function InviteResult({ outcome, onAnother, onDone }: { outcome: InviteOutcome; onAnother?: () => void; onDone: () => void }) {
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    if (!outcome.url) return
+    await navigator.clipboard.writeText(outcome.url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  const whatsapp = outcome.url
+    ? `https://wa.me/?text=${encodeURIComponent(`You're invited to join our team on LogiFlow: ${outcome.url}`)}`
+    : undefined
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-start gap-3">
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${outcome.emailSent ? 'bg-success-soft text-success' : 'bg-warning-soft text-warning'}`}>
+          {outcome.emailSent ? <CheckCircle className="h-5 w-5" /> : <AlertTriangle className="h-5 w-5" />}
+        </span>
+        <div>
+          <h3 className="font-semibold">
+            {outcome.emailSent
+              ? `${outcome.reminder ? 'Reminder' : 'Invitation'} emailed to ${outcome.email}`
+              : `We couldn’t email ${outcome.email}`}
+          </h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {outcome.emailSent
+              ? 'You can also share the link below directly. It works for 7 days.'
+              : 'The invitation is ready. Copy the link and send it by WhatsApp, SMS or any chat app. It works for 7 days.'}
+          </p>
+        </div>
+      </div>
+      {outcome.url && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-2">
+            <Link2 className="ml-1 h-4 w-4 shrink-0 text-muted-foreground" />
+            <input readOnly value={outcome.url} aria-label="Invitation link" onFocus={(e) => e.currentTarget.select()}
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none" />
+            <Button size="sm" variant="outline" onClick={copy}>
+              {copied ? <><Check className="mr-1.5 h-4 w-4 text-success" />Copied</> : <><Copy className="mr-1.5 h-4 w-4" />Copy link</>}
+            </Button>
+          </div>
+          <Button asChild variant="outline" className="w-full">
+            <a href={whatsapp} target="_blank" rel="noopener noreferrer">
+              <MessageCircle className="mr-2 h-4 w-4" /> Share on WhatsApp
+            </a>
+          </Button>
+        </div>
+      )}
+      <div className="flex justify-end gap-2">
+        {onAnother && <Button variant="outline" onClick={onAnother}>Invite another</Button>}
+        <Button onClick={onDone}>Done</Button>
+      </div>
+    </div>
+  )
+}
+
 export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvitationsProps) {
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [outcome, setOutcome] = useState<InviteOutcome | null>(null)
   const { toast } = useToast()
+
+  const openDialog = (open: boolean) => {
+    setIsInviteDialogOpen(open)
+    if (!open) setOutcome(null)
+  }
+
+  const copyLink = async (url?: string) => {
+    if (!url) return
+    await navigator.clipboard.writeText(url)
+    toast({ title: 'Invite link copied', description: 'Paste it into WhatsApp, SMS or email.' })
+  }
 
   const form = useForm<z.infer<typeof invitationSchema>>({
     resolver: zodResolver(invitationSchema),
@@ -90,12 +161,9 @@ export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvit
       const response = await CompanyService.createInvitation(invitationData)
       
       if (response.success) {
-        toast({
-          title: "Invitation sent",
-          description: `Invitation sent to ${values.email} successfully`,
-        })
+        // Show what really happened (emailed or not) with a link to share either way
+        setOutcome({ email: values.email, emailSent: !!response.data?.email_sent, url: response.data?.invitation_url })
         form.reset()
-        setIsInviteDialogOpen(false)
         await onRefresh()
       } else {
         toast({
@@ -122,10 +190,8 @@ export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvit
       const response = await CompanyService.resendInvitation(invitationId)
       
       if (response.success) {
-        toast({
-          title: "Invitation resent",
-          description: `Invitation resent to ${email}`,
-        })
+        setOutcome({ email, emailSent: !!response.data?.email_sent, url: response.data?.invitation_url, reminder: true })
+        setIsInviteDialogOpen(true)
         await onRefresh()
       } else {
         toast({
@@ -220,7 +286,7 @@ export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvit
               Refresh
             </Button>
             
-            <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+            <Dialog open={isInviteDialogOpen} onOpenChange={openDialog}>
               <DialogTrigger asChild>
                 <Button size="sm">
                   <UserPlus className="w-4 h-4 mr-2" />
@@ -229,12 +295,19 @@ export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvit
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Invite Team Member</DialogTitle>
+                  <DialogTitle>{outcome ? (outcome.reminder ? 'Invitation renewed' : 'Invitation created') : 'Invite Team Member'}</DialogTitle>
                   <DialogDescription>
-                    Send an invitation to a new team member to join your company.
+                    {outcome ? 'Here’s what happened and how to share it.' : 'Send an invitation to a new team member to join your company.'}
                   </DialogDescription>
                 </DialogHeader>
                 
+                {outcome ? (
+                  <InviteResult
+                    outcome={outcome}
+                    onAnother={outcome.reminder ? undefined : () => setOutcome(null)}
+                    onDone={() => openDialog(false)}
+                  />
+                ) : (
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                     <FormField
@@ -296,7 +369,7 @@ export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvit
                             />
                           </FormControl>
                           <FormDescription>
-                            Add a personal message to the invitation email.
+                            Included in the invitation email.
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -307,7 +380,7 @@ export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvit
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => setIsInviteDialogOpen(false)}
+                        onClick={() => openDialog(false)}
                         disabled={isSubmitting}
                       >
                         Cancel
@@ -325,6 +398,7 @@ export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvit
                     </div>
                   </form>
                 </Form>
+                )}
               </DialogContent>
             </Dialog>
           </div>
@@ -336,7 +410,7 @@ export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvit
             <UserPlus className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <h3 className="font-medium mb-2">No invitations yet</h3>
             <p className="text-sm mb-4">Start by inviting team members to join your company</p>
-            <Button onClick={() => setIsInviteDialogOpen(true)}>
+            <Button onClick={() => openDialog(true)}>
               <UserPlus className="w-4 h-4 mr-2" />
               Send First Invitation
             </Button>
@@ -396,6 +470,10 @@ export function UserInvitations({ invitations, isLoading, onRefresh }: UserInvit
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => copyLink(invitation.invitation_url)}>
+                              <Copy className="w-4 h-4 mr-2" />
+                              Copy invite link
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleResendInvitation(invitation.id, invitation.email)}
                               disabled={actionLoading === invitation.id}

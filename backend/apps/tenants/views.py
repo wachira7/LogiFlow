@@ -1,9 +1,5 @@
 # backend/apps/tenants/views.py
-from venv import logger
 
-import resend
-import os
-from django.conf import settings
 from rest_framework import generics, status, permissions
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.response import Response
@@ -12,15 +8,18 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from datetime import timedelta
+import logging
 import secrets
-from .models import Company, CompanyInvitation, CompanySetting, AuditLog
+from .models import CompanyInvitation, CompanySetting, AuditLog
 from .serializers import (
     CompanySerializer, CompanyUpdateSerializer, CompanyInvitationSerializer,
     AcceptInvitationSerializer, CompanySettingSerializer, AuditLogSerializer
 )
 from utils.permissions import IsCompanyOwnerOrAdmin, IsCompanyMember
+from .emails import invitation_url, send_invitation_email
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class CompanyDetailView(generics.RetrieveUpdateAPIView):
@@ -93,97 +92,20 @@ class CompanyInvitationsView(generics.ListCreateAPIView):
     
     
     def perform_create(self, serializer):
-            token = secrets.token_urlsafe(32)
-            expires_at = timezone.now() + timedelta(days=7)
-            
-            invitation = serializer.save(
-                company=self.request.user.company,
-                invited_by=self.request.user,
-                token=token,
-                expires_at=expires_at
-            )
-            
-            invitation_url = f"{settings.FRONTEND_URL}/auth/accept-invitation?token={token}"
-            inviter_name = self.request.user.get_full_name() or self.request.user.email
-            company_name = invitation.company.name
-            role_display = invitation.role.replace('_', ' ').title()
+        message = serializer.validated_data.pop('message', '')
+        invitation = serializer.save(
+            company=self.request.user.company,
+            invited_by=self.request.user,
+            token=secrets.token_urlsafe(32),
+            expires_at=timezone.now() + timedelta(days=7),
+        )
+        self.email_sent = send_invitation_email(invitation, message=message)
 
-            resend.api_key = os.environ.get("RESEND_API_KEY")
-            
-            try:
-                resend.Emails.send({
-                    "from": "LogiFlow <onboarding@resend.dev>",
-                    "to": [invitation.email],
-                    "subject": f"{inviter_name} has invited you to join {company_name} on LogiFlow",
-                    "html": f"""
-                        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                            <div style="background: #10b981; padding: 24px; text-align: center;">
-                                <h1 style="color: white; margin: 0;">You're Invited!</h1>
-                            </div>
-                            
-                            <div style="padding: 32px; background: #ffffff;">
-                                <h2 style="color: #1f2937;">Hi there,</h2>
-                                
-                                <p style="color: #4b5563; font-size: 16px;">
-                                    <strong>{inviter_name}</strong> ({self.request.user.email}) has invited you 
-                                    to join <strong>{company_name}</strong> on LogiFlow as 
-                                    <strong>{role_display}</strong>.
-                                </p>
-
-                                <div style="background: #f3f4f6; border-radius: 8px; padding: 16px; margin: 24px 0;">
-                                    <p style="color: #4b5563; margin: 0; font-size: 14px;">
-                                        <strong>What is LogiFlow?</strong><br/>
-                                        LogiFlow is a logistics management platform that {company_name} uses 
-                                        to manage their inventory, distribution, and operations.
-                                    </p>
-                                </div>
-
-                                <p style="color: #4b5563; font-size: 15px;">As a team member, you'll be able to:</p>
-                                <ul style="color: #4b5563; font-size: 15px; line-height: 1.8;">
-                                    <li>View and manage your assigned tasks</li>
-                                    <li>Track shipments and inventory in real-time</li>
-                                    <li>Collaborate with your team at {company_name}</li>
-                                </ul>
-
-                                <div style="text-align: center; margin: 32px 0;">
-                                    <a href="{invitation_url}" 
-                                    style="background: #10b981; color: white; padding: 14px 32px; 
-                                            border-radius: 8px; text-decoration: none; font-size: 16px;
-                                            font-weight: bold; display: inline-block;">
-                                        Accept Invitation
-                                    </a>
-                                </div>
-
-                                <p style="color: #6b7280; font-size: 14px;">
-                                    Or copy this link: <a href="{invitation_url}" style="color: #10b981;">{invitation_url}</a>
-                                </p>
-
-                                <p style="color: #6b7280; font-size: 14px;">
-                                    ⏰ This invitation expires on 
-                                    <strong>{expires_at.strftime('%B %d, %Y at %H:%M UTC')}</strong>.
-                                </p>
-
-                                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;"/>
-                                
-                                <p style="color: #9ca3af; font-size: 13px;">
-                                    If you don't know <strong>{company_name}</strong> or weren't expecting 
-                                    this invitation, you can safely ignore this email. No account will be 
-                                    created without your action.
-                                </p>
-                            </div>
-
-                            <div style="background: #f9fafb; padding: 16px; text-align: center;">
-                                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                                    Sent by LogiFlow on behalf of {company_name}<br/>
-                                    © 2025 WaruTech. All rights reserved.
-                                </p>
-                            </div>
-                        </div>
-                    """,
-                })
-                logger.info(f"Invitation email sent to {invitation.email}")
-            except Exception as e:
-                logger.error(f"Failed to send invitation email to {invitation.email}: {str(e)}")
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        # Tell the inviter whether the email actually went out; the link lets them share it another way
+        response.data['email_sent'] = self.email_sent
+        return response
 
 
 @api_view(['POST'])
@@ -261,76 +183,14 @@ def resend_invitation(request, invitation_id):
         }, status=status.HTTP_404_NOT_FOUND)
     
     invitation.expires_at = timezone.now() + timedelta(days=7)
-    invitation.save()
-    
-    invitation_url = f"{settings.FRONTEND_URL}/auth/accept-invitation?token={invitation.token}"
-    inviter_name = request.user.get_full_name() or request.user.email
-    company_name = invitation.company.name
-    role_display = invitation.role.replace('_', ' ').title()
-
-    resend.api_key = os.environ.get("RESEND_API_KEY")
-
-    try:
-        resend.Emails.send({
-            "from": "LogiFlow <onboarding@resend.dev>",
-            "to": [invitation.email],
-            "subject": f"Reminder: {inviter_name} invited you to join {company_name} on LogiFlow",
-            "html": f"""
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <div style="background: #10b981; padding: 24px; text-align: center;">
-                        <h1 style="color: white; margin: 0;">Invitation Reminder</h1>
-                    </div>
-
-                    <div style="padding: 32px; background: #ffffff;">
-                        <h2 style="color: #1f2937;">Hi there,</h2>
-
-                        <p style="color: #4b5563; font-size: 16px;">
-                            This is a reminder that <strong>{inviter_name}</strong> has invited you 
-                            to join <strong>{company_name}</strong> on LogiFlow as 
-                            <strong>{role_display}</strong>.
-                        </p>
-
-                        <div style="text-align: center; margin: 32px 0;">
-                            <a href="{invitation_url}"
-                               style="background: #10b981; color: white; padding: 14px 32px;
-                                      border-radius: 8px; text-decoration: none; font-size: 16px;
-                                      font-weight: bold; display: inline-block;">
-                                Accept Invitation
-                            </a>
-                        </div>
-
-                        <p style="color: #6b7280; font-size: 14px;">
-                            ⏰ This invitation now expires on 
-                            <strong>{invitation.expires_at.strftime('%B %d, %Y at %H:%M UTC')}</strong>.
-                        </p>
-
-                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;"/>
-
-                        <p style="color: #9ca3af; font-size: 13px;">
-                            If you don't know <strong>{company_name}</strong> or weren't expecting 
-                            this invitation, you can safely ignore this email.
-                        </p>
-                    </div>
-
-                    <div style="background: #f9fafb; padding: 16px; text-align: center;">
-                        <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-                            Sent by LogiFlow on behalf of {company_name}<br/>
-                            © 2025 WaruTech. All rights reserved.
-                        </p>
-                    </div>
-                </div>
-            """,
-        })
-        logger.info(f"Invitation reminder sent to {invitation.email}")
-    except Exception as e:
-        logger.error(f"Failed to resend invitation: {str(e)}")
-        return Response({
-            'error': f'Failed to send email: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    invitation.save(update_fields=['expires_at'])
+    email_sent = send_invitation_email(invitation, reminder=True)
 
     return Response({
-        'message': 'Invitation resent successfully',
-        'expires_at': invitation.expires_at
+        'message': 'Invitation resent' if email_sent else 'Invitation renewed, but the email could not be sent',
+        'email_sent': email_sent,
+        'invitation_url': invitation_url(invitation),
+        'expires_at': invitation.expires_at,
     })
 
 @api_view(['GET'])
@@ -394,8 +254,8 @@ class CompanySettingsView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         company = self.request.user.company
         # Get or create settings for the company
-        settings, created = CompanySetting.objects.get_or_create(company=company)
-        return settings
+        company_settings, _ = CompanySetting.objects.get_or_create(company=company)
+        return company_settings
 
 
 class AuditLogView(generics.ListAPIView):

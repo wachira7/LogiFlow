@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 from django.utils import timezone
 from rest_framework.test import APITestCase
@@ -127,6 +128,7 @@ class DashboardOverviewTests(AuthenticatedAPITestCase):
         self.assertEqual([a['id'] for a in activity], list(range(1, len(activity) + 1)))
 
 
+@patch.dict('os.environ', {'EMAIL_PROVIDER': 'smtp'})
 class PasswordResetTests(APITestCase):
     def setUp(self):
         from django.core.cache import cache
@@ -208,3 +210,43 @@ class ErrorMessageTests(APITestCase):
         self.assertEqual(r.status_code, 400)
         self.assertIn('invalid or has expired', body['message'])
         self.assertIn('token', body['details'])  # field errors still available
+
+
+@patch.dict('os.environ', {'EMAIL_PROVIDER': 'smtp', 'CONTACT_EMAIL': 'team@logiflow.test'})
+class ContactFormTests(APITestCase):
+    def setUp(self):
+        from django.core import mail
+        from django.core.cache import cache
+
+        cache.clear()
+        mail.outbox.clear()
+
+    payload = {'name': 'Achieng Odhiambo', 'email': 'achieng@shop.co.ke', 'company': 'Shop Ltd',
+               'inquiryType': 'demo', 'message': 'We run 3 depots. <b>Can we get a demo?</b>'}
+
+    def test_message_goes_to_team_inbox_and_confirmation_to_visitor(self):
+        from django.core import mail
+
+        r = self.client.post('/api/v1/contact/', self.payload)
+        self.assertEqual(r.status_code, 200, r.content)
+        team, confirmation = mail.outbox
+        self.assertEqual(team.to, ['team@logiflow.test'])
+        self.assertEqual(team.reply_to, ['achieng@shop.co.ke'])
+        self.assertIn('&lt;b&gt;Can we get a demo?&lt;/b&gt;', team.alternatives[0][0])  # escaped
+        self.assertEqual(confirmation.to, ['achieng@shop.co.ke'])
+        self.assertNotIn('demo?', confirmation.body)  # visitor text isn't echoed to the address given
+
+    def test_invalid_input_is_rejected(self):
+        r = self.client.post('/api/v1/contact/', {**self.payload, 'email': 'not-an-email'})
+        self.assertEqual(r.status_code, 400)
+        self.assertIn('Email', r.json()['message'])
+
+    def test_missing_contact_inbox_is_a_clear_error(self):
+        with patch.dict('os.environ', {'CONTACT_EMAIL': ''}):
+            r = self.client.post('/api/v1/contact/', self.payload)
+        self.assertEqual(r.status_code, 503)
+
+    def test_rate_limited(self):
+        codes = [self.client.post('/api/v1/contact/', self.payload).status_code for _ in range(6)]
+        self.assertEqual(codes, [200] * 5 + [429])
+

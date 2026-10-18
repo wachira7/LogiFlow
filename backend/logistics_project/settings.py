@@ -192,6 +192,7 @@ REST_FRAMEWORK = {
     # Rates for views that opt in with ScopedRateThrottle
     'DEFAULT_THROTTLE_RATES': {
         'password_reset': os.getenv('PASSWORD_RESET_THROTTLE', '5/hour'),
+        'contact': os.getenv('CONTACT_THROTTLE', '5/hour'),
     },
 }
 

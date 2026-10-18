@@ -48,7 +48,7 @@ class SignUpJourneyTests(APITestCase):
         self.assertEqual(self.client.patch('/api/v1/tenants/settings/', {}, format='json').status_code, 200)
 
 
-@patch('apps.tenants.views.resend.Emails.send')
+@patch.dict('os.environ', {'EMAIL_PROVIDER': 'smtp'})
 class InvitationJourneyTests(AuthenticatedAPITestCase):
     """Owner invites a teammate → teammate validates link → accepts → signs in."""
 
@@ -63,7 +63,7 @@ class InvitationJourneyTests(AuthenticatedAPITestCase):
                 'first_name': 'Kamau', 'last_name': 'Njoroge', **extra}
         return self.client.post('/api/v1/tenants/invitations/accept/', data, format='json')
 
-    def test_full_invitation_journey(self, _send):
+    def test_full_invitation_journey(self):
         invitation = self.invite()
 
         r = self.client.get('/api/v1/tenants/invitations/validate/', {'token': invitation.token})
@@ -79,7 +79,7 @@ class InvitationJourneyTests(AuthenticatedAPITestCase):
         r = self.client.post('/api/v1/auth/login/', {'email': 'kamau@duka.co.ke', 'password': PASSWORD})
         self.assertEqual(r.status_code, 200, r.content)
 
-    def test_invitation_cannot_be_reused_or_used_after_expiry(self, _send):
+    def test_invitation_cannot_be_reused_or_used_after_expiry(self):
         invitation = self.invite()
         self.assertEqual(self.accept(invitation.token).status_code, 200)
         self.assertEqual(self.accept(invitation.token, first_name='Again').status_code, 400)
@@ -89,20 +89,20 @@ class InvitationJourneyTests(AuthenticatedAPITestCase):
         CompanyInvitation.objects.filter(pk=expired.pk).update(expires_at=timezone.now() - timedelta(days=1))
         self.assertEqual(self.accept(expired.token).status_code, 400)
 
-    def test_weak_password_is_rejected(self, _send):
+    def test_weak_password_is_rejected(self):
         invitation = self.invite()
         r = self.accept(invitation.token, password='12345678', password_confirm='12345678')
         self.assertEqual(r.status_code, 400)
         self.assertFalse(User.objects.filter(email='kamau@duka.co.ke').exists())
 
-    def test_members_cannot_invite(self, _send):
+    def test_members_cannot_invite(self):
         member = User.objects.create_user(email='m@duka.co.ke', username='m@duka.co.ke', password='x' * 12,
                                           first_name='M', last_name='M', company=self.company)
         self.authenticate(member)
         r = self.client.post('/api/v1/tenants/invitations/', {'email': 'x@duka.co.ke', 'role': 'manager'}, format='json')
         self.assertEqual(r.status_code, 403)
 
-    def test_other_company_cannot_see_invitations(self, _send):
+    def test_other_company_cannot_see_invitations(self):
         self.invite()
         other_owner = User.objects.create_user(email='o@other.co', username='o@other.co', password='x' * 12,
                                                first_name='O', last_name='O', company=make_company(), is_company_owner=True)
@@ -120,3 +120,72 @@ class CompanyProfilePermissionTests(AuthenticatedAPITestCase):
         self.assertEqual(self.client.patch('/api/v1/tenants/company/', {'name': 'Hijacked'}, format='json').status_code, 403)
         self.company.refresh_from_db()
         self.assertNotEqual(self.company.name, 'Hijacked')
+
+
+@patch.dict('os.environ', {'EMAIL_PROVIDER': 'smtp'})
+class InvitationDeliveryTests(AuthenticatedAPITestCase):
+    """Inviters are told whether the email went out, and always get a link they can share."""
+
+    def invite(self):
+        return self.client.post('/api/v1/tenants/invitations/', {'email': 'wanjiku@duka.co.ke', 'role': 'manager'}, format='json')
+
+    def test_email_sent_and_link_returned(self):
+        from django.core import mail
+
+        r = self.invite()
+        self.assertEqual(r.status_code, 201, r.content)
+        self.assertTrue(r.json()['email_sent'])
+        link = r.json()['invitation_url']
+        self.assertIn('/auth/accept-invitation?token=', link)
+        self.assertEqual(mail.outbox[-1].to, ['wanjiku@duka.co.ke'])
+        self.assertIn(link, mail.outbox[-1].body)
+
+    def test_failed_email_is_reported_but_invitation_still_usable(self):
+        with patch('utils.emails.EmailMultiAlternatives.send', side_effect=OSError('SMTP down')):
+            r = self.invite()
+        self.assertEqual(r.status_code, 201)
+        self.assertFalse(r.json()['email_sent'])
+        token = r.json()['invitation_url'].split('token=')[1]
+        self.assertEqual(self.client.get('/api/v1/tenants/invitations/validate/', {'token': token}).status_code, 200)
+
+    def test_resend_reports_delivery_and_link(self):
+        invitation_id = self.invite().json()['id']
+        with patch('utils.emails.EmailMultiAlternatives.send', side_effect=OSError('SMTP down')):
+            r = self.client.post(f'/api/v1/tenants/invitations/{invitation_id}/resend/')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertFalse(r.json()['email_sent'])
+        self.assertIn('token=', r.json()['invitation_url'])
+
+    def test_list_includes_shareable_link(self):
+        self.invite()
+        rows = self.results(self.client.get('/api/v1/tenants/invitations/'))
+        self.assertIn('/auth/accept-invitation?token=', rows[0]['invitation_url'])
+
+    def test_personal_message_is_included_and_escaped(self):
+        from django.core import mail
+
+        self.client.post('/api/v1/tenants/invitations/', {
+            'email': 'otieno@duka.co.ke', 'role': 'manager', 'message': 'Karibu! <i>See you Monday</i>',
+        }, format='json')
+        self.assertIn('Karibu!', mail.outbox[-1].body)
+        self.assertIn('&lt;i&gt;See you Monday&lt;/i&gt;', mail.outbox[-1].alternatives[0][0])
+
+    def test_existing_users_and_duplicate_invites_are_rejected(self):
+        r = self.client.post('/api/v1/tenants/invitations/', {'email': self.user.email, 'role': 'manager'}, format='json')
+        self.assertEqual(r.status_code, 400)
+        self.assertIn('already has a LogiFlow account', r.json()['message'])
+        self.invite()
+        r = self.invite()
+        self.assertEqual(r.status_code, 400)
+        self.assertIn('pending invitation', r.json()['message'])
+
+    def test_email_content_is_escaped(self):
+        from django.core import mail
+
+        self.company.name = '<script>alert(1)</script> Ltd'
+        self.company.save()
+        self.invite()
+        html = mail.outbox[-1].alternatives[0][0]
+        self.assertNotIn('<script>', html)
+        self.assertIn('&lt;script&gt;', html)
+

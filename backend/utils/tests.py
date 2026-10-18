@@ -19,3 +19,19 @@ class ReadableErrorMessageTests(SimpleTestCase):
         self.assertEqual(readable_error_message({'items': [{'quantity': ['Must be positive.']}]}), 'Must be positive.')
         self.assertEqual(readable_error_message({}), 'An error occurred')
         self.assertEqual(readable_error_message([]), 'An error occurred')
+
+
+class EmailProviderTests(SimpleTestCase):
+    def test_provider_selection(self):
+        from unittest.mock import patch
+
+        from utils.emails import email_provider
+
+        with patch.dict('os.environ', {'EMAIL_PROVIDER': '', 'RESEND_API_KEY': ''}):
+            self.assertEqual(email_provider(), 'smtp')
+        with patch.dict('os.environ', {'EMAIL_PROVIDER': '', 'RESEND_API_KEY': 're_x'}):
+            self.assertEqual(email_provider(), 'resend')
+        # An explicit choice wins, so Gmail SMTP can be used while a Resend key is still configured
+        with patch.dict('os.environ', {'EMAIL_PROVIDER': 'smtp', 'RESEND_API_KEY': 're_x'}):
+            self.assertEqual(email_provider(), 'smtp')
+

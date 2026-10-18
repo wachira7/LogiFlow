@@ -20,8 +20,8 @@ function CompanyUsersContent() {
   const [isLoading, setIsLoading] = useState(true)
   const { toast } = useToast()
 
+  // Full-page spinner only on first load; refreshes keep the page (and any open dialog) mounted
   const loadData = useCallback(async () => {
-    setIsLoading(true)
     try {
       const [companyResponse, invitationsResponse] = await Promise.all([
         CompanyService.getCompany(),
