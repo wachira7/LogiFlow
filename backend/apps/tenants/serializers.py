@@ -68,6 +68,9 @@ class CompanyInvitationSerializer(serializers.ModelSerializer):
     """Serializer for Company Invitations."""
     invited_by_name = serializers.CharField(source='invited_by.get_full_name', read_only=True)
     company_name = serializers.CharField(source='company.name', read_only=True)
+    invitation_url = serializers.SerializerMethodField()
+    # Included in the invitation email only; not stored
+    message = serializers.CharField(write_only=True, required=False, allow_blank=True, max_length=500)
     is_expired = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     expires_at = serializers.DateTimeField(
@@ -78,11 +81,22 @@ class CompanyInvitationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompanyInvitation
         fields = [
-            'id', 'email', 'role', 'token', 'invited_by_name',
+            'id', 'email', 'role', 'token', 'invitation_url', 'invited_by_name',
             'company_name', 'accepted_at', 'expires_at', 'is_expired',
-            'status', 'created_at'
+            'status', 'created_at', 'message'
         ]
         read_only_fields = ['id', 'token', 'created_at']
+
+    def validate_email(self, value):
+        email = value.strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError('This person already has a LogiFlow account.')
+        company = self.context['request'].user.company
+        if CompanyInvitation.objects.filter(
+            company=company, email__iexact=email, accepted_at__isnull=True, expires_at__gt=timezone.now(),
+        ).exists():
+            raise serializers.ValidationError('This person already has a pending invitation. Resend it instead.')
+        return email
 
     def get_is_expired(self, obj):
         from django.utils import timezone
@@ -98,6 +112,10 @@ class CompanyInvitationSerializer(serializers.ModelSerializer):
             return 'expired'
         else:
             return 'pending'
+
+    def get_invitation_url(self, obj):
+        from .emails import invitation_url
+        return invitation_url(obj)
 
 
 class AcceptInvitationSerializer(serializers.Serializer):

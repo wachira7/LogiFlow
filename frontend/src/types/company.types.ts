@@ -78,6 +78,10 @@ export interface Invitation {
   accepted_at?: string
   token: string
   is_expired: boolean
+  /** Shareable accept link (owners/admins only) */
+  invitation_url?: string
+  /** Set on create: whether the invitation email actually went out */
+  email_sent?: boolean
 }
 
 export type InvitationStatus = 
