@@ -10,7 +10,7 @@ class ProductionOrder(TimeStampedModel):
     """
     company = models.ForeignKey('tenants.Company', on_delete=models.CASCADE, related_name='production_orders')
     order_number = models.CharField(max_length=100)
-    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='production_orders')
+    product = models.ForeignKey('inventory.Product', on_delete=models.RESTRICT, related_name='production_orders')
     quantity = models.PositiveIntegerField()
 
     STATUS_CHOICES = [
@@ -133,9 +133,9 @@ class ProductionMaterial(TimeStampedModel):
     Production materials model - matches 'production_materials' table from schema
     """
     production_order = models.ForeignKey(ProductionOrder, on_delete=models.CASCADE, related_name='production_materials')
-    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='used_in_production')
+    product = models.ForeignKey('inventory.Product', on_delete=models.RESTRICT, related_name='used_in_production')
     quantity = models.PositiveIntegerField()
-    warehouse = models.ForeignKey('inventory.Warehouse', on_delete=models.CASCADE, related_name='production_materials')
+    warehouse = models.ForeignKey('inventory.Warehouse', on_delete=models.RESTRICT, related_name='production_materials')
 
     class Meta:
         db_table = 'production_materials'

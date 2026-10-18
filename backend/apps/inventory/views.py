@@ -3,17 +3,35 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
-from django.db.models import Q, Sum, F
+from django.db.models import Exists, F, OuterRef, Sum
+from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from .models import Category, Product, Warehouse, InventoryItem, InventoryTransaction
 from .serializers import (
     CategorySerializer, ProductListSerializer, ProductDetailSerializer,
     WarehouseSerializer, InventoryItemSerializer, InventoryTransactionSerializer,
-    StockAdjustmentSerializer, BulkStockUpdateSerializer, ProductCreateUpdateSerializer
+    StockAdjustmentSerializer, BulkStockUpdateSerializer, ProductCreateUpdateSerializer,
+    InventoryItemCreateSerializer,
 )
 from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
+
+
+def blocked(message):
+    return Response({'error': message, 'message': message}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class StockOrderingFilter(filters.OrderingFilter):
+    """Lets clients order by `total_stock` (a model property) using the annotated stock_on_hand."""
+
+    def get_ordering(self, request, queryset, view):
+        ordering = super().get_ordering(request, queryset, view)
+        return [o.replace('total_stock', 'stock_on_hand') for o in ordering] if ordering else ordering
+
+    def remove_invalid_fields(self, queryset, fields, view, request):
+        fields = [f.replace('total_stock', 'stock_on_hand') for f in fields]
+        return super().remove_invalid_fields(queryset, fields, view, request)
 
 class CategoryViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
     """ViewSet for Category management."""
@@ -29,6 +47,12 @@ class CategoryViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
         return Category.objects.filter(
             company=self.request.user.company
         ).select_related('parent')
+
+    def destroy(self, request, *args, **kwargs):
+        category = self.get_object()
+        if category.children.exists():
+            return blocked('This category has subcategories. Move or delete them first.')
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
     def tree(self, request):
@@ -47,16 +71,42 @@ class CategoryViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
 class ProductViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
     """ViewSet for Product management."""
     permission_classes = [IsCompanyMember, IsSameCompany]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, StockOrderingFilter]
     filterset_fields = ['category', 'is_active']
     search_fields = ['name', 'sku', 'barcode', 'description']
-    ordering_fields = ['name', 'sku', 'unit_price', 'created_at', 'total_stock']
+    ordering_fields = ['name', 'sku', 'unit_price', 'created_at', 'stock_on_hand']
     ordering = ['name']
 
     def get_queryset(self):
-        return Product.objects.filter(
+        qs = Product.objects.filter(
             company=self.request.user.company
-        ).select_related('category').prefetch_related('inventory_items__warehouse')
+        ).select_related('category').prefetch_related('inventory_items__warehouse').annotate(
+            stock_on_hand=Coalesce(Sum('inventory_items__quantity'), 0),
+        )
+        params = self.request.query_params
+        if params.get('warehouse'):
+            qs = qs.filter(inventory_items__warehouse_id=params['warehouse'])
+        if params.get('low_stock') == 'true':
+            qs = qs.filter(reorder_point__gt=0, stock_on_hand__lte=F('reorder_point'))
+        return qs.distinct()
+
+    def destroy(self, request, *args, **kwargs):
+        product = self.get_object()
+        history = [
+            (InventoryTransaction.objects.filter(inventory_item__product=product), 'stock movements'),
+            (product.order_items.all(), 'customer orders'),
+            (product.shipment_items.all(), 'shipments'),
+            (product.production_orders.all(), 'production orders'),
+            (product.used_in_production.all(), 'production materials'),
+            (product.transfer_items.all(), 'warehouse transfers'),
+        ]
+        used_in = [label for qs, label in history if qs.exists()]
+        if used_in:
+            return blocked(
+                f'{product.name} has history in {", ".join(used_in)}, so it can’t be deleted. '
+                'Deactivate it instead to hide it from new orders.'
+            )
+        return super().destroy(request, *args, **kwargs)
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -68,8 +118,9 @@ class ProductViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet)
     @action(detail=False, methods=['get'])
     def low_stock(self, request):
         """Get products with low stock levels."""
+        # Only products with a reorder point set; a stock line at or below it counts as low
         queryset = self.get_queryset().filter(
-            inventory_items__quantity__lte=F('reorder_point')
+            reorder_point__gt=0, inventory_items__quantity__lte=F('reorder_point')
         ).distinct()
         
         serializer = self.get_serializer(queryset, many=True)
@@ -83,13 +134,11 @@ class ProductViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet)
         total_products = products.count()
         active_products = products.filter(is_active=True).count()
         low_stock_count = products.filter(
-            inventory_items__quantity__lte=F('reorder_point')
+            reorder_point__gt=0, inventory_items__quantity__lte=F('reorder_point')
         ).distinct().count()
-        
-        total_stock_value = sum(
-            item.stock_value for product in products 
-            for item in product.inventory_items.all()
-        )
+        total_stock_value = InventoryItem.objects.filter(product__in=products.values('pk')).aggregate(
+            total=Sum(F('quantity') * F('product__cost_price'))
+        )['total'] or 0
         
         return Response({
             'total_products': total_products,
@@ -113,6 +162,24 @@ class WarehouseViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSe
         return Warehouse.objects.filter(
             company=self.request.user.company
         ).select_related('manager')
+
+    def destroy(self, request, *args, **kwargs):
+        warehouse = self.get_object()
+        history = [
+            (warehouse.inventory_items.filter(quantity__gt=0), 'stock on hand'),
+            (InventoryTransaction.objects.filter(inventory_item__warehouse=warehouse), 'stock movements'),
+            (warehouse.shipments.all(), 'shipments'),
+            (warehouse.outbound_transfers.all(), 'transfers'),
+            (warehouse.inbound_transfers.all(), 'transfers'),
+            (warehouse.production_materials.all(), 'production materials'),
+        ]
+        used_in = sorted({label for qs, label in history if qs.exists()})
+        if used_in:
+            return blocked(
+                f'{warehouse.name} has {", ".join(used_in)}, so it can’t be deleted. '
+                'Deactivate it instead to stop using it.'
+            )
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, methods=['get'])
     def inventory(self, request, pk=None):
@@ -157,9 +224,34 @@ class InventoryItemViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
     ordering = ['product__name']
 
     def get_queryset(self):
-        return InventoryItem.objects.filter(
+        qs = InventoryItem.objects.filter(
             warehouse__company=self.request.user.company
         ).select_related('product', 'warehouse')
+        if self.request.query_params.get('low_stock') == 'true':
+            qs = qs.filter(product__reorder_point__gt=0, quantity__lte=F('product__reorder_point'))
+        return qs
+
+    def create(self, request, *args, **kwargs):
+        """Start stocking a product in a warehouse; an opening quantity is recorded as a receipt."""
+        serializer = InventoryItemCreateSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        with transaction.atomic():
+            item = InventoryItem.objects.create(
+                product=data['product'], warehouse=data['warehouse'], quantity=data['quantity'], location=data['location'],
+            )
+            if data['quantity']:
+                InventoryTransaction.objects.create(
+                    inventory_item=item, transaction_type='RECEIPT', quantity=data['quantity'],
+                    reference='Opening stock', performed_by=request.user,
+                )
+        return Response(InventoryItemSerializer(item).data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        item = self.get_object()
+        if item.quantity > 0 or item.transactions.exists():
+            return blocked('This stock line has stock or movement history. Adjust it to zero and keep it for the record.')
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=['post'])
     def adjust_stock(self, request):
@@ -174,16 +266,21 @@ class InventoryItemViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
         notes = serializer.validated_data.get('notes', '')
         
         with transaction.atomic():
-            # Get or create inventory item
             inventory_item, created = InventoryItem.objects.get_or_create(
                 product=product,
                 warehouse=warehouse,
                 defaults={'quantity': 0}
             )
-            
-            # Store old quantity for audit
+            # Lock the row so concurrent adjustments can't overdraw stock
+            inventory_item = InventoryItem.objects.select_for_update().get(pk=inventory_item.pk)
+
             old_quantity = inventory_item.quantity
-            new_quantity = max(0, old_quantity + adjustment_quantity)
+            new_quantity = old_quantity + adjustment_quantity
+            if new_quantity < 0:
+                return blocked(
+                    f'Only {old_quantity} of {product.name} in stock at {warehouse.name}; '
+                    f'you can remove at most {old_quantity}.'
+                )
             inventory_item.quantity = new_quantity
             inventory_item.save()
             
@@ -228,6 +325,8 @@ class InventoryItemViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
                 
                 old_quantity = inventory_item.quantity
                 adjustment = new_quantity - old_quantity
+                if adjustment == 0:
+                    continue  # unchanged: nothing to record
                 inventory_item.quantity = new_quantity
                 inventory_item.save()
                 
@@ -264,6 +363,17 @@ class InventoryTransactionViewSet(TenantViewSetMixin, viewsets.ReadOnlyModelView
     ordering = ['-timestamp']
 
     def get_queryset(self):
-        return InventoryTransaction.objects.filter(
+        qs = InventoryTransaction.objects.filter(
             inventory_item__warehouse__company=self.request.user.company
         ).select_related('inventory_item__product', 'inventory_item__warehouse', 'performed_by')
+        # Short parameter names the frontend sends
+        params = self.request.query_params
+        if params.get('product'):
+            qs = qs.filter(inventory_item__product_id=params['product'])
+        if params.get('warehouse'):
+            qs = qs.filter(inventory_item__warehouse_id=params['warehouse'])
+        if params.get('date_from'):
+            qs = qs.filter(timestamp__date__gte=params['date_from'])
+        if params.get('date_to'):
+            qs = qs.filter(timestamp__date__lte=params['date_to'])
+        return qs

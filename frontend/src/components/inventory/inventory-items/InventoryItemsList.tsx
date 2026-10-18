@@ -169,7 +169,7 @@ export function InventoryItemsList() {
                     </TableCell>
                     <TableCell>{item.reorder_point}</TableCell>
                     <TableCell>
-                      ${(item.product_cost_price ?? 0).toFixed(2)}
+                      {Number(item.product_cost_price ?? 0).toFixed(2)}
                     </TableCell>
                     <TableCell>
                       ${(item.stock_value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

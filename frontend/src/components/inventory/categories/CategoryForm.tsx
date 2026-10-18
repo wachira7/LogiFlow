@@ -2,6 +2,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRecordById } from '@/hooks/useRecordById'
+import { inventoryService } from '@/services/inventoryService'
 import { useCategories } from '@/hooks/useInventory'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,7 +40,7 @@ export function CategoryForm({ categoryId, onSuccess, onCancel }: CategoryFormPr
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const isEditing = !!categoryId
-  const currentCategory = categories.find(cat => cat.id === categoryId)
+  const { record: currentCategory } = useRecordById(categoryId, (id) => inventoryService.getCategory(id))
 
   // Load existing category data for editing
   useEffect(() => {

@@ -154,12 +154,16 @@ export default function WarehouseDetailPage() {
               {warehouse.utilization_percentage !== undefined && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Utilization</label>
-                  <div className="mt-1 space-y-2">
-                    <Progress value={warehouse.utilization_percentage} className="h-2" />
-                    <span className="text-sm text-muted-foreground">
-                      {warehouse.utilization_percentage.toFixed(1)}%
-                    </span>
-                  </div>
+                  {warehouse.utilization_percentage == null ? (
+                    <p className="mt-1 text-sm text-muted-foreground">Set a capacity to track utilization</p>
+                  ) : (
+                    <div className="mt-1 space-y-2">
+                      <Progress value={Math.min(100, warehouse.utilization_percentage)} className="h-2" />
+                      <span className="text-sm text-muted-foreground">
+                        {Number(warehouse.utilization_percentage).toFixed(1)}%
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>

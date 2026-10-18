@@ -191,7 +191,7 @@ export default function ProductsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {products.filter(p => p.low_stock).length}
+              {products.filter(p => p.needs_reorder).length}
             </div>
           </CardContent>
         </Card>
@@ -262,11 +262,11 @@ export default function ProductsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <span>{product.current_stock || 0}</span>
+                          <span>{product.total_stock ?? 0}</span>
                           <span className="text-sm text-muted-foreground">
                             {product.unit_of_measure}
                           </span>
-                          {product.low_stock && (
+                          {product.needs_reorder && (
                             <Badge variant="destructive" className="text-xs">
                               Low
                             </Badge>

@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { useInventoryItems } from '@/hooks/useInventory'
+import type { InventoryItem } from '@/types/inventory.types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,6 +17,8 @@ interface StockAdjustmentProps {
   // FIX: accept product_id + warehouse_id instead of itemId
   productId?: string
   warehouseId?: string
+  /** The stock line being adjusted, when known (gives the true current quantity) */
+  item?: InventoryItem
   onSuccess?: () => void
   onCancel?: () => void
 }
@@ -31,7 +34,7 @@ const adjustmentReasons = [
   { value: 'Other', label: 'Other' },
 ]
 
-export function StockAdjustment({ productId, warehouseId, onSuccess, onCancel }: StockAdjustmentProps) {
+export function StockAdjustment({ productId, warehouseId, item, onSuccess, onCancel }: StockAdjustmentProps) {
   const { inventoryItems, adjustStock } = useInventoryItems()
 
   // If productId + warehouseId are pre-set (coming from detail page), use them
@@ -49,9 +52,9 @@ export function StockAdjustment({ productId, warehouseId, onSuccess, onCancel }:
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Find the matching inventory item to show current stock
-  const selectedItem = inventoryItems.find(
-    item => item.product_id === selectedProductId && item.warehouse_id === selectedWarehouseId
-  )
+  const selectedItem = (item && item.product_id === selectedProductId && item.warehouse_id === selectedWarehouseId)
+    ? item
+    : inventoryItems.find(i => i.product_id === selectedProductId && i.warehouse_id === selectedWarehouseId)
 
   const calculateNewStock = () => {
     if (!selectedItem || !adjustmentData.quantity) return null
@@ -59,7 +62,7 @@ export function StockAdjustment({ productId, warehouseId, onSuccess, onCancel }:
     const current = selectedItem.quantity
     switch (adjustmentData.adjustment_type) {
       case 'add': return current + qty
-      case 'subtract': return Math.max(0, current - qty)
+      case 'subtract': return current - qty
       case 'set': return qty
       default: return current
     }
@@ -72,10 +75,17 @@ export function StockAdjustment({ productId, warehouseId, onSuccess, onCancel }:
     if (!selectedWarehouseId) newErrors.warehouse = 'Please select a warehouse'
     if (!adjustmentData.quantity) {
       newErrors.quantity = 'Quantity is required'
-    } else if (isNaN(parseInt(adjustmentData.quantity)) || parseInt(adjustmentData.quantity) <= 0) {
-      newErrors.quantity = 'Quantity must be a positive number'
+    } else if (isNaN(parseInt(adjustmentData.quantity)) || parseInt(adjustmentData.quantity) < 0 ||
+               (adjustmentData.adjustment_type !== 'set' && parseInt(adjustmentData.quantity) === 0)) {
+      newErrors.quantity = 'Enter a positive whole number'
     }
     if (!adjustmentData.reason) newErrors.reason = 'Reason is required'
+    const qty = parseInt(adjustmentData.quantity)
+    const current = selectedItem?.quantity ?? 0
+    if (!newErrors.quantity && adjustmentData.adjustment_type === 'subtract' && qty > current)
+      newErrors.quantity = `Only ${current} in stock; you can remove at most ${current}`
+    if (!newErrors.quantity && adjustmentData.adjustment_type === 'set' && qty === current)
+      newErrors.quantity = `Stock is already ${current}`
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -120,8 +130,7 @@ export function StockAdjustment({ productId, warehouseId, onSuccess, onCancel }:
       if (!productId) { setSelectedProductId(''); setSelectedWarehouseId('') }
 
     } catch (error) {
-      console.error('Failed to adjust stock:', error)
-      setErrors({ submit: 'Failed to adjust stock. Please try again.' })
+      setErrors({ submit: error instanceof Error && error.message ? error.message : 'Failed to adjust stock. Please try again.' })
     } finally {
       setIsSubmitting(false)
     }
@@ -261,12 +270,12 @@ export function StockAdjustment({ productId, warehouseId, onSuccess, onCancel }:
           {/* Adjustment type + quantity */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label>Adjustment Type *</Label>
+              <Label htmlFor="adjustment_type">Adjustment Type *</Label>
               <Select
                 value={adjustmentData.adjustment_type}
                 onValueChange={(value) => handleInputChange('adjustment_type', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger id="adjustment_type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -278,8 +287,9 @@ export function StockAdjustment({ productId, warehouseId, onSuccess, onCancel }:
             </div>
 
             <div className="space-y-2">
-              <Label>Quantity *</Label>
+              <Label htmlFor="adjustment_quantity">Quantity *</Label>
               <Input
+                id="adjustment_quantity"
                 type="number"
                 min="1"
                 value={adjustmentData.quantity}
@@ -293,12 +303,12 @@ export function StockAdjustment({ productId, warehouseId, onSuccess, onCancel }:
 
           {/* Reason */}
           <div className="space-y-2">
-            <Label>Reason *</Label>
+            <Label htmlFor="adjustment_reason">Reason *</Label>
             <Select
               value={adjustmentData.reason}
               onValueChange={(value) => handleInputChange('reason', value)}
             >
-              <SelectTrigger className={errors.reason ? 'border-destructive' : ''}>
+              <SelectTrigger id="adjustment_reason" className={errors.reason ? 'border-destructive' : ''}>
                 <SelectValue placeholder="Select adjustment reason" />
               </SelectTrigger>
               <SelectContent>
@@ -312,8 +322,9 @@ export function StockAdjustment({ productId, warehouseId, onSuccess, onCancel }:
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label>Notes</Label>
+            <Label htmlFor="adjustment_notes">Notes</Label>
             <Textarea
+              id="adjustment_notes"
               value={adjustmentData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               placeholder="Additional notes about this adjustment..."

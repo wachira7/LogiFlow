@@ -69,7 +69,7 @@ class OrderItem(TimeStampedModel):
     Order items model - matches 'order_items' table from schema
     """
     order = models.ForeignKey(CustomerOrder, on_delete=models.CASCADE, related_name='order_items')
-    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='order_items')
+    product = models.ForeignKey('inventory.Product', on_delete=models.RESTRICT, related_name='order_items')
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -121,7 +121,7 @@ class Shipment(TimeStampedModel):
     actual_delivery = models.DateTimeField(null=True, blank=True)
     
     # Logistics
-    warehouse = models.ForeignKey('inventory.Warehouse', on_delete=models.CASCADE, related_name='shipments')
+    warehouse = models.ForeignKey('inventory.Warehouse', on_delete=models.RESTRICT, related_name='shipments')
     driver = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='driven_shipments')
     vehicle = models.ForeignKey('Vehicle', on_delete=models.SET_NULL, null=True, blank=True, related_name='shipments')
     vehicle_info = models.CharField(max_length=255, blank=True)  # legacy free text; prefer `vehicle`
@@ -167,7 +167,7 @@ class ShipmentItem(TimeStampedModel):
     """
     shipment = models.ForeignKey(Shipment, on_delete=models.CASCADE, related_name='shipment_items')
     order_item = models.ForeignKey(OrderItem, on_delete=models.SET_NULL, null=True, blank=True, related_name='shipment_items')
-    product = models.ForeignKey('inventory.Product', on_delete=models.CASCADE, related_name='shipment_items')
+    product = models.ForeignKey('inventory.Product', on_delete=models.RESTRICT, related_name='shipment_items')
     quantity = models.PositiveIntegerField()
     
     class Meta:

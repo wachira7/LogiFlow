@@ -2,7 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useProducts } from '@/hooks/useInventory'
+import { useProducts, useWarehouses } from '@/hooks/useInventory'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CategorySelector } from '../categories/CategorySelector'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { inventoryService } from '@/services/inventoryService'
+import { useRecordById } from '@/hooks/useRecordById'
 import { Save, Package2 } from 'lucide-react'
 
 interface ProductFormProps {
@@ -73,13 +75,17 @@ const defaultFormData: ProductFormData = {
 }
 
 export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps) {
-  const { products, createProduct, updateProduct, isLoading } = useProducts()
+  const { createProduct, updateProduct, isLoading } = useProducts()
+  const { warehouses } = useWarehouses()
+  // Optional on create: stock the new product straight away (recorded as a receipt)
+  const [opening, setOpening] = useState({ warehouse_id: '', quantity: '', location: '' })
   const [formData, setFormData] = useState<ProductFormData>(defaultFormData)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const isEditing = !!productId
-  const currentProduct = products.find(prod => prod.id === productId)
+  // Edit: load the full product (list rows lack description, barcode, stock levels...)
+  const { record: currentProduct } = useRecordById(productId, (id) => inventoryService.getProduct(id))
 
   useEffect(() => {
     if (isEditing && currentProduct) {
@@ -123,9 +129,13 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
     if (formData.reorder_point && isNaN(parseInt(formData.reorder_point)))
       newErrors.reorder_point = 'Must be a valid number'
 
-    if (formData.min_stock_level && formData.max_stock_level &&
-        parseInt(formData.min_stock_level) >= parseInt(formData.max_stock_level))
-      newErrors.max_stock_level = 'Maximum must be greater than minimum'
+    if (formData.min_stock_level && formData.max_stock_level && parseInt(formData.max_stock_level) > 0 &&
+        parseInt(formData.min_stock_level) > parseInt(formData.max_stock_level))
+      newErrors.max_stock_level = 'Maximum must be at least the minimum'
+    if (!isEditing && opening.quantity && (isNaN(parseInt(opening.quantity)) || parseInt(opening.quantity) < 0))
+      newErrors.opening_quantity = 'Enter a whole number of units'
+    if (!isEditing && opening.quantity && parseInt(opening.quantity) > 0 && !opening.warehouse_id)
+      newErrors.opening_warehouse = 'Choose where this stock is kept'
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -159,13 +169,25 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
       if (isEditing) {
         await updateProduct(productId!, submitData)
       } else {
-        await createProduct(submitData)
+        const created = await createProduct(submitData)
+        const qty = parseInt(opening.quantity || '0', 10)
+        if (created?.id && opening.warehouse_id) {
+          const stocked = await inventoryService.createInventoryItem({
+            product_id: created.id,
+            warehouse_id: opening.warehouse_id,
+            quantity: qty,
+            location: opening.location,
+          })
+          if (!stocked.success) {
+            setErrors({ submit: `Product created, but the opening stock wasn’t added: ${stocked.error}` })
+            return
+          }
+        }
       }
 
       onSuccess?.()
     } catch (error) {
-      console.error('Failed to save product:', error)
-      setErrors({ submit: 'Failed to save product. Please try again.' })
+      setErrors({ submit: error instanceof Error && error.message ? error.message : 'Failed to save product. Please try again.' })
     } finally {
       setIsSubmitting(false)
     }
@@ -238,7 +260,7 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
             <CategorySelector
               value={formData.category_id}
               onValueChange={(value) => handleInputChange('category_id', value)}
-              label="Category *"
+              label="Category"
               placeholder="Select category"
               required
               className={errors.category_id ? 'border-destructive' : ''}
@@ -395,6 +417,50 @@ export function ProductForm({ productId, onSuccess, onCancel }: ProductFormProps
           </div>
         </CardContent>
       </Card>
+
+      {/* Opening stock (create only) */}
+      {!isEditing && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Opening stock <span className="text-sm font-normal text-muted-foreground">(optional)</span></CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Already holding this product? Add the current quantity so stock levels are right from day one.
+            </p>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="opening_warehouse">Warehouse</Label>
+                <Select value={opening.warehouse_id || 'none'} onValueChange={(v) => {
+                  setOpening((o) => ({ ...o, warehouse_id: v === 'none' ? '' : v }))
+                  setErrors((e) => ({ ...e, opening_warehouse: '' }))
+                }}>
+                  <SelectTrigger id="opening_warehouse" className="w-full"><SelectValue placeholder="Choose warehouse" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Don’t add stock now</SelectItem>
+                    {warehouses.map((w) => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {errors.opening_warehouse && <p className="text-sm text-destructive">{errors.opening_warehouse}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="opening_quantity">Quantity on hand</Label>
+                <Input id="opening_quantity" type="number" min="0" inputMode="numeric" placeholder="0"
+                  value={opening.quantity} onChange={(e) => {
+                    setOpening((o) => ({ ...o, quantity: e.target.value }))
+                    setErrors((er) => ({ ...er, opening_quantity: '' }))
+                  }} />
+                {errors.opening_quantity && <p className="text-sm text-destructive">{errors.opening_quantity}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="opening_location">Bin / shelf (optional)</Label>
+                <Input id="opening_location" placeholder="e.g. Aisle 3, Shelf B" value={opening.location}
+                  onChange={(e) => setOpening((o) => ({ ...o, location: e.target.value }))} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Status */}
       <Card>

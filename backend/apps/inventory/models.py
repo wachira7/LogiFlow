@@ -51,6 +51,7 @@ class Product(TimeStampedModel):
     weight = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)  # in kg
     dimensions = models.CharField(max_length=100, blank=True)  # Format: LxWxH in cm
     image = models.ImageField(upload_to='product_images/', blank=True, null=True)   # URL to product image
+    unit_of_measure = models.CharField(max_length=20, default='ea', blank=True)  # ea, box, kg, liter, ...
     
     # Stock management
     min_stock_level = models.PositiveIntegerField(default=0)
@@ -77,8 +78,8 @@ class Product(TimeStampedModel):
     
     @property
     def needs_reorder(self):
-        """Check if product needs reordering"""
-        return self.total_stock <= self.reorder_point
+        """True when a reorder point is set and total stock has fallen to it"""
+        return self.reorder_point > 0 and self.total_stock <= self.reorder_point
     
     @property
     def profit_margin(self):
@@ -98,6 +99,12 @@ class Warehouse(TimeStampedModel):
     description = models.TextField(blank=True)                   
     capacity = models.PositiveIntegerField(null=True, blank=True) 
     address = models.TextField()
+    city = models.CharField(max_length=100, blank=True)
+    state = models.CharField(max_length=100, blank=True)  # county / region / state
+    postal_code = models.CharField(max_length=20, blank=True)
+    country = models.CharField(max_length=100, blank=True)
+    phone = models.CharField(max_length=30, blank=True)
+    email = models.EmailField(blank=True)
     manager = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='managed_warehouses')
     is_active = models.BooleanField(default=True)
     
@@ -155,7 +162,7 @@ class InventoryTransaction(TimeStampedModel):
     """
     Inventory transactions model - matches 'inventory_transactions' table from schema
     """
-    inventory_item = models.ForeignKey(InventoryItem, on_delete=models.CASCADE, related_name='transactions')
+    inventory_item = models.ForeignKey(InventoryItem, on_delete=models.RESTRICT, related_name='transactions')
     
     TRANSACTION_TYPE_CHOICES = [
         ('RECEIPT', 'Receipt'),           # Stock coming in
@@ -170,6 +177,8 @@ class InventoryTransaction(TimeStampedModel):
     notes = models.TextField(blank=True)
     performed_by = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='inventory_transactions')
     timestamp = models.DateTimeField(auto_now_add=True)
+    # Stock level of the line right after this movement (running balance for the ledger)
+    balance_after = models.IntegerField(null=True, blank=True)
     
     class Meta:
         db_table = 'inventory_transactions'
@@ -177,6 +186,16 @@ class InventoryTransaction(TimeStampedModel):
         verbose_name_plural = 'Inventory Transactions'
         ordering = ['-timestamp']
     
+    def save(self, *args, **kwargs):
+        # Callers update the stock line first, so its quantity is the balance after this movement
+        if self.balance_after is None and self._state.adding:
+            self.balance_after = self.inventory_item.quantity
+        super().save(*args, **kwargs)
+
+    @property
+    def balance_before(self):
+        return None if self.balance_after is None else self.balance_after - self.quantity
+
     def __str__(self):
         direction = "+" if self.quantity >= 0 else ""
         return f"{self.transaction_type}: {direction}{self.quantity} {self.inventory_item.product.name}"

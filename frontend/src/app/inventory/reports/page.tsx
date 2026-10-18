@@ -347,7 +347,7 @@ export default function ReportsPage() {
                       <div className="text-right">
                         <div className="font-medium">{warehouse.total_products || 0} products</div>
                         <div className="text-sm text-muted-foreground">
-                          {(warehouse.utilization_percentage || 0).toFixed(1)}% utilized
+                          {warehouse.utilization_percentage == null ? 'No capacity set' : `${Number(warehouse.utilization_percentage).toFixed(1)}% utilized`}
                         </div>
                       </div>
                       <Progress 

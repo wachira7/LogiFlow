@@ -53,9 +53,7 @@ export class InventoryService {
         if (filter.ordering) params.ordering = filter.ordering
       }
 
-      console.log('API call: GET /api/v1/inventory/products/', { params })
       const response = await api.get<BackendResponse<Product>>('/api/v1/inventory/products/', params)
-      console.log('Products API response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -92,9 +90,7 @@ export class InventoryService {
 
   async getProduct(id: string): Promise<ApiResponse<Product>> {
     try {
-      console.log(`API call: GET /api/v1/inventory/products/${id}/`)
       const response = await api.get<Product>(`/api/v1/inventory/products/${id}/`)
-      console.log('Product API response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -118,9 +114,7 @@ export class InventoryService {
 
   async createProduct(data: CreateProductData): Promise<ApiResponse<Product>> {
     try {
-      console.log('API call: POST /api/v1/inventory/products/', data)
       const response = await api.post<Product>('/api/v1/inventory/products/', data)
-      console.log('Product creation response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -145,9 +139,7 @@ export class InventoryService {
 
   async updateProduct(id: string, data: UpdateProductData): Promise<ApiResponse<Product>> {
     try {
-      console.log(`API call: PATCH /api/v1/inventory/products/${id}/`, data)
       const response = await api.patch<Product>(`/api/v1/inventory/products/${id}/`, data)
-      console.log('Product update response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -172,9 +164,7 @@ export class InventoryService {
 
   async deleteProduct(id: string): Promise<ApiResponse<void>> {
     try {
-      console.log(`API call: DELETE /api/v1/inventory/products/${id}/`)
       const response = await api.delete(`/api/v1/inventory/products/${id}/`)
-      console.log('Product deletion response:', response)
       
       if (!response.success) {
         return {
@@ -198,9 +188,7 @@ export class InventoryService {
 
   async getLowStockProducts(): Promise<ApiResponse<Product[]>> {
     try {
-      console.log('API call: GET /api/v1/inventory/products/low_stock/')
       const response = await api.get<Product[]>('/api/v1/inventory/products/low_stock/')
-      console.log('Low stock products response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -224,9 +212,7 @@ export class InventoryService {
 
   async getStockReport(): Promise<ApiResponse<unknown>> {
     try {
-      console.log('API call: GET /api/v1/inventory/products/stock_report/')
       const response = await api.get('/api/v1/inventory/products/stock_report/')
-      console.log('Stock report response:', response)
       
       if (!response.success) {
         return {
@@ -251,9 +237,7 @@ export class InventoryService {
   // Categories
   async getCategories(): Promise<ApiResponse<Category[]>> {
   try {
-    console.log('API call: GET /api/v1/inventory/categories/')
-    const response = await api.get<BackendResponse<Category>>('/api/v1/inventory/categories/')
-    console.log('Categories API response:', response)
+    const response = await api.get<BackendResponse<Category>>('/api/v1/inventory/categories/', { page_size: '100' })
     
     // FIX: Check for actual HTTP errors first
     if (!response.success) {
@@ -291,9 +275,7 @@ export class InventoryService {
 
   async getCategoryTree(): Promise<ApiResponse<Category[]>> {
     try {
-      console.log('API call: GET /api/v1/inventory/categories/tree/')
       const response = await api.get<Category[]>('/api/v1/inventory/categories/tree/')
-      console.log('Category tree API response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -317,9 +299,7 @@ export class InventoryService {
 
   async getCategory(id: string): Promise<ApiResponse<Category>> {
     try {
-      console.log(`API call: GET /api/v1/inventory/categories/${id}/`)
       const response = await api.get<Category>(`/api/v1/inventory/categories/${id}/`)
-      console.log('Category API response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -343,9 +323,7 @@ export class InventoryService {
 
   async createCategory(data: CreateCategoryData): Promise<ApiResponse<Category>> {
     try {
-      console.log('API call: POST /api/v1/inventory/categories/', data)
       const response = await api.post<Category>('/api/v1/inventory/categories/', data)
-      console.log('Category creation response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -370,9 +348,7 @@ export class InventoryService {
 
   async updateCategory(id: string, data: UpdateCategoryData): Promise<ApiResponse<Category>> {
     try {
-      console.log(`API call: PATCH /api/v1/inventory/categories/${id}/`, data)
       const response = await api.patch<Category>(`/api/v1/inventory/categories/${id}/`, data)
-      console.log('Category update response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -397,9 +373,7 @@ export class InventoryService {
 
   async deleteCategory(id: string): Promise<ApiResponse<void>> {
     try {
-      console.log(`API call: DELETE /api/v1/inventory/categories/${id}/`)
       const response = await api.delete(`/api/v1/inventory/categories/${id}/`)
-      console.log('Category deletion response:', response)
       
       if (!response.success) {
         return {
@@ -424,9 +398,7 @@ export class InventoryService {
   // Warehouses
   async getWarehouses(): Promise<ApiResponse<Warehouse[]>> {
     try {
-      console.log('API call: GET /api/v1/inventory/warehouses/')
-      const response = await api.get<BackendResponse<Warehouse>>('/api/v1/inventory/warehouses/')
-      console.log('Warehouses API response:', response)
+      const response = await api.get<BackendResponse<Warehouse>>('/api/v1/inventory/warehouses/', { page_size: '100' })
       
       if (!response.success || !response.data) {
         return {
@@ -451,9 +423,7 @@ export class InventoryService {
 
   async getWarehouse(id: string): Promise<ApiResponse<Warehouse>> {
     try {
-      console.log(`API call: GET /api/v1/inventory/warehouses/${id}/`)
       const response = await api.get<Warehouse>(`/api/v1/inventory/warehouses/${id}/`)
-      console.log('Warehouse API response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -477,9 +447,7 @@ export class InventoryService {
 
   async createWarehouse(data: CreateWarehouseData): Promise<ApiResponse<Warehouse>> {
     try {
-      console.log('API call: POST /api/v1/inventory/warehouses/', data)
       const response = await api.post<Warehouse>('/api/v1/inventory/warehouses/', data)
-      console.log('Warehouse creation response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -504,9 +472,7 @@ export class InventoryService {
 
   async updateWarehouse(id: string, data: UpdateWarehouseData): Promise<ApiResponse<Warehouse>> {
     try {
-      console.log(`API call: PATCH /api/v1/inventory/warehouses/${id}/`, data)
       const response = await api.patch<Warehouse>(`/api/v1/inventory/warehouses/${id}/`, data)
-      console.log('Warehouse update response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -531,9 +497,7 @@ export class InventoryService {
 
   async deleteWarehouse(id: string): Promise<ApiResponse<void>> {
     try {
-      console.log(`API call: DELETE /api/v1/inventory/warehouses/${id}/`)
       const response = await api.delete(`/api/v1/inventory/warehouses/${id}/`)
-      console.log('Warehouse deletion response:', response)
       
       if (!response.success) {
         return {
@@ -557,9 +521,7 @@ export class InventoryService {
 
   async getWarehouseInventory(id: string): Promise<ApiResponse<InventoryItem[]>> {
     try {
-      console.log(`API call: GET /api/v1/inventory/warehouses/${id}/inventory/`)
       const response = await api.get<InventoryItem[]>(`/api/v1/inventory/warehouses/${id}/inventory/`)
-      console.log('Warehouse inventory response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -583,9 +545,7 @@ export class InventoryService {
 
   async getWarehouseStockSummary(id: string): Promise<ApiResponse<unknown>> {
     try {
-      console.log(`API call: GET /api/v1/inventory/warehouses/${id}/stock_summary/`)
       const response = await api.get(`/api/v1/inventory/warehouses/${id}/stock_summary/`)
-      console.log('Warehouse stock summary response:', response)
       
       if (!response.success) {
         return {
@@ -623,9 +583,7 @@ export class InventoryService {
         if (filter.ordering) params.ordering = filter.ordering
       }
 
-      console.log('API call: GET /api/v1/inventory/inventory-items/', { params })
       const response = await api.get<BackendResponse<InventoryItem>>('/api/v1/inventory/inventory-items/', params)
-      console.log('Inventory items API response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -662,9 +620,7 @@ export class InventoryService {
 
   async getInventoryItem(id: string): Promise<ApiResponse<InventoryItem>> {
     try {
-      console.log(`API call: GET /api/v1/inventory/inventory-items/${id}/`)
       const response = await api.get<InventoryItem>(`/api/v1/inventory/inventory-items/${id}/`)
-      console.log('Inventory item API response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -688,9 +644,7 @@ export class InventoryService {
 
   async createInventoryItem(data: CreateInventoryItemData): Promise<ApiResponse<InventoryItem>> {
     try {
-      console.log('API call: POST /api/v1/inventory/inventory-items/', data)
       const response = await api.post<InventoryItem>('/api/v1/inventory/inventory-items/', data)
-      console.log('Inventory item creation response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -715,9 +669,7 @@ export class InventoryService {
 
   async updateInventoryItem(id: string, data: UpdateInventoryItemData): Promise<ApiResponse<InventoryItem>> {
     try {
-      console.log(`API call: PATCH /api/v1/inventory/inventory-items/${id}/`, data)
       const response = await api.patch<InventoryItem>(`/api/v1/inventory/inventory-items/${id}/`, data)
-      console.log('Inventory item update response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -742,9 +694,7 @@ export class InventoryService {
 
   async deleteInventoryItem(id: string): Promise<ApiResponse<void>> {
     try {
-      console.log(`API call: DELETE /api/v1/inventory/inventory-items/${id}/`)
       const response = await api.delete(`/api/v1/inventory/inventory-items/${id}/`)
-      console.log('Inventory item deletion response:', response)
       
       if (!response.success) {
         return {
@@ -768,9 +718,7 @@ export class InventoryService {
 
   async adjustStock(data: StockAdjustment): Promise<ApiResponse<unknown>> {
     try {
-      console.log('API call: POST /api/v1/inventory/inventory-items/adjust_stock/', data)
       const response = await api.post('/api/v1/inventory/inventory-items/adjust_stock/', data)
-      console.log('Stock adjustment response:', response)
       
       if (!response.success) {
         return {
@@ -795,9 +743,7 @@ export class InventoryService {
 
   async bulkUpdateStock(data: BulkStockAdjustment): Promise<ApiResponse<unknown>> {
     try {
-      console.log('API call: POST /api/v1/inventory/inventory-items/bulk_update/', data)
       const response = await api.post('/api/v1/inventory/inventory-items/bulk_update/', data)
-      console.log('Bulk stock update response:', response)
       
       if (!response.success) {
         return {
@@ -838,9 +784,7 @@ export class InventoryService {
         if (filter.ordering) params.ordering = filter.ordering
       }
 
-      console.log('API call: GET /api/v1/inventory/transactions/', { params })
       const response = await api.get<BackendResponse<Transaction>>('/api/v1/inventory/transactions/', params)
-      console.log('Transactions API response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -877,9 +821,7 @@ export class InventoryService {
 
   async getTransaction(id: string): Promise<ApiResponse<Transaction>> {
     try {
-      console.log(`API call: GET /api/v1/inventory/transactions/${id}/`)
       const response = await api.get<Transaction>(`/api/v1/inventory/transactions/${id}/`)
-      console.log('Transaction API response:', response)
       
       if (!response.success || !response.data) {
         return {
@@ -904,12 +846,11 @@ export class InventoryService {
   // Dashboard Stats
   async getDashboardStats(): Promise<ApiResponse<InventoryStats>> {
     try {
-      console.log('API call: Dashboard stats (multiple endpoints)')
       
       const [productsRes, categoriesRes, warehousesRes, lowStockRes, transactionsRes] = await Promise.all([
         api.get<BackendResponse<Product>>('/api/v1/inventory/products/'),
-        api.get<BackendResponse<Category>>('/api/v1/inventory/categories/'),
-        api.get<BackendResponse<Warehouse>>('/api/v1/inventory/warehouses/'),
+        api.get<BackendResponse<Category>>('/api/v1/inventory/categories/', { page_size: '100' }),
+        api.get<BackendResponse<Warehouse>>('/api/v1/inventory/warehouses/', { page_size: '100' }),
         api.get<Product[]>('/api/v1/inventory/products/low_stock/'),
         api.get<BackendResponse<Transaction>>('/api/v1/inventory/transactions/', { page_size: '10' })
       ])
@@ -931,7 +872,6 @@ export class InventoryService {
         total_inventory_value: 0
       }
 
-      console.log('Dashboard stats compiled:', stats)
 
       return {
         success: true,

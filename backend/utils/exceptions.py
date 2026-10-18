@@ -2,6 +2,7 @@
 from rest_framework.views import exception_handler
 from rest_framework.response import Response
 from rest_framework import status
+from django.db.models import ProtectedError, RestrictedError
 import logging
 
 logger = logging.getLogger(__name__)
@@ -74,6 +75,14 @@ def custom_exception_handler(exc, context):
                 },
                 'status_code': status.HTTP_400_BAD_REQUEST,
             },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Deleting something other records still depend on (RESTRICT/PROTECT foreign keys)
+    if isinstance(exc, (ProtectedError, RestrictedError)):
+        message = 'This record is still used elsewhere (orders, shipments, stock history…) and can’t be deleted.'
+        return Response(
+            {'error': True, 'message': message, 'details': {}, 'status_code': status.HTTP_400_BAD_REQUEST},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
