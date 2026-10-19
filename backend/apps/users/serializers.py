@@ -139,6 +139,12 @@ class LoginSerializer(serializers.Serializer):
                     code='authorization'
                 )
 
+            if user.company_id and not user.company.is_active and not user.is_platform_admin:
+                raise serializers.ValidationError(
+                    'Your company’s LogiFlow account is suspended. Please contact support.',
+                    code='authorization'
+                )
+
             attrs['user'] = user
             return attrs
 

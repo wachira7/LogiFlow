@@ -1,416 +1,155 @@
-// app/platform-admin/notifications/page.tsx
+// src/app/platform-admin/notifications/page.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { usePlatformAdmin } from '@/hooks/usePlatformAdmin'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useCallback, useEffect, useState } from 'react'
+import { Bell, Globe, Loader2, Megaphone, Plus, Send, Trash2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { adminService, type AdminNotification, type CompanyRow } from '@/services/adminService'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import {
-  ArrowLeft, Bell, Plus, Send, CheckCircle, Clock,
-  AlertCircle, RefreshCw, X, Save, BellOff,
-} from 'lucide-react'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { formatDate } from '@/lib/utils'
-import type { CreateNotificationData, NotificationType, NotificationPriority } from '@/types/platform.types'
-import { NOTIFICATION_TYPES, NOTIFICATION_PRIORITIES } from '@/types/platform.types'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ErrorBanner, PageHeader, StatusPill, TableSkeleton, type Tone } from '@/components/app/kit'
+import { AppStagger, AppStaggerItem } from '@/components/app/motion'
+import { formatDateTime, timeAgo } from '@/lib/format'
+import { cn } from '@/lib/utils'
 
-const defaultForm: CreateNotificationData = {
-  title: '',
-  message: '',
-  notification_type: 'GENERAL',
-  priority: 'MEDIUM',
-  is_global: true,
+const TYPES = [['GENERAL', 'General'], ['FEATURE', 'New feature'], ['MAINTENANCE', 'Maintenance'], ['SECURITY', 'Security'], ['BILLING', 'Billing']] as const
+const PRIORITY: Record<string, Tone> = { LOW: 'neutral', MEDIUM: 'info', HIGH: 'warning', CRITICAL: 'danger' }
+const fromLocal = (v: string) => (v ? new Date(v).toISOString() : null)
+
+function state(n: AdminNotification): [string, Tone] {
+  const now = Date.now()
+  if (!n.is_active) return ['Off', 'neutral']
+  if (n.expires_at && new Date(n.expires_at).getTime() <= now) return ['Expired', 'neutral']
+  if (n.scheduled_for && new Date(n.scheduled_for).getTime() > now) return [`Scheduled ${formatDateTime(n.scheduled_for)}`, 'info']
+  return ['Showing now', 'success']
 }
 
-export default function NotificationsPage() {
-  const {
-    notifications,
-    isLoadingNotifications,
-    notificationsError,
-    fetchNotifications,
-    createNotification,
-    markNotificationSent,
-    sendNotificationNow,
-  } = usePlatformAdmin()
+function Composer({ open, onOpenChange, onSaved, companies }: { open: boolean; onOpenChange: (o: boolean) => void; onSaved: () => void; companies: CompanyRow[] }) {
+  const empty = { title: '', message: '', notification_type: 'GENERAL', priority: 'MEDIUM', is_global: true, scheduled_for: '', expires_at: '', targets: [] as string[] }
+  const [f, setF] = useState(empty)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => { if (!open) { setF(empty); setError(null) } }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [formData, setFormData] = useState<CreateNotificationData>(defaultForm)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [sendingId, setSendingId] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchNotifications()
-  }, [fetchNotifications])
-
-  const handleCreate = async () => {
-    if (!formData.title || !formData.message) return
-    setIsProcessing(true)
-    const success = await createNotification(formData)
-    setIsProcessing(false)
-    if (success) {
-      setIsCreateOpen(false)
-      setFormData(defaultForm)
+  const save = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      await adminService.createNotification({
+        title: f.title.trim(), message: f.message.trim(), notification_type: f.notification_type as AdminNotification['notification_type'],
+        priority: f.priority as AdminNotification['priority'], is_global: f.is_global, target_company_ids: f.is_global ? [] : f.targets,
+        scheduled_for: fromLocal(f.scheduled_for), expires_at: fromLocal(f.expires_at), is_active: true,
+      })
+      toast.success(f.scheduled_for ? 'Notification scheduled' : 'Notification is showing to users')
+      onOpenChange(false)
+      onSaved()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Couldn’t save the notification.')
+    } finally {
+      setBusy(false)
     }
-  }
-
-  const handleSendNow = async (id: string) => {
-    setSendingId(id)
-    await sendNotificationNow(id)
-    setSendingId(null)
-  }
-
-  const handleMarkSent = async (id: string) => {
-    setSendingId(id)
-    await markNotificationSent(id)
-    setSendingId(null)
-  }
-
-  const getTypeBadgeClass = (type: string) => {
-    switch (type) {
-      case 'MAINTENANCE': return 'bg-orange-100 text-orange-800'
-      case 'FEATURE':     return 'bg-blue-100 text-blue-800'
-      case 'SECURITY':    return 'bg-red-100 text-red-800'
-      case 'BILLING':     return 'bg-purple-100 text-purple-800'
-      case 'GENERAL':     return 'bg-gray-100 text-gray-800'
-      default:            return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getPriorityBadgeClass = (priority: string) => {
-    switch (priority) {
-      case 'CRITICAL': return 'bg-red-100 text-red-800'
-      case 'HIGH':     return 'bg-orange-100 text-orange-800'
-      case 'MEDIUM':   return 'bg-yellow-100 text-yellow-800'
-      case 'LOW':      return 'bg-blue-100 text-blue-800'
-      default:         return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const pendingCount = notifications.filter(n => !n.is_sent).length
-  const sentCount    = notifications.filter(n => n.is_sent).length
-  const activeCount  = notifications.filter(n => n.is_active).length
-
-  if (notificationsError) {
-    return (
-      <div className="py-6">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{notificationsError}</AlertDescription>
-        </Alert>
-      </div>
-    )
   }
 
   return (
-    <>
-      <div className="py-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link href="/platform-admin">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold flex items-center space-x-3">
-                <Bell className="w-8 h-8" />
-                <span>Platform Notifications</span>
-              </h1>
-              <p className="text-muted-foreground mt-1">
-                Broadcast messages and alerts to platform users
-              </p>
+    <Dialog open={open} onOpenChange={(o) => !busy && onOpenChange(o)}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader><DialogTitle>New notification</DialogTitle><DialogDescription>Shows in the bell for everyone in the chosen companies.</DialogDescription></DialogHeader>
+        <div className="space-y-4">
+          <div className="space-y-1.5"><Label htmlFor="n-title">Title</Label><Input id="n-title" maxLength={200} value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} placeholder="Scheduled maintenance on Sunday" /></div>
+          <div className="space-y-1.5"><Label htmlFor="n-msg">Message</Label><Textarea id="n-msg" rows={3} value={f.message} onChange={(e) => setF({ ...f, message: e.target.value })} /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><Label htmlFor="n-type">Type</Label>
+              <Select value={f.notification_type} onValueChange={(v) => setF({ ...f, notification_type: v })}><SelectTrigger id="n-type" className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>{TYPES.map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent></Select></div>
+            <div className="space-y-1.5"><Label htmlFor="n-pri">Priority</Label>
+              <Select value={f.priority} onValueChange={(v) => setF({ ...f, priority: v })}><SelectTrigger id="n-pri" className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>{Object.keys(PRIORITY).map((k) => <SelectItem key={k} value={k}>{k.charAt(0) + k.slice(1).toLowerCase()}</SelectItem>)}</SelectContent></Select></div>
+          </div>
+          <label className="flex items-center justify-between gap-3 text-sm"><span className="flex items-center gap-2"><Globe className="h-4 w-4 text-brand" />Send to every company</span><Switch checked={f.is_global} onCheckedChange={(v) => setF({ ...f, is_global: v })} /></label>
+          {!f.is_global && (
+            <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border p-2">
+              {companies.map((c) => (
+                <label key={c.company_id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-muted">
+                  <input type="checkbox" checked={f.targets.includes(c.company_id)} onChange={(e) => setF({ ...f, targets: e.target.checked ? [...f.targets, c.company_id] : f.targets.filter((t) => t !== c.company_id) })} />
+                  {c.company_name}
+                </label>
+              ))}
             </div>
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><Label htmlFor="n-start">Start showing <span className="font-normal text-muted-foreground">(optional)</span></Label><Input id="n-start" type="datetime-local" value={f.scheduled_for} onChange={(e) => setF({ ...f, scheduled_for: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label htmlFor="n-end">Stop showing <span className="font-normal text-muted-foreground">(optional)</span></Label><Input id="n-end" type="datetime-local" value={f.expires_at} onChange={(e) => setF({ ...f, expires_at: e.target.value })} /></div>
           </div>
-          <div className="flex space-x-2">
-            <Button onClick={() => setIsCreateOpen(true)} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              New Notification
-            </Button>
-            <Button onClick={() => fetchNotifications()} 
-                  variant="outline" size="sm" disabled={isLoadingNotifications}>
-                <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingNotifications ? 'animate-spin' : ''}`} />
-                Refresh
-           </Button>
-          </div>
+          {error && <p role="alert" className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>}
+          <Button onClick={save} disabled={busy || !f.title.trim() || !f.message.trim() || (!f.is_global && !f.targets.length)} className="btn-shine w-full bg-brand text-brand-foreground hover:bg-brand/90">
+            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}{f.scheduled_for ? 'Schedule' : 'Publish now'}
+          </Button>
         </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-3xl font-bold mt-2">{notifications.length}</p>
-                </div>
-                <Bell className="w-8 h-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Active</p>
-                  <p className="text-3xl font-bold mt-2 text-green-600">{activeCount}</p>
-                </div>
-                <CheckCircle className="w-8 h-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Sent</p>
-                  <p className="text-3xl font-bold mt-2 text-purple-600">{sentCount}</p>
-                </div>
-                <Send className="w-8 h-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Pending</p>
-                  <p className="text-3xl font-bold mt-2 text-orange-600">{pendingCount}</p>
-                </div>
-                <Clock className="w-8 h-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+export default function AdminNotificationsPage() {
+  const [rows, setRows] = useState<AdminNotification[] | null>(null)
+  const [companies, setCompanies] = useState<CompanyRow[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [composing, setComposing] = useState(false)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [toDelete, setToDelete] = useState<AdminNotification | null>(null)
 
-        {/* Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Notifications</CardTitle>
-            <CardDescription>Manage platform-wide broadcast messages</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingNotifications && notifications.length === 0 ? (
-              <div className="p-12">
-                <LoadingSpinner size="lg" text="Loading notifications..." />
-              </div>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Audience</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Sent At</TableHead>
-                      <TableHead>Created</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {notifications.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
-                          <BellOff className="w-8 h-8 mx-auto mb-3 opacity-40" />
-                          <p>No notifications yet</p>
-                          <Button
-                            onClick={() => setIsCreateOpen(true)}
-                            variant="outline"
-                            size="sm"
-                            className="mt-4"
-                          >
-                            <Plus className="w-4 h-4 mr-2" />
-                            Create First Notification
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      notifications.map((notification) => (
-                        <TableRow key={notification.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{notification.title}</p>
-                              <p className="text-xs text-muted-foreground truncate max-w-xs">
-                                {notification.message}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getTypeBadgeClass(notification.notification_type)}>
-                              {notification.notification_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={getPriorityBadgeClass(notification.priority)}>
-                              {notification.priority}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={notification.is_global ? 'default' : 'secondary'}>
-                              {notification.is_global ? 'Global' : 'Targeted'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {notification.is_sent ? (
-                              <Badge className="bg-green-100 text-green-800">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Sent
-                              </Badge>
-                            ) : notification.is_active ? (
-                              <Badge className="bg-orange-100 text-orange-800">
-                                <Clock className="w-3 h-3 mr-1" />
-                                Pending
-                              </Badge>
-                            ) : (
-                              <Badge variant="secondary">Inactive</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm text-muted-foreground">
-                              {notification.sent_at ? formatDate(notification.sent_at) : '—'}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-sm text-muted-foreground">
-                              {formatDate(notification.created_at)}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {!notification.is_sent && (
-                              <div className="flex justify-end space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  disabled={sendingId === notification.id}
-                                  onClick={() => handleSendNow(notification.id)}
-                                >
-                                  <Send className="w-3 h-3 mr-1" />
-                                  {sendingId === notification.id ? 'Sending...' : 'Send Now'}
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  disabled={sendingId === notification.id}
-                                  onClick={() => handleMarkSent(notification.id)}
-                                >
-                                  <CheckCircle className="w-3 h-3 mr-1" />
-                                  Mark Sent
-                                </Button>
-                              </div>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+  const load = useCallback(() => adminService.notifications().then(setRows).catch((err) => setError(err instanceof Error ? err.message : 'Couldn’t load notifications.')), [])
+  useEffect(() => {
+    load()
+    adminService.companies().then(setCompanies).catch(() => {})
+  }, [load])
 
-      {/* Create Dialog */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Create Notification</DialogTitle>
-            <DialogDescription>
-              Broadcast a message to platform users
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                placeholder="Notification title..."
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="message">Message *</Label>
-              <Textarea
-                id="message"
-                placeholder="Write your notification message..."
-                value={formData.message}
-                onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                rows={4}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Type</Label>
-                <Select
-                  value={formData.notification_type}
-                  onValueChange={(v) => setFormData({ ...formData, notification_type: v as NotificationType })}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {NOTIFICATION_TYPES.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Priority</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={(v) => setFormData({ ...formData, priority: v as NotificationPriority })}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {NOTIFICATION_PRIORITIES.map((p) => (
-                      <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="is_global"
-                checked={formData.is_global}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_global: checked })}
-              />
-              <Label htmlFor="is_global">Global (broadcast to all users)</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => { setIsCreateOpen(false); setFormData(defaultForm) }}
-              disabled={isProcessing}
-            >
-              <X className="w-4 h-4 mr-2" />
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreate}
-              disabled={isProcessing || !formData.title || !formData.message}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {isProcessing ? 'Creating...' : 'Create Notification'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+  const act = async (id: string, fn: () => Promise<unknown>, done: string) => {
+    setBusy(id)
+    try { await fn(); toast.success(done); await load() } catch (err) { toast.error(err instanceof Error ? err.message : 'That didn’t work.') } finally { setBusy(null); setToDelete(null) }
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader icon={Megaphone} title="Notifications" description="Announcements in users’ notification bell: maintenance, new features, billing notices."
+        actions={<Button onClick={() => setComposing(true)} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90"><Plus className="mr-2 h-4 w-4" />New notification</Button>} />
+      {error && <ErrorBanner title="Couldn’t load notifications" message={error} onRetry={load} />}
+      {!rows ? <TableSkeleton rows={3} cols={3} /> : rows.length === 0 ? (
+        <EmptyState icon={<Bell />} title="No notifications yet" description="Publish one to let every company know about maintenance or new features." />
+      ) : (
+        <AppStagger className="space-y-3">
+          {rows.map((n) => {
+            const [label, tone] = state(n)
+            return (
+              <AppStaggerItem key={n.id}>
+                <div className={cn('flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row sm:items-start', !n.is_active && 'opacity-70')}>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><Bell className="h-5 w-5" /></span>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="flex flex-wrap items-center gap-2"><p className="font-semibold">{n.title}</p><StatusPill tone={tone} pulse={label === 'Showing now'}>{label}</StatusPill><StatusPill tone={PRIORITY[n.priority]}>{n.priority.toLowerCase()}</StatusPill></div>
+                    <p className="text-sm text-muted-foreground">{n.message}</p>
+                    <p className="text-xs text-muted-foreground">{n.is_global ? 'Every company' : n.target_company_names.join(', ')} · by {n.created_by_email} · {timeAgo(n.created_at)}{n.expires_at ? ` · until ${formatDateTime(n.expires_at)}` : ''}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {(!n.is_active || (n.scheduled_for && new Date(n.scheduled_for) > new Date())) && <Button size="sm" variant="outline" disabled={busy === n.id} onClick={() => act(n.id, () => adminService.publishNotification(n.id), 'Showing now')}><Send className="mr-1 h-3.5 w-3.5" />Publish now</Button>}
+                    {n.is_active && <Switch checked aria-label="Turn off" disabled={busy === n.id} onCheckedChange={() => act(n.id, () => adminService.updateNotification(n.id, { is_active: false }), 'Turned off')} />}
+                    <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-danger" onClick={() => setToDelete(n)} aria-label={`Delete ${n.title}`}><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                </div>
+              </AppStaggerItem>
+            )
+          })}
+        </AppStagger>
+      )}
+      <Composer open={composing} onOpenChange={setComposing} onSaved={load} companies={companies} />
+      <ConfirmDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)} title="Delete this notification?" description="It disappears from everyone’s bell." confirmText="Delete" variant="destructive" loading={!!busy}
+        onConfirm={async () => { if (toDelete) await act(toDelete.id, () => adminService.deleteNotification(toDelete.id), 'Deleted') }} />
+    </div>
   )
 }

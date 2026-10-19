@@ -1,296 +1,109 @@
-// app/platform-admin/page.tsx 
+// src/app/platform-admin/page.tsx
 'use client'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePlatformAdmin } from '@/hooks/usePlatformAdmin'
-import { useAuth } from '@/hooks/useAuth'
-import { PlatformAnalyticsComponent } from '@/components/platform-admin/PlatformAnalytics'
-import { SystemHealth } from '@/components/platform-admin/SystemHealth'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { LayoutDashboard, Building2, Users, Settings, Activity, TrendingUp, ArrowRight, Shield, AlertCircle } from 'lucide-react'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { Activity, ArrowRight, Building2, Repeat, ScrollText, Sparkles, UserCheck, Users, Wallet } from 'lucide-react'
+import { adminService, type AdminOverview, type Health } from '@/services/adminService'
+import { ErrorBanner, PageHeader, Panel, StatCard, StatGrid, StatGridSkeleton, StatusPill } from '@/components/app/kit'
+import { Legend, TrendChart } from '@/components/analytics/Charts'
+import { Skeleton } from '@/components/ui/skeleton'
+import { formatCount, formatMoney, timeAgo } from '@/lib/format'
+import { formatTotals } from '@/components/billing/shared'
 
-function PlatformAdminDashboard() {
-  const { user, isLoading: authLoading, isAuthenticated } = useAuth()
-  const router = useRouter()
-  
-  const {
-    analytics,
-    isLoadingAnalytics,
-    analyticsError,
-    healthDashboard,
-    healthMetrics,
-    isLoadingHealth,
-    fetchAnalytics,
-    fetchHealthDashboard,
-    fetchHealthMetrics,
-    generateTestMetrics,
-  } = usePlatformAdmin()
+const HEALTH_TONE = { HEALTHY: 'success', WARNING: 'warning', CRITICAL: 'danger' } as const
 
-  //SINGLE AUTH CHECK - Only redirect if NOT platform admin
+export default function PlatformOverviewPage() {
+  const [data, setData] = useState<AdminOverview | null>(null)
+  const [health, setHealth] = useState<Health | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
   useEffect(() => {
-    console.log('🔐 Platform Admin Page - Auth Check')
-    console.log('Auth Loading:', authLoading)
-    console.log('Is Authenticated:', isAuthenticated)
-    console.log('User:', user?.email)
-    console.log('Is Platform Admin:', user?.is_platform_admin)
-    console.log('Role:', user?.role)
+    adminService.overview().then(setData).catch((err) => setError(err instanceof Error ? err.message : 'Couldn’t load the overview.'))
+    adminService.health().then(setHealth).catch(() => {})
+  }, [])
 
-    if (!authLoading) {
-      if (!isAuthenticated || !user) {
-        console.log('❌ Not authenticated - redirecting to login')
-        router.push('/auth/login')
-      } else if (!user.is_platform_admin && user.role !== 'platform_admin') {
-        console.log('❌ Not platform admin - redirecting to dashboard')
-        router.push('/dashboard')
-      } else {
-        console.log(' Platform admin authenticated - staying on page')
-      }
-    }
-  }, [authLoading, isAuthenticated, user, router])
+  const months = data?.monthly ?? []
+  const currencies = [...new Set(months.flatMap((m) => Object.keys(m.revenue)))]
+  const main = currencies.includes('USD') ? 'USD' : currencies[0] ?? 'USD'
 
-  // FETCH DATA only when user is confirmed platform admin
-  useEffect(() => {
-    if (user?.is_platform_admin || user?.role === 'platform_admin') {
-      console.log('📊 Fetching platform admin data...')
-      fetchAnalytics()
-      fetchHealthDashboard()
-      fetchHealthMetrics()
-    }
-  }, [user, fetchAnalytics, fetchHealthDashboard, fetchHealthMetrics])
-
-  // LOADING STATE
-  if (authLoading) {
-    return (
-      <div className="container mx-auto py-6">
-        <Card>
-          <CardContent className="p-12">
-            <LoadingSpinner size="lg" text="Verifying platform admin access..." />
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // NOT AUTHENTICATED
-  if (!isAuthenticated || !user) {
-    return null // Router will handle redirect
-  }
-
-  // NOT PLATFORM ADMIN
-  if (!user.is_platform_admin && user.role !== 'platform_admin') {
-    return null // Router will handle redirect
-  }
-
-  // ERROR STATE
-  if (analyticsError) {
-    return (
-      <div className="container mx-auto py-6">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error Loading Analytics</AlertTitle>
-          <AlertDescription>{analyticsError}</AlertDescription>
-        </Alert>
-        <Button 
-          onClick={() => fetchAnalytics()} 
-          className="mt-4"
-        >
-          Retry
-        </Button>
-      </div>
-    )
-  }
-
-  // LOADING DATA
-  if (isLoadingAnalytics && !analytics) {
-    return (
-      <div className="container mx-auto py-6">
-        <Card>
-          <CardContent className="p-12">
-            <LoadingSpinner size="lg" text="Loading platform dashboard..." />
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // RENDER DASHBOARD
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center space-x-3">
-            <LayoutDashboard className="w-8 h-8" />
-            <span>Platform Admin Dashboard</span>
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Welcome back, {user.first_name || user.email} - Manage your entire SaaS platform
-          </p>
-        </div>
-        <Badge variant="outline" className="text-lg px-4 py-2">
-          <Shield className="w-4 h-4 mr-2" />
-          Super Admin
-        </Badge>
-      </div>
-
-      {/* Quick Stats */}
-      {analytics && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link href="/platform-admin/companies">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Companies</p>
-                    <p className="text-3xl font-bold mt-2">{analytics.total_companies}</p>
-                    <p className="text-xs text-green-600 mt-1">
-                      {analytics.active_companies} active
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Building2 className="w-6 h-6 text-blue-600" />
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-sm text-blue-600">
-                  <span>View all companies</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </div>
-              </CardContent>
-            </Card>
+    <div className="space-y-6">
+      <PageHeader icon={Sparkles} title="Platform overview" description="Every company on LogiFlow at a glance."
+        actions={health && (
+          <Link href="/platform-admin/system-health" className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-sm shadow-sm hover:border-brand/40">
+            <Activity className="h-4 w-4 text-brand" />System
+            <StatusPill tone={HEALTH_TONE[health.overall_status]} pulse={health.overall_status !== 'HEALTHY'}>{health.overall_status.toLowerCase()}</StatusPill>
           </Link>
+        )} />
 
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                  <p className="text-3xl font-bold mt-2">{analytics.total_users}</p>
-                  <p className="text-xs text-green-600 mt-1">
-                    {analytics.active_users} active
-                  </p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                  <Users className="w-6 h-6 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+      {error && <ErrorBanner title="Couldn’t load the overview" message={error} />}
 
-          <Link href="/platform-admin/analytics">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
-                    <p className="text-3xl font-bold mt-2 text-green-600">
-                      ${(analytics.total_revenue / 1000).toFixed(1)}K
-                    </p>
-                    <p className="text-xs text-green-600 mt-1 flex items-center">
-                      <TrendingUp className="w-3 h-3 mr-1" />
-                      Growing
-                    </p>
-                  </div>
-                  <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-green-600" />
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center text-sm text-green-600">
-                  <span>View analytics</span>
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">System Health</p>
-                  <p className="text-2xl font-bold mt-2">
-                    {healthDashboard?.overall_status || 'LOADING'}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {healthDashboard ? `${healthDashboard.uptime_percentage.toFixed(2)}% uptime` : 'Checking...'}
-                  </p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                  <Activity className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {!data ? <StatGridSkeleton /> : (
+        <StatGrid>
+          <StatCard label="Companies" value={data.total_companies} icon={Building2} tone="brand" hint={`${data.new_companies_30d} new in 30 days · ${data.suspended_companies} suspended`} href="/platform-admin/companies" />
+          <StatCard label="Monthly recurring" value={data.mrr_usd} icon={Repeat} tone="success" hint={`${data.paying_subscriptions} paying · ${data.trials} on trial`} format={(n) => formatMoney(n, 'USD', { maximumFractionDigits: 0 })} href="/platform-admin/subscriptions" />
+          <StatCard label="Revenue (30 days)" value={Object.values(data.revenue_30d).reduce((a, b) => a + b, 0)} icon={Wallet} tone="info" format={() => formatTotals(data.revenue_30d)} hint={`All time: ${formatTotals(data.revenue_total)}`} href="/platform-admin/analytics" />
+          <StatCard label="People signed in (30 days)" value={data.users_signed_in_30d} icon={UserCheck} tone="warning" hint={`${formatCount(data.active_users)} active accounts · ${data.engaged_companies_30d} companies`} />
+        </StatGrid>
       )}
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common administrative tasks</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link href="/platform-admin/companies">
-              <Button variant="outline" className="w-full justify-start h-auto py-4">
-                <Building2 className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <p className="font-medium">Manage Companies</p>
-                  <p className="text-xs text-muted-foreground">View and manage all companies</p>
-                </div>
-              </Button>
-            </Link>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Panel className="lg:col-span-2" title="Growth" description="Last 12 months" delay={0.1}
+          action={<Legend series={[{ label: `Revenue (${main})`, color: 'var(--brand)' }, { label: 'New companies', color: 'var(--info)' }]} />}>
+          {!data ? <Skeleton className="h-64" /> : (
+            <div className="grid gap-6 sm:grid-cols-2">
+              <TrendChart height={220} dates={months.map((m) => `${m.month}-01`)} format={(n) => formatMoney(n, main, { maximumFractionDigits: 0 })}
+                series={[{ key: 'rev', label: `Revenue (${main})`, color: 'var(--brand)', values: months.map((m) => m.revenue[main] ?? 0) }]} />
+              <TrendChart height={220} dates={months.map((m) => `${m.month}-01`)}
+                series={[{ key: 'signups', label: 'New companies', color: 'var(--info)', values: months.map((m) => m.signups) }]} />
+            </div>
+          )}
+        </Panel>
 
-            <Link href="/platform-admin/settings">
-              <Button variant="outline" className="w-full justify-start h-auto py-4">
-                <Settings className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <p className="font-medium">Platform Settings</p>
-                  <p className="text-xs text-muted-foreground">Configure platform settings</p>
-                </div>
-              </Button>
-            </Link>
+        <Panel icon={ScrollText} title="Recent admin actions" bodyClassName="p-0" delay={0.15}
+          action={<Link href="/platform-admin/audit-logs" className="text-sm font-medium text-brand hover:underline">All</Link>}>
+          {!data ? <div className="space-y-3 p-5">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}</div>
+            : data.recent_activity.length === 0 ? <p className="px-5 py-8 text-center text-sm text-muted-foreground">No admin actions yet.</p> : (
+              <ul className="divide-y">
+                {data.recent_activity.map((a, i) => (
+                  <li key={i} className="px-5 py-3 text-sm">
+                    <p className="line-clamp-2">{a.description}</p>
+                    <p className="text-xs text-muted-foreground">{a.admin} · {timeAgo(a.timestamp)}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+        </Panel>
+      </div>
 
-            <Link href="/platform-admin/analytics">
-              <Button variant="outline" className="w-full justify-start h-auto py-4">
-                <TrendingUp className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <p className="font-medium">View Analytics</p>
-                  <p className="text-xs text-muted-foreground">Platform insights & metrics</p>
-                </div>
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Analytics Overview */}
-      <PlatformAnalyticsComponent 
-        analytics={analytics}
-        isLoading={isLoadingAnalytics}
-      />
-
-      {/* System Health */}
-      <SystemHealth
-        dashboard={healthDashboard}
-        metrics={healthMetrics}
-        isLoading={isLoadingHealth}
-        onRefresh={() => {
-          fetchHealthDashboard()
-          fetchHealthMetrics()
-        }}
-        onGenerateTestMetrics={generateTestMetrics}
-      />
+      {data && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Panel icon={Users} title="People" delay={0.2}>
+            <dl className="grid grid-cols-3 gap-4 text-center">
+              <div><dt className="text-xs text-muted-foreground">Accounts</dt><dd className="text-2xl font-semibold tabular-nums">{formatCount(data.total_users)}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Active</dt><dd className="text-2xl font-semibold tabular-nums">{formatCount(data.active_users)}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Churned (30d)</dt><dd className="text-2xl font-semibold tabular-nums">{formatCount(data.churned_30d)}</dd></div>
+            </dl>
+          </Panel>
+          <Panel icon={Building2} title="Companies needing attention" delay={0.25}>
+            <ul className="space-y-2 text-sm">
+              {[
+                ['Payment due', data.subscription_breakdown.past_due ?? 0, 'past_due'],
+                ['On trial', data.trials, 'trialing'],
+                ['No plan', Math.max(0, data.total_companies - Object.entries(data.subscription_breakdown).filter(([k]) => ['active', 'trialing', 'past_due'].includes(k)).reduce((a, [, v]) => a + v, 0)), 'none'],
+                ['Suspended', data.suspended_companies, 'suspended'],
+              ].map(([label, n, status]) => (
+                <li key={label as string}>
+                  <Link href={`/platform-admin/companies?status=${status}`} className="flex items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-muted">
+                    <span>{label}</span><span className="flex items-center gap-2 font-semibold tabular-nums">{n as number}<ArrowRight className="h-3.5 w-3.5 text-muted-foreground" /></span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        </div>
+      )}
     </div>
   )
-}
-
-export default function PlatformAdminPage() {
-  return <PlatformAdminDashboard />
 }

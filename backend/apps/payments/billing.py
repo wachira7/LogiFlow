@@ -143,6 +143,32 @@ def resume(subscription):
     return subscription
 
 
+def extend_trial(company, days):
+    """Give a company more trial time: extends the current trial, or starts a fresh one if it has no live plan."""
+    sub = live_subscription(company)
+    now = timezone.now()
+    if sub and sub.status != 'TRIALING':
+        raise BillingError('This company is on a paid plan; there’s no trial to extend.')
+    if sub is None:
+        from .models import SubscriptionPlan
+        plan = SubscriptionPlan.objects.filter(is_active=True, billing_cycle='MONTHLY').order_by('price').first()
+        if plan is None:
+            raise BillingError('There’s no active plan to start a trial on.')
+        owner = company.users.filter(is_company_owner=True).first() or company.users.first()
+        if owner is None:
+            raise BillingError('This company has no users.')
+        end = now + timedelta(days=days)
+        return UserSubscription.objects.create(company=company, user=owner, plan=plan, status='TRIALING', payment_provider='MPESA',
+                                               start_date=now, end_date=end, trial_end=end, is_trial=True, auto_renew=True)
+    new_end = max(sub.trial_end or sub.end_date, now) + timedelta(days=days)
+    if sub.payment_provider == 'STRIPE' and sub.provider_subscription_id:
+        _stripe().Subscription.modify(sub.provider_subscription_id, trial_end=int(new_end.timestamp()), proration_behavior='none')
+    sub.trial_end = new_end
+    sub.end_date = new_end
+    sub.save(update_fields=['trial_end', 'end_date', 'updated_at'])
+    return sub
+
+
 def end_finished_subscriptions(now=None):
     """Subscriptions set not to renew whose period is over are ended. Returns how many."""
     now = now or timezone.now()

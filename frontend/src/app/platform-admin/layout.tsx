@@ -1,79 +1,41 @@
-// app/platform-admin/layout.tsx
+// src/app/platform-admin/layout.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Navbar } from '@/components/layout/Navbar'
-import { PlatformAdminSidebar } from '@/components/layout/PlatformAdminSidebar'
-import { Shield } from 'lucide-react'
+import { Activity, BarChart3, Bell, Building2, LayoutDashboard, Layers, ScrollText, Settings, Shield } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { Card, CardContent } from '@/components/ui/card'
+import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import type { NavItem } from '@/components/layout/Sidebar'
 
-export default function PlatformAdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const { user, isLoading: authLoading, isAuthenticated } = useAuth()
+const NAV: NavItem[] = [
+  { title: 'Overview', href: '/platform-admin', icon: LayoutDashboard },
+  { title: 'Companies', href: '/platform-admin/companies', icon: Building2 },
+  { title: 'Subscriptions', href: '/platform-admin/subscriptions', icon: Layers },
+  { title: 'Analytics', href: '/platform-admin/analytics', icon: BarChart3 },
+  { title: 'System health', href: '/platform-admin/system-health', icon: Activity },
+  { title: 'Notifications', href: '/platform-admin/notifications', icon: Bell },
+  { title: 'Audit log', href: '/platform-admin/audit-logs', icon: ScrollText },
+  { title: 'Settings', href: '/platform-admin/settings', icon: Settings },
+]
+
+const Banner = (
+  <div className="flex items-center justify-center gap-2 bg-foreground px-4 py-1.5 text-xs font-medium text-background">
+    <Shield className="h-3.5 w-3.5" />Platform administrator mode: changes here affect every company
+  </div>
+)
+
+export default function PlatformAdminLayout({ children }: { children: React.ReactNode }) {
+  const { user, isLoading, isAuthenticated } = useAuth()
   const router = useRouter()
+  const isAdmin = !!user && (user.is_platform_admin || user.role === 'platform_admin')
 
   useEffect(() => {
-    if (!authLoading) {
-      if (!isAuthenticated || !user) {
-        router.push('/auth/login')
-      } else if (!user.is_platform_admin && user.role !== 'platform_admin') {
-        router.push('/dashboard')
-      }
-    }
-  }, [authLoading, isAuthenticated, user, router])
+    if (isLoading) return
+    if (!isAuthenticated) router.replace('/auth/login')
+    else if (!isAdmin) router.replace('/dashboard')
+  }, [isLoading, isAuthenticated, isAdmin, router])
 
-  // Show spinner while auth resolves
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Card>
-          <CardContent className="p-12">
-            <LoadingSpinner size="lg" text="Verifying platform admin access..." />
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // Render nothing while redirect is in flight
-  if (!isAuthenticated || !user || (!user.is_platform_admin && user.role !== 'platform_admin')) {
-    return null
-  }
-
-  return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <PlatformAdminSidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="bg-primary text-primary-foreground py-2 px-4 text-center text-sm font-medium">
-          <div className="flex items-center justify-center space-x-2">
-            <Shield className="w-4 h-4" />
-            <span>Platform Administrator Mode</span>
-          </div>
-        </div>
-
-        <Navbar
-          onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-          sidebarCollapsed={sidebarCollapsed}
-        />
-
-        <main className="flex-1 overflow-auto p-6">
-          {children}
-        </main>
-      </div>
-    </div>
-  )
+  if (!isLoading && isAuthenticated && !isAdmin) return null
+  return <DashboardLayout nav={NAV} banner={Banner}>{children}</DashboardLayout>
 }

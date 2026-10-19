@@ -20,13 +20,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Logo } from '@/components/landing/Logo'
 
 interface SidebarProps {
+  /** Menu to show; defaults to the company app menu */
+  items?: NavItem[]
   open: boolean
   onClose: () => void
   collapsed: boolean
   onToggleCollapse: () => void
 }
 
-interface NavItem {
+export interface NavItem {
   title: string
   href: string
   icon: React.ComponentType<{ className?: string }>
@@ -154,7 +156,7 @@ const subscribeDesktop = (cb: () => void) => {
   return () => mq.removeEventListener('change', cb)
 }
 
-export function Sidebar({ open, onClose, collapsed: collapsedPref, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ items: customItems, open, onClose, collapsed: collapsedPref, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
   // The icon-only rail is a desktop preference; the phone drawer always shows labels
   const isDesktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(desktopQuery).matches, () => true)
@@ -163,15 +165,16 @@ export function Sidebar({ open, onClose, collapsed: collapsedPref, onToggleColla
   const { hasAnyRole, getUserDisplayName } = useAuthUtils()
   const { user } = useAuth()
 
-  const items = navigation.filter((item) => !item.roles || hasAnyRole(item.roles))
+  const source = customItems ?? navigation
+  const items = source.filter((item) => !item.roles || hasAnyRole(item.roles))
   const current = activeHref(pathname, items)
   const [expanded, setExpanded] = useState<string[]>([])
 
   // Open the section that holds the current page
   useEffect(() => {
-    const owner = navigation.find((item) => item.children && sectionOwns(item, pathname))
+    const owner = source.find((item) => item.children && sectionOwns(item, pathname))
     if (owner) setExpanded((prev) => (prev.includes(owner.title) ? prev : [...prev, owner.title]))
-  }, [pathname])
+  }, [pathname, source])
 
   const toggle = (title: string) =>
     setExpanded((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]))
