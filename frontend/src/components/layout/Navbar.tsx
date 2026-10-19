@@ -22,6 +22,7 @@ interface NavbarProps {
 
 const LABELS: Record<string, string> = {
   'inventory-items': 'Stock',
+  steps: 'Work queue',
   'platform-admin': 'Platform admin',
   'payment-methods': 'Payment methods',
   'audit-logs': 'Audit logs',

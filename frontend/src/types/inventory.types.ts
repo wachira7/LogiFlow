@@ -159,7 +159,7 @@ export interface Transaction {
   balance_after?: number | null
 }
 
-export type TransactionType = 'RECEIPT' | 'SHIPMENT' | 'ADJUSTMENT' | 'TRANSFER' | 'RETURN'
+export type TransactionType = 'RECEIPT' | 'SHIPMENT' | 'ADJUSTMENT' | 'TRANSFER' | 'RETURN' | 'PRODUCTION'
 
 // Create/Update data interfaces
 export interface CreateProductData {
@@ -415,6 +415,7 @@ export const TRANSACTION_TYPES: { value: TransactionType; label: string }[] = [
   { value: 'ADJUSTMENT', label: 'Adjustment' },
   { value: 'TRANSFER', label: 'Transfer' },
   { value: 'RETURN', label: 'Return' },
+  { value: 'PRODUCTION', label: 'Production' },
 ]
 
 export const ADJUSTMENT_TYPES = [

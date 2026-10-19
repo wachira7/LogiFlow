@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { Search, Filter, Calendar, TrendingUp, TrendingDown, RotateCcw, ArrowRightLeft } from 'lucide-react'
+import { Search, Filter, Calendar, TrendingUp, TrendingDown, RotateCcw, ArrowRightLeft, Factory } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { TRANSACTION_TYPES } from '@/types/inventory.types'
 import type { TransactionFilter, TransactionType } from '@/types/inventory.types'
@@ -42,6 +42,7 @@ export default function TransactionsPage() {
       case 'RETURN': return <RotateCcw className="h-4 w-4 text-orange-600" />
       case 'ADJUSTMENT': return <RotateCcw className="h-4 w-4 text-blue-600" />
       case 'TRANSFER': return <ArrowRightLeft className="h-4 w-4 text-purple-600" />
+      case 'PRODUCTION': return <Factory className="h-4 w-4 text-teal-600" />
     }
   }
 
@@ -52,6 +53,7 @@ export default function TransactionsPage() {
       case 'RETURN': return 'bg-orange-100 text-orange-800 border-orange-200'
       case 'ADJUSTMENT': return 'bg-blue-100 text-blue-800 border-blue-200'
       case 'TRANSFER': return 'bg-purple-100 text-purple-800 border-purple-200'
+      case 'PRODUCTION': return 'bg-teal-100 text-teal-800 border-teal-200'
     }
   }
 
