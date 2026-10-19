@@ -14,6 +14,7 @@ export interface DashboardCompany {
   created_at: string
   logo?: string
   email: string
+  currency?: string
 }
 
 export interface DashboardStats {
@@ -22,17 +23,33 @@ export interface DashboardStats {
   pending_orders: number
   active_shipments: number
   days_active: number
+  stock_units: number
+  stock_value: number
+  low_stock_items: number
+  transfers_in_transit: number
+  transfers_pending: number
+  production_in_progress: number
+  production_planned: number
 }
 
 export interface ActivityItem {
   id: number
-  type: 'user_joined' | 'company_created' | 'product_added' | 'order_created'
+  type: 'user_joined' | 'company_created' | 'product_added' | 'order_created' | 'stock_movement' | 'production_completed' | 'transfer_completed'
   message: string
   timestamp: string
   user: {
     name: string
     email: string
   }
+  href?: string
+}
+
+export interface TrendPoint {
+  date: string
+  orders: number
+  units_produced: number
+  stock_movements: number
+  deliveries: number
 }
 
 export interface QuickAction {
@@ -72,6 +89,7 @@ export interface Alert {
   message: string
   timestamp: string
   action: string
+  href?: string
 }
 export interface DashboardOverview {
   company: DashboardCompany
@@ -82,4 +100,6 @@ export interface DashboardOverview {
   setup_progress: SetupProgress
   performance_metrics: PerformanceMetric[]
   alerts: Alert[]
+  trend: TrendPoint[]
+  generated_at: string
 }

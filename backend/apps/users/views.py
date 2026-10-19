@@ -21,7 +21,8 @@ from .serializers import (
 )
 from .models import User, UserNotificationPreferences
 from .dashboard import (
-    build_alerts, build_performance_metrics, build_recent_order_activity, build_setup_progress, build_stats,
+    build_alerts, build_operations_activity, build_performance_metrics, build_recent_order_activity,
+    build_setup_progress, build_stats, build_trend,
 )
 from utils.permissions import IsCompanyOwnerOrAdmin, IsCompanyMember
 from django.db import models
@@ -459,9 +460,10 @@ def dashboard_overview(request):
         })
     
     recent_activity += build_recent_order_activity(company, timezone.now() - timedelta(days=7))
+    recent_activity += build_operations_activity(company, timezone.now() - timedelta(days=7))
 
     # Sort by timestamp descending
-    recent_activity = sorted(recent_activity, key=lambda x: x['timestamp'], reverse=True)[:10]
+    recent_activity = sorted(recent_activity, key=lambda x: x['timestamp'], reverse=True)[:12]
     recent_activity = [{'id': i, **item} for i, item in enumerate(recent_activity, start=1)]
 
     now = timezone.now()
@@ -476,12 +478,13 @@ def dashboard_overview(request):
             'created_at': company.created_at.isoformat(),
             'logo': company.logo.url if company.logo and company.logo.name else None,
             'email': company.email,
+            'currency': getattr(getattr(company, 'settings', None), 'currency', None) or 'USD',
         },
         'user': {
             'id': str(user.id),
             'name': user.get_full_name() or user.email,
             'email': user.email,
-            'role': 'Company Owner' if user.is_company_owner else 'User',
+            'role': user.role.replace('_', ' ').capitalize() if user.role else 'Member',
             'joined_at': user.date_joined.isoformat(),
         },
         'stats': build_stats(company, total_users, days_since_creation),
@@ -516,13 +519,14 @@ def dashboard_overview(request):
                 'title': 'View Reports',
                 'description': 'Access analytics and reports',
                 'icon': 'chart',
-                'href': '/dashboard/analytics',
+                'href': '/analytics',
                 'color': 'orange'
             }
         ],
         'setup_progress': setup_progress,
         'performance_metrics': build_performance_metrics(company, now),
         'alerts': build_alerts(company, now, setup_progress),
+        'trend': build_trend(company, now),
         # When these figures were computed, for "Updated Xs ago" in the UI
         'generated_at': now.isoformat(),
     }

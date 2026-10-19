@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'apps.warehousing',
     'apps.payments',
     'apps.platform_admin',
+    'apps.analytics',
     'backup',
 ]
 

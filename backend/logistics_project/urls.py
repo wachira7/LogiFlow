@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/v1/warehousing/', include('apps.warehousing.urls')),
     path('api/v1/payments/', include('apps.payments.urls')),
     path('api/v1/platform-admin/', include('apps.platform_admin.urls')),
+    path('api/v1/analytics/', include('apps.analytics.urls')),
     path('api/v1/auth/set-cookies/', SetAuthCookiesView.as_view()),
     path('api/v1/contact/', ContactFormView.as_view(), name='contact'),
     
