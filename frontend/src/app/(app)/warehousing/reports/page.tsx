@@ -115,7 +115,7 @@ export default function WarehousingReportsPage() {
               </div>
             </FadeIn>
             <Panel bodyClassName="p-0" delay={0.1}>
-              <div className="overflow-x-auto">
+              <div className="relative overflow-x-auto">
                 <table className="w-full min-w-[640px] text-sm">
                   <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
                     <tr>

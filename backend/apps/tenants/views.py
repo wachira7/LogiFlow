@@ -10,16 +10,26 @@ from django.db import transaction
 from datetime import timedelta
 import logging
 import secrets
+from rest_framework.exceptions import NotFound
 from .models import CompanyInvitation, CompanySetting, AuditLog
+from .roles import apply_role, sign_out_everywhere
 from .serializers import (
     CompanySerializer, CompanyUpdateSerializer, CompanyInvitationSerializer,
-    AcceptInvitationSerializer, CompanySettingSerializer, AuditLogSerializer
+    AcceptInvitationSerializer, CompanySettingSerializer, AuditLogSerializer, MemberSerializer,
 )
 from utils.permissions import IsCompanyOwnerOrAdmin, IsCompanyMember
 from .emails import invitation_url, send_invitation_email
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
+
+
+def company_of(request):
+    """The signed-in user's company, or a clear 404 (e.g. platform admins have none)."""
+    company = getattr(request.user, 'company', None)
+    if company is None:
+        raise NotFound('This account isn’t part of a company.')
+    return company
 
 
 class CompanyDetailView(generics.RetrieveUpdateAPIView):
@@ -34,8 +44,12 @@ class CompanyDetailView(generics.RetrieveUpdateAPIView):
         return super().get_permissions()
     
     def get_object(self):
-        return self.request.user.company
-    
+        return company_of(self.request)
+
+    def update(self, request, *args, **kwargs):
+        super().update(request, *args, **kwargs)
+        return Response(CompanySerializer(company_of(request), context={'request': request}).data)
+
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH']:
             return CompanyUpdateSerializer
@@ -47,37 +61,27 @@ class CompanyDetailView(generics.RetrieveUpdateAPIView):
 @parser_classes([MultiPartParser, FormParser])
 def upload_company_logo(request):
     """Upload company logo."""
-    company = request.user.company
+    company = company_of(request)
     logo_file = request.FILES.get('logo')
-    
     if not logo_file:
-        return Response({
-            'error': 'No logo file provided'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Validate file size (max 10MB)
-    if logo_file.size > 10 * 1024 * 1024:
-        return Response({
-            'error': 'File size exceeds 10MB limit'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Validate file type
-    allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp','.bmp', '.tiff', '.tif', '.heic', '.heif','.avif', '.svg']
-    file_extension = '.' + logo_file.name.split('.')[-1].lower()
-    if file_extension not in allowed_extensions:
-        return Response({
-            'error': 'Invalid file type. Only JPG, PNG, GIF, WEBP, BMP, TIFF, HEIC, HEIF, AVIF and SVG are allowed'
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
-    # Save logo
+        return Response({'error': 'Choose an image to upload.'}, status=status.HTTP_400_BAD_REQUEST)
+    if logo_file.size > 5 * 1024 * 1024:
+        return Response({'error': 'The image must be 5 MB or smaller.'}, status=status.HTTP_400_BAD_REQUEST)
+    # Raster images only (SVG can carry scripts); confirm it really is an image, not just its name
+    from PIL import Image, UnidentifiedImageError
+    try:
+        with Image.open(logo_file) as img:
+            kind = (img.format or '').upper()
+            img.verify()
+    except (UnidentifiedImageError, OSError, ValueError):
+        return Response({'error': 'That file isn’t an image we can use.'}, status=status.HTTP_400_BAD_REQUEST)
+    if kind not in ('PNG', 'JPEG', 'WEBP', 'GIF'):
+        return Response({'error': 'Use a PNG, JPG, WEBP or GIF image.'}, status=status.HTTP_400_BAD_REQUEST)
+    logo_file.seek(0)
     company.logo = logo_file
     company.save()
-    company.refresh_from_db() # Ensure we have the latest data from the database-reloads the company instance to get the updated logo URL(cloudinary URL after upload)
-    
-    return Response({
-        'logo_url': company.logo.url if company.logo else None,
-        'message': 'Logo uploaded successfully'
-    })
+    company.refresh_from_db()
+    return Response({'logo_url': company.logo.url if company.logo else None, 'message': 'Logo updated'})
 
 
 class CompanyInvitationsView(generics.ListCreateAPIView):
@@ -85,16 +89,17 @@ class CompanyInvitationsView(generics.ListCreateAPIView):
     serializer_class = CompanyInvitationSerializer
     permission_classes = [IsCompanyOwnerOrAdmin]
     
+ 
     def get_queryset(self):
         return CompanyInvitation.objects.filter(
-            company=self.request.user.company
+            company=company_of(self.request), accepted_at__isnull=True,
         ).select_related('invited_by', 'company').order_by('-created_at')
-    
+
     
     def perform_create(self, serializer):
         message = serializer.validated_data.pop('message', '')
         invitation = serializer.save(
-            company=self.request.user.company,
+            company=company_of(self.request),
             invited_by=self.request.user,
             token=secrets.token_urlsafe(32),
             expires_at=timezone.now() + timedelta(days=7),
@@ -146,16 +151,10 @@ def accept_invitation(request):
             'password': serializer.validated_data['password']
         }
         
-        # Set role based on invitation
-        role = invitation.role.lower()
-        if role == 'company_owner':
-            user_data['is_company_owner'] = True
-        elif role == 'admin':
-            user_data['is_company_owner'] = True
-        elif role == 'manager':
-            user_data['is_warehouse_manager'] = True
-        
-        user = User.objects.create_user(**user_data)
+        user = User(**{k: v for k, v in user_data.items() if k != 'password'})
+        user.set_password(user_data['password'])
+        apply_role(user, invitation.role)
+        user.save()
         
         # Mark invitation as accepted
         invitation.accepted_at = timezone.now()
@@ -174,7 +173,7 @@ def resend_invitation(request, invitation_id):
     try:
         invitation = CompanyInvitation.objects.get(
             id=invitation_id,
-            company=request.user.company,
+            company=company_of(request),
             accepted_at__isnull=True
         )
     except CompanyInvitation.DoesNotExist:
@@ -233,7 +232,7 @@ def revoke_invitation(request, invitation_id):
     try:
         invitation = CompanyInvitation.objects.get(
             id=invitation_id,
-            company=request.user.company,
+            company=company_of(request),
             accepted_at__isnull=True
         )
         invitation.delete()
@@ -246,15 +245,56 @@ def revoke_invitation(request, invitation_id):
         }, status=status.HTTP_404_NOT_FOUND)
 
 
+class CompanyMembersView(generics.ListAPIView):
+    """Everyone in the company (any member can see the team)."""
+    serializer_class = MemberSerializer
+    permission_classes = [IsCompanyMember]
+
+    def get_queryset(self):
+        return User.objects.filter(company=company_of(self.request)).order_by('-is_active', 'date_joined')
+
+
+class CompanyMemberDetailView(generics.RetrieveUpdateAPIView):
+    """Owners change a member's role or deactivate/reactivate them. You can't change yourself or the last owner."""
+    serializer_class = MemberSerializer
+    http_method_names = ['get', 'patch']
+
+    def get_permissions(self):
+        if self.request.method == 'PATCH':
+            return [IsCompanyMember(), IsCompanyOwnerOrAdmin()]
+        return [IsCompanyMember()]
+
+    def get_queryset(self):
+        return User.objects.filter(company=company_of(self.request))
+
+    def partial_update(self, request, *args, **kwargs):
+        member = self.get_object()
+        if member.pk == request.user.pk:
+            return Response({'error': 'You can’t change your own role or access. Ask another owner.'}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(member, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        role = serializer.validated_data.get('role')
+        active = serializer.validated_data.get('is_active', member.is_active)
+        losing_owner = member.is_company_owner and ((role and role != 'company_owner') or not active)
+        if losing_owner and not User.objects.filter(company=member.company, is_company_owner=True, is_active=True).exclude(pk=member.pk).exists():
+            return Response({'error': 'A company needs at least one active owner.'}, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            if role:
+                apply_role(member, role)
+            if member.is_active and not active:
+                sign_out_everywhere(member)
+            member.is_active = active
+            member.save()
+        return Response(self.get_serializer(member).data)
+
+
 class CompanySettingsView(generics.RetrieveUpdateAPIView):
     """Get and update company settings."""
     serializer_class = CompanySettingSerializer
     permission_classes = [IsCompanyOwnerOrAdmin]
     
     def get_object(self):
-        company = self.request.user.company
-        # Get or create settings for the company
-        company_settings, _ = CompanySetting.objects.get_or_create(company=company)
+        company_settings, _ = CompanySetting.objects.get_or_create(company=company_of(self.request))
         return company_settings
 
 
@@ -267,6 +307,4 @@ class AuditLogView(generics.ListAPIView):
     ordering = ['-timestamp']
     
     def get_queryset(self):
-        return AuditLog.objects.filter(
-            company=self.request.user.company
-        ).select_related('user')
+        return AuditLog.objects.filter(company=company_of(self.request)).select_related('user')

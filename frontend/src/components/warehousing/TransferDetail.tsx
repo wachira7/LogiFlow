@@ -299,7 +299,7 @@ export function TransferDetail({ transferId }: { transferId: string }) {
             ))}
           </ul>
           {/* Larger screens: table */}
-          <div className="hidden overflow-x-auto sm:block">
+          <div className="relative hidden overflow-x-auto sm:block">
             <table className="w-full text-sm">
               <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>

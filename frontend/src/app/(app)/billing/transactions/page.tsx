@@ -66,7 +66,7 @@ function TransactionsContent() {
         <EmptyState icon={<Receipt />} title={status === 'ALL' ? 'No payments yet' : 'Nothing here'} description={status === 'ALL' ? 'Payments show up here once you pay for a plan.' : 'Try another filter.'} />
       ) : (
         <FadeIn delay={0.05} className="overflow-hidden rounded-xl border bg-card shadow-sm">
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full min-w-[640px] text-sm">
               <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr><th className="px-5 py-3 font-medium">Date</th><th className="px-3 py-3 font-medium">Description</th><th className="px-3 py-3 font-medium">Method</th><th className="px-3 py-3 font-medium">Status</th><th className="px-3 py-3 text-right font-medium">Amount</th><th className="px-5 py-3"><span className="sr-only">Receipt</span></th></tr>

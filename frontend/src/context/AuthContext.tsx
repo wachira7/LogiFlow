@@ -403,21 +403,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const refreshAuth = async (): Promise<void> => {
+    // Reload the user from the server (profile, role, company currency) and update the stored copy
     try {
-      const response = await AuthService.verifyAuth()
-      
+      const response = await AuthService.getProfile()
       if (response.success && response.data) {
-        setState(prev => ({
-          ...prev,
-          user: response.data || null,
-          isAuthenticated: true,
-          error: null,
-        }))
+        const fresh = { ...(TokenManager.getUser() ?? {}), ...response.data } as User
+        TokenManager.setUser(fresh)
+        setState(prev => ({ ...prev, user: fresh, isAuthenticated: true, error: null }))
       }
     } catch (error) {
       console.error('Auth refresh failed:', error)
     }
   }
+
 
   const clearError = (): void => {
     setState(prev => ({ ...prev, error: null }))

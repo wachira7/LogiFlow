@@ -23,6 +23,8 @@ interface NavbarProps {
 const LABELS: Record<string, string> = {
   'inventory-items': 'Stock',
   steps: 'Work queue',
+  users: 'Team',
+  general: 'Profile',
   'platform-admin': 'Platform admin',
   'payment-methods': 'Payment methods',
   'audit-logs': 'Audit logs',
@@ -115,10 +117,10 @@ export function Navbar({ onMenuClick }: NavbarProps = {}) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/profile"><User className="mr-2 h-4 w-4" />Profile</Link>
+                  <Link href="/settings/general"><User className="mr-2 h-4 w-4" />Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/settings/general"><Settings className="mr-2 h-4 w-4" />Settings</Link>
+                  <Link href="/settings/security"><Settings className="mr-2 h-4 w-4" />Security</Link>
                 </DropdownMenuItem>
                 {isCompanyOwner() && (
                   <>
