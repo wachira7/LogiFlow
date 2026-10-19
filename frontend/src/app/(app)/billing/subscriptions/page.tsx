@@ -1,132 +1,58 @@
-//src/app/billing/subscriptions/page.tsx
+// src/app/(app)/billing/subscriptions/page.tsx
 'use client'
 
-import { Suspense } from 'react'
-import { useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { billingService } from '@/services/billingService'
-import { useSubscriptions } from '@/hooks/useBilling'
-import { SubscriptionSummaryCard } from '@/components/billing/SubscriptionSummaryCard'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { ArrowLeft, CreditCard, AlertTriangle } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { toast } from 'sonner'
-
-function SubscriptionsContent() {
-  const { subscriptions, loading, error, refetch } = useSubscriptions()
-  const searchParams = useSearchParams()
-
-  useEffect(() => {
-    const checkout = searchParams.get('checkout')
-    const sessionId = searchParams.get('session_id')
-
-    if (checkout === 'success' && sessionId) {
-      const processSuccess = async () => {
-        const response = await billingService.handleStripeCheckoutSuccess({
-          session_id: sessionId,
-        })
-
-        if (response.success) {
-          toast.success('Subscription activated!', {
-            description: `You are now on the ${response.data.plan_name} plan`,
-          })
-          refetch()
-        } else {
-          toast.error('Failed to activate subscription', {
-            description: response.error,
-          })
-        }
-      }
-
-      processSuccess()
-      window.history.replaceState({}, '', '/billing/subscriptions')
-    }
-
-    if (checkout === 'cancelled') {
-      toast.info('Checkout cancelled')
-      window.history.replaceState({}, '', '/billing/subscriptions')
-    }
-  }, [searchParams, refetch])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <LoadingSpinner size="lg" />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <Button variant="ghost" asChild className="mb-4">
-            <Link href="/billing">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Billing
-            </Link>
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight">My Subscriptions</h1>
-          <p className="text-muted-foreground">
-            Manage your active and past subscriptions
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/billing/plans">
-            <CreditCard className="h-4 w-4 mr-2" />
-            Browse Plans
-          </Link>
-        </Button>
-      </div>
-
-      {subscriptions.length === 0 ? (
-        <EmptyState
-          icon={<CreditCard className="h-5 w-5" />}
-          title="No subscriptions"
-          description="You don't have any subscriptions yet. Browse our plans to get started."
-          action={
-            <Button asChild>
-              <Link href="/billing/plans">Browse Plans</Link>
-            </Button>
-          }
-        />
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {subscriptions.map((subscription) => (
-            <SubscriptionSummaryCard
-              key={subscription.id}
-              subscription={subscription}
-              showActions={true}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
+import { ArrowRight, History, Layers } from 'lucide-react'
+import { billingService } from '@/services/billingService'
+import { Button } from '@/components/ui/button'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ErrorBanner, PageHeader, TableSkeleton } from '@/components/app/kit'
+import { AppStagger, AppStaggerItem } from '@/components/app/motion'
+import { CYCLE, PROVIDER, SubscriptionPill } from '@/components/billing/shared'
+import { formatDay, formatMoney } from '@/lib/format'
+import type { Subscription } from '@/types/billing.types'
 
 export default function SubscriptionsPage() {
+  const [subs, setSubs] = useState<Subscription[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    billingService.subscriptions().then(setSubs).catch((err) => setError(err instanceof Error ? err.message : 'Couldn’t load subscriptions.'))
+  }, [])
+
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center h-96">
-        <LoadingSpinner size="lg" />
-      </div>
-    }>
-      <SubscriptionsContent />
-    </Suspense>
+    <div className="space-y-6">
+      <PageHeader icon={History} back={{ href: '/billing', label: 'Billing' }} title="Subscriptions" description="Your current plan and the plans you had before." />
+      {error && <ErrorBanner title="Couldn’t load subscriptions" message={error} />}
+      {!subs ? (
+        <TableSkeleton rows={3} cols={4} />
+      ) : subs.length === 0 ? (
+        <EmptyState icon={<Layers />} title="No subscriptions yet" description="Choose a plan to start your free trial." action={<Button asChild className="bg-brand text-brand-foreground hover:bg-brand/90"><Link href="/billing/plans">See plans</Link></Button>} />
+      ) : (
+        <AppStagger className="space-y-3">
+          {subs.map((s) => {
+            const P = PROVIDER[s.payment_provider]
+            return (
+              <AppStaggerItem key={s.id}>
+                <Link href={`/billing/subscriptions/${s.id}`} className="card-lift group flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row sm:items-center sm:p-5">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"><Layers className="h-5 w-5" /></span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-semibold">{s.plan_name}</p>
+                      <SubscriptionPill sub={s} />
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {formatMoney(s.plan_price, 'USD')} / {CYCLE[s.billing_cycle]?.per} · <P.icon className="inline h-3.5 w-3.5" /> {P.label} · {formatDay(s.start_date)} – {formatDay(s.end_date)}
+                    </p>
+                  </div>
+                  <ArrowRight className="hidden h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1 sm:block" />
+                </Link>
+              </AppStaggerItem>
+            )
+          })}
+        </AppStagger>
+      )}
+    </div>
   )
 }

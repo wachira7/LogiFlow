@@ -5,7 +5,8 @@ from .views import ( SubscriptionPlanViewSet, UserSubscriptionViewSet, PaymentTr
                      MPesaCallbackView, MPesaResultView, MPesaTimeoutView, CryptoCallbackView,
                     stripe_checkout_success, test_stripe_connection,test_mpesa_connection, test_crypto_connection, initiate_mpesa_payment, 
                     check_mpesa_status, create_crypto_payment, check_crypto_status,get_supported_crypto_currencies,
-                    create_stripe_checkout_session, create_stripe_setup_session, stripe_checkout_success, get_exchange_rate_view )
+                    create_stripe_checkout_session, create_stripe_setup_session, stripe_checkout_success, get_exchange_rate_view,
+                    complete_stripe_setup )
 from .webhooks import StripeWebhookView
 
 
@@ -24,6 +25,7 @@ urlpatterns = [
     
     #Stripe payment endpoints
     path('stripe/setup/', create_stripe_setup_session, name='stripe_setup'),
+    path('stripe/setup/complete/', complete_stripe_setup, name='stripe_setup_complete'),
     path('stripe/checkout/', create_stripe_checkout_session, name='stripe_checkout'),
     path('stripe/checkout/success/', stripe_checkout_success, name='stripe_checkout_success'),
 

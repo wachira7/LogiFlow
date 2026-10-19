@@ -165,6 +165,8 @@ class PaymentMethod(TimeStampedModel):
     currency = models.CharField(max_length=10, blank=True)
     
     provider_payment_method_id = models.CharField(max_length=200, blank=True)
+    # Stripe customer the card is attached to (reused for later checkouts)
+    provider_customer_id = models.CharField(max_length=200, blank=True)
     is_default = models.BooleanField(default=False)
     
     class Meta:
