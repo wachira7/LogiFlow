@@ -162,7 +162,8 @@ export function Panel({
           {action}
         </div>
       )}
-      <div className={cn('p-4 sm:p-5', bodyClassName)}>{children}</div>
+      {/* bodyClassName replaces the default padding rather than merging with it */}
+      <div className={bodyClassName ?? 'p-4 sm:p-5'}>{children}</div>
     </FadeIn>
   )
 }
