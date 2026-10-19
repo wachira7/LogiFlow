@@ -122,6 +122,8 @@ class Shipment(TimeStampedModel):
     
     # Logistics
     warehouse = models.ForeignKey('inventory.Warehouse', on_delete=models.RESTRICT, related_name='shipments')
+    # Items have been taken out of the warehouse's stock (happens when the shipment ships)
+    stock_deducted = models.BooleanField(default=False)
     driver = models.ForeignKey('users.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='driven_shipments')
     vehicle = models.ForeignKey('Vehicle', on_delete=models.SET_NULL, null=True, blank=True, related_name='shipments')
     vehicle_info = models.CharField(max_length=255, blank=True)  # legacy free text; prefer `vehicle`

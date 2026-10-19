@@ -1,372 +1,120 @@
-// src/app/distribution/page.tsx
-'use client';
+// src/app/(app)/distribution/page.tsx
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { PageHeader } from '@/components/app/kit';
-import { 
-  Package, 
-  Truck, 
-  MapPin, 
-  BarChart3, 
-  Plus,
-  ArrowRight,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  TrendingUp
-} from 'lucide-react';
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { AlertTriangle, ArrowRight, ClipboardList, MapPin, Plus, Route, Timer, Truck } from 'lucide-react'
+import { distributionService } from '@/services/distributionService'
+import { api } from '@/services/api'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ActionTile, ErrorBanner, PageHeader, Panel, StatCard, StatGrid, StatGridSkeleton } from '@/components/app/kit'
+import { AppStagger, MotionRow } from '@/components/app/motion'
+import { OrderPill, RoutePill, ShipmentPill } from '@/components/distribution/status'
+import { formatCount, formatMoney, timeAgo } from '@/lib/format'
+import type { DeliveryRoute, Order, Shipment } from '@/types/distribution.types'
 
-export default function DistributionPage() {
-  const [activeTab, setActiveTab] = useState('overview');
+interface Dash { new_orders: number; processing_orders: number; monthly_orders: number; monthly_revenue: number }
+interface Report { shipped_shipments: number; delayed_shipments: number; average_delivery_days: number; on_time_percentage: number | null; pending_shipments: number; picked_shipments: number; packed_shipments: number }
+
+export default function DistributionOverviewPage() {
+  const router = useRouter()
+  const [dash, setDash] = useState<Dash | null>(null)
+  const [report, setReport] = useState<Report | null>(null)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [moving, setMoving] = useState<Shipment[]>([])
+  const [routes, setRoutes] = useState<DeliveryRoute[]>([])
+  const [ready, setReady] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    Promise.all([
+      api.get<Dash>('/api/v1/distribution/orders/dashboard/').then((r) => r.success && setDash(r.data ?? null)),
+      api.get<Report>('/api/v1/distribution/shipments/tracking_report/').then((r) => r.success && setReport(r.data ?? null)),
+      distributionService.orders({ status: undefined, ordering: '-created_at' }).then((o) => setOrders(o.filter((x) => x.status === 'NEW' || x.status === 'PROCESSING').slice(0, 6))),
+      distributionService.shipments({ status: 'SHIPPED' }).then((s) => setMoving(s.slice(0, 6))),
+      distributionService.routes({ status: 'IN_PROGRESS' }).then(setRoutes),
+    ]).catch((err) => setError(err instanceof Error ? err.message : 'Couldn’t load distribution.')).finally(() => setReady(true))
+  }, [])
+
+  const toPack = report ? report.pending_shipments + report.picked_shipments + report.packed_shipments : 0
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        icon={Truck}
-        title="Distribution"
-        description="Orders, shipments, routes and deliveries across your distribution network."
-      />
-      {/* Tab Navigation */}
-      <div className="border-b">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'overview'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'orders'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-            }`}
-          >
-            Recent Orders
-          </button>
-          <button
-            onClick={() => setActiveTab('shipments')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'shipments'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-            }`}
-          >
-            Active Shipments
-          </button>
-          <button
-            onClick={() => setActiveTab('routes')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'routes'
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
-            }`}
-          >
-            Routes
-          </button>
-        </nav>
+      <PageHeader icon={Truck} title="Distribution" description="Orders, shipments, routes and deliveries."
+        actions={<Button onClick={() => router.push('/distribution/orders/new')} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90"><Plus className="mr-2 h-4 w-4" />New order</Button>} />
+      {error && <ErrorBanner title="Couldn’t load distribution" message={error} />}
+
+      {!ready ? <StatGridSkeleton /> : (
+        <StatGrid>
+          <StatCard label="Orders to handle" value={(dash?.new_orders ?? 0) + (dash?.processing_orders ?? 0)} icon={ClipboardList} tone="warning" hint={`${dash?.new_orders ?? 0} new · ${dash?.processing_orders ?? 0} processing`} href="/distribution/orders" />
+          <StatCard label="To pick & pack" value={toPack} icon={MapPin} tone="info" hint="Shipments still in the warehouse" href="/distribution/shipments?status=PENDING" />
+          <StatCard label="On the road" value={report?.shipped_shipments ?? 0} icon={Truck} tone="brand" hint={report?.delayed_shipments ? `${report.delayed_shipments} running late` : 'All on time'} href="/distribution/shipments?status=SHIPPED" />
+          <StatCard label="On-time delivery" value={report?.on_time_percentage ?? 0} icon={Timer} tone="success"
+            format={(n) => (report?.on_time_percentage == null ? '—' : `${n.toFixed(0)}%`)} hint={report?.average_delivery_days ? `${report.average_delivery_days} days on average` : 'No deliveries with an ETA yet'} />
+        </StatGrid>
+      )}
+
+      {ready && (report?.delayed_shipments ?? 0) > 0 && (
+        <Link href="/distribution/shipments?status=SHIPPED" className="flex items-center gap-3 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger hover:bg-danger/10">
+          <AlertTriangle className="h-5 w-5" /><span className="flex-1 font-medium">{report?.delayed_shipments} {report?.delayed_shipments === 1 ? 'shipment is' : 'shipments are'} past the estimated delivery time.</span><ArrowRight className="h-4 w-4" />
+        </Link>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Panel icon={ClipboardList} title="Orders waiting" description="New or being processed" bodyClassName="p-0" delay={0.1}
+          action={<Link href="/distribution/orders" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">All orders <ArrowRight className="h-3.5 w-3.5" /></Link>}>
+          {!ready ? <div className="space-y-3 p-5">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-11" />)}</div>
+            : orders.length === 0 ? <p className="px-5 py-8 text-center text-sm text-muted-foreground">No orders waiting. Nice.</p> : (
+              <table className="w-full text-sm"><tbody className="divide-y">
+                {orders.map((o, i) => (
+                  <MotionRow key={o.id} index={i} className="cursor-pointer hover:bg-muted/40" onClick={() => router.push(`/distribution/orders/${o.id}`)}>
+                    <td className="px-5 py-3"><p className="font-medium">{o.customer_name}</p><p className="text-xs text-muted-foreground">{o.order_number} · {timeAgo(o.created_at)}</p></td>
+                    <td className="px-3 py-3 text-right tabular-nums">{formatMoney(o.total_amount)}</td>
+                    <td className="px-5 py-3 text-right"><OrderPill status={o.status} /></td>
+                  </MotionRow>
+                ))}
+              </tbody></table>
+            )}
+        </Panel>
+        <Panel icon={Truck} title="On the road" description="Shipped, not yet delivered" bodyClassName="p-0" delay={0.15}
+          action={<Link href="/distribution/tracking" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">Tracking <ArrowRight className="h-3.5 w-3.5" /></Link>}>
+          {!ready ? <div className="space-y-3 p-5">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-11" />)}</div>
+            : moving.length === 0 ? <p className="px-5 py-8 text-center text-sm text-muted-foreground">Nothing on the road right now.</p> : (
+              <table className="w-full text-sm"><tbody className="divide-y">
+                {moving.map((s, i) => (
+                  <MotionRow key={s.id} index={i} className="cursor-pointer hover:bg-muted/40" onClick={() => router.push(`/distribution/shipments/${s.id}`)}>
+                    <td className="px-5 py-3"><p className="font-medium">{s.customer_name ?? s.recipient_name ?? s.shipment_number}</p><p className="text-xs text-muted-foreground">{s.shipment_number}{s.carrier ? ` · ${s.carrier}` : ''}</p></td>
+                    <td className="px-3 py-3 text-right text-xs text-muted-foreground">{s.estimated_delivery ? `ETA ${timeAgo(s.estimated_delivery)}` : 'No ETA'}</td>
+                    <td className="px-5 py-3 text-right"><ShipmentPill status={s.status} delayed={s.is_delayed} /></td>
+                  </MotionRow>
+                ))}
+              </tbody></table>
+            )}
+        </Panel>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <Link href="/distribution/orders/new">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Package className="h-6 w-6 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">New Order</h3>
-                  <p className="text-sm text-muted-foreground">Create customer order</p>
-                </div>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <Link href="/distribution/shipments/new">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Truck className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">New Shipment</h3>
-                  <p className="text-sm text-muted-foreground">Create shipment</p>
-                </div>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <Link href="/distribution/routes/new">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-purple-100 rounded-lg">
-                  <MapPin className="h-6 w-6 text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Plan Route</h3>
-                  <p className="text-sm text-muted-foreground">Create delivery route</p>
-                </div>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <Link href="/distribution/tracking">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <BarChart3 className="h-6 w-6 text-orange-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold">Track Orders</h3>
-                  <p className="text-sm text-muted-foreground">Monitor deliveries</p>
-                </div>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-      </div>
-
-      {/* Main Content Grid - Conditional based on active tab */}
-      {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Orders */}
-          <Card className="lg:col-span-2">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Recent Orders</CardTitle>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/distribution/orders">
-                  View All
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Package className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium">CUST-ORDER-001</p>
-                      <p className="text-sm text-muted-foreground">ABC Electronics Store</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      Delivered
-                    </Badge>
-                    <p className="text-sm text-muted-foreground mt-1">$45,000.00</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-center py-8 text-muted-foreground">
-                  <div className="text-center">
-                    <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No other recent orders</p>
-                    <Button variant="outline" size="sm" className="mt-2" asChild>
-                      <Link href="/distribution/orders/new">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create New Order
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Status Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Distribution Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 text-yellow-500" />
-                  <span className="text-sm">Pending Orders</span>
-                </div>
-                <span className="font-semibold">0</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <Truck className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm">In Transit</span>
-                </div>
-                <span className="font-semibold">0</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">Delivered</span>
-                </div>
-                <span className="font-semibold">1</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                  <span className="text-sm">Issues</span>
-                </div>
-                <span className="font-semibold">0</span>
-              </div>
-
-              <div className="pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <TrendingUp className="h-4 w-4 text-purple-500" />
-                    <span className="text-sm">Performance</span>
-                  </div>
-                  <span className="font-semibold text-green-600">100%</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {routes.length > 0 && (
+        <Panel icon={Route} title="Routes on the road" bodyClassName="p-0" delay={0.2}>
+          <ul className="divide-y">
+            {routes.map((r) => (
+              <li key={r.id}><Link href={`/distribution/routes/${r.id}`} className="flex items-center justify-between gap-3 px-5 py-3 text-sm hover:bg-muted/40">
+                <span><span className="font-medium">{r.route_name}</span><span className="block text-xs text-muted-foreground">{r.driver_name ?? 'No driver'} · {formatCount(r.stop_count)} stops</span></span>
+                <RoutePill status={r.status} />
+              </Link></li>
+            ))}
+          </ul>
+        </Panel>
       )}
 
-      {activeTab === 'orders' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Package className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium">CUST-ORDER-001</p>
-                    <p className="text-sm text-muted-foreground">ABC Electronics Store</p>
-                    <p className="text-xs text-muted-foreground">orders@abcelectronics.com</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    Delivered
-                  </Badge>
-                  <p className="text-sm text-muted-foreground mt-1">$45,000.00</p>
-                  <p className="text-xs text-muted-foreground">10 items</p>
-                </div>
-              </div>
-              <div className="text-center py-8 text-muted-foreground">
-                <p>No other orders to display</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {activeTab === 'shipments' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Active Shipments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <Truck className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No active shipments</p>
-              <p className="text-sm">Shipments will appear here when orders are shipped</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {activeTab === 'routes' && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Delivery Routes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No active routes</p>
-              <p className="text-sm">Delivery routes will be shown here</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Navigation Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <Link href="/distribution/orders">
-            <CardContent className="p-6">
-              <div className="text-center space-y-2">
-                <Package className="h-8 w-8 mx-auto text-blue-600" />
-                <h3 className="font-semibold">Orders Management</h3>
-                <p className="text-sm text-muted-foreground">
-                  Create, edit, and track customer orders
-                </p>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <Link href="/distribution/shipments">
-            <CardContent className="p-6">
-              <div className="text-center space-y-2">
-                <Truck className="h-8 w-8 mx-auto text-green-600" />
-                <h3 className="font-semibold">Shipments</h3>
-                <p className="text-sm text-muted-foreground">
-                  Manage shipment lifecycle and tracking
-                </p>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <Link href="/distribution/routes">
-            <CardContent className="p-6">
-              <div className="text-center space-y-2">
-                <MapPin className="h-8 w-8 mx-auto text-purple-600" />
-                <h3 className="font-semibold">Delivery Routes</h3>
-                <p className="text-sm text-muted-foreground">
-                  Plan and optimize delivery routes
-                </p>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-
-        <Card className="cursor-pointer hover:shadow-md transition-shadow">
-          <Link href="/distribution/tracking">
-            <CardContent className="p-6">
-              <div className="text-center space-y-2">
-                <BarChart3 className="h-8 w-8 mx-auto text-orange-600" />
-                <h3 className="font-semibold">Tracking & Analytics</h3>
-                <p className="text-sm text-muted-foreground">
-                  Monitor performance and analytics
-                </p>
-              </div>
-            </CardContent>
-          </Link>
-        </Card>
-      </div>
+      <AppStagger className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <ActionTile href="/distribution/orders" icon={ClipboardList} title="Orders" description="Take, process and ship orders" />
+        <ActionTile href="/distribution/shipments" icon={Truck} title="Shipments" description="Pick, pack, ship and deliver" />
+        <ActionTile href="/distribution/routes" icon={Route} title="Routes" description="Plan driver runs with stops" />
+        <ActionTile href="/distribution/tracking" icon={MapPin} title="Tracking" description="Find any shipment fast" />
+      </AppStagger>
+      {dash && <p className="text-xs text-muted-foreground">{formatCount(dash.monthly_orders)} orders this month · {formatMoney(dash.monthly_revenue)} shipped or delivered.</p>}
     </div>
-  );
+  )
 }

@@ -7,10 +7,12 @@ from apps.inventory.models import Product, Warehouse
 from apps.users.models import User
 
 class OrderItemSerializer(serializers.ModelSerializer):
-    """Serializer for OrderItem model."""
+    """Serializer for OrderItem model. Unit price defaults to the product's price."""
     id = serializers.UUIDField(read_only=True)
     order_id = serializers.UUIDField(read_only=True)
     product_id = serializers.UUIDField()
+    quantity = serializers.IntegerField(min_value=1)
+    unit_price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=0, required=False)
     product_name = serializers.CharField(source='product.name', read_only=True)
     product_sku = serializers.CharField(source='product.sku', read_only=True)
 
@@ -38,39 +40,86 @@ class CustomerOrderListSerializer(serializers.ModelSerializer):
     subtotal = serializers.ReadOnlyField()
     item_count = serializers.ReadOnlyField()
     can_be_shipped = serializers.ReadOnlyField()
+    shipment_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomerOrder
         fields = [
-            'id', 'company_id', 'order_number', 'customer_name', 'customer_email',
-            'status', 'total_amount', 'subtotal', 'item_count', 'can_be_shipped',
-            'created_at'
-        ]
-
-class CustomerOrderDetailSerializer(serializers.ModelSerializer):
-    """Detailed serializer for CustomerOrder model."""
-    id = serializers.UUIDField(read_only=True)
-    company_id = serializers.UUIDField(read_only=True)
-    subtotal = serializers.ReadOnlyField()
-    item_count = serializers.ReadOnlyField()
-    can_be_shipped = serializers.ReadOnlyField()
-    order_items = OrderItemSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = CustomerOrder
-        fields = [
-            'id', 'company_id', 'order_number', 'customer_name', 'customer_email',
-            'customer_phone', 'shipping_address', 'billing_address', 'status',
-            'total_amount', 'tax_amount', 'shipping_amount', 'discount_amount',
-            'subtotal', 'notes', 'item_count', 'can_be_shipped', 'order_items',
+            'id', 'company_id', 'order_number', 'customer_name', 'customer_email', 'customer_phone',
+            'status', 'total_amount', 'subtotal', 'item_count', 'can_be_shipped', 'shipment_count',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'company_id', 'created_at', 'updated_at']
+        read_only_fields = fields
 
-class CreateCustomerOrderSerializer(serializers.ModelSerializer):
-    """Serializer for creating customer orders with items."""
+    def get_shipment_count(self, obj):
+        return len([s for s in obj.shipments.all() if s.status != 'CANCELLED'])
+
+
+class CustomerOrderDetailSerializer(CustomerOrderListSerializer):
+    """Detailed serializer for CustomerOrder model."""
+    order_items = OrderItemSerializer(many=True, read_only=True)
+    shipments = serializers.SerializerMethodField()
+
+    class Meta(CustomerOrderListSerializer.Meta):
+        fields = CustomerOrderListSerializer.Meta.fields + [
+            'shipping_address', 'billing_address', 'tax_amount', 'shipping_amount', 'discount_amount',
+            'notes', 'order_items', 'shipments',
+        ]
+        read_only_fields = fields
+
+    def get_shipments(self, obj):
+        return [
+            {'id': str(s.id), 'shipment_number': s.shipment_number, 'status': s.status, 'tracking_number': s.tracking_number,
+             'carrier': s.carrier, 'warehouse_name': s.warehouse.name, 'shipping_date': s.shipping_date,
+             'estimated_delivery': s.estimated_delivery, 'actual_delivery': s.actual_delivery}
+            for s in obj.shipments.select_related('warehouse').order_by('created_at')
+        ]
+
+
+class _OrderItemsMixin:
+    """Shared item handling: products must be the company's, appear once, and totals are computed here."""
+
+    def validate_order_items(self, items):
+        if not items:
+            raise serializers.ValidationError('Add at least one product.')
+        ids = [str(i['product_id']) for i in items]
+        if len(ids) != len(set(ids)):
+            raise serializers.ValidationError('Each product can only appear once; combine the quantities.')
+        company = self.context['request'].user.company
+        prices = {str(p.id): p.unit_price for p in Product.objects.filter(company=company, id__in=ids)}
+        for item in items:
+            if 'unit_price' not in item or item['unit_price'] is None:
+                item['unit_price'] = prices[str(item['product_id'])]
+        return items
+
+    def _amounts(self, attrs, items):
+        from decimal import Decimal
+        subtotal = sum((Decimal(i['quantity']) * i['unit_price'] for i in items), Decimal('0'))
+        tax = attrs.get('tax_amount', getattr(self.instance, 'tax_amount', Decimal('0'))) or Decimal('0')
+        shipping = attrs.get('shipping_amount', getattr(self.instance, 'shipping_amount', Decimal('0'))) or Decimal('0')
+        discount = attrs.get('discount_amount', getattr(self.instance, 'discount_amount', Decimal('0'))) or Decimal('0')
+        total = subtotal + tax + shipping - discount
+        if total < 0:
+            raise serializers.ValidationError({'discount_amount': 'The discount is larger than the order.'})
+        return total
+
+    def _replace_items(self, order, items):
+        order.order_items.all().delete()
+        for item in items:
+            OrderItem.objects.create(order=order, product_id=item['product_id'], quantity=item['quantity'], unit_price=item['unit_price'])
+
+
+money = dict(max_digits=10, decimal_places=2, min_value=0, required=False)
+
+
+class CreateCustomerOrderSerializer(_OrderItemsMixin, serializers.ModelSerializer):
+    """New orders start as NEW; the total is computed from the items, tax, shipping and discount."""
     id = serializers.UUIDField(read_only=True)
+    order_number = serializers.CharField(max_length=100, required=False, allow_blank=True)
     order_items = OrderItemSerializer(many=True)
+    tax_amount = serializers.DecimalField(**money)
+    shipping_amount = serializers.DecimalField(**money)
+    discount_amount = serializers.DecimalField(**money)
 
     class Meta:
         model = CustomerOrder
@@ -79,30 +128,70 @@ class CreateCustomerOrderSerializer(serializers.ModelSerializer):
             'shipping_address', 'billing_address', 'total_amount', 'tax_amount',
             'shipping_amount', 'discount_amount', 'notes', 'order_items'
         ]
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'total_amount']
 
     def validate_order_number(self, value):
-        """Validate that order number is unique within the company."""
+        value = (value or '').strip()
         company = self.context['request'].user.company
-        if CustomerOrder.objects.filter(company=company, order_number=value).exists():
+        if value and CustomerOrder.objects.filter(company=company, order_number__iexact=value).exists():
             raise serializers.ValidationError("Order number already exists.")
         return value
 
     def create(self, validated_data):
-        """Create customer order with items."""
-        items_data = validated_data.pop('order_items')
-        
+        from .services import next_number
+        items = validated_data.pop('order_items')
+        company = self.context['request'].user.company
+        validated_data['total_amount'] = self._amounts(validated_data, items)
+        if not validated_data.get('order_number'):
+            validated_data['order_number'] = next_number(CustomerOrder, 'order_number', company, 'ORD')
         with transaction.atomic():
-            # Create customer order
-            order = CustomerOrder.objects.create(
-                **validated_data
-            )
-            
-            # Create order items
-            for item_data in items_data:
-                OrderItem.objects.create(order=order, **item_data)
-        
+            order = CustomerOrder.objects.create(company=company, **validated_data)
+            self._replace_items(order, items)
         return order
+
+
+class UpdateCustomerOrderSerializer(_OrderItemsMixin, serializers.ModelSerializer):
+    """Edit an order before anything has shipped; sending order_items replaces them."""
+    order_items = OrderItemSerializer(many=True, required=False)
+    tax_amount = serializers.DecimalField(**money)
+    shipping_amount = serializers.DecimalField(**money)
+    discount_amount = serializers.DecimalField(**money)
+
+    class Meta:
+        model = CustomerOrder
+        fields = [
+            'order_number', 'customer_name', 'customer_email', 'customer_phone', 'shipping_address',
+            'billing_address', 'tax_amount', 'shipping_amount', 'discount_amount', 'notes', 'order_items',
+        ]
+
+    def validate(self, attrs):
+        order = self.instance
+        if order.status not in ('NEW', 'PROCESSING') or order.shipments.exclude(status__in=('PENDING', 'CANCELLED')).exists():
+            raise serializers.ValidationError('This order can’t be changed once it has started shipping.')
+        number = attrs.get('order_number')
+        if number is not None:
+            number = number.strip()
+            if not number:
+                raise serializers.ValidationError({'order_number': 'Order number can’t be blank.'})
+            if CustomerOrder.objects.filter(company=order.company, order_number__iexact=number).exclude(pk=order.pk).exists():
+                raise serializers.ValidationError({'order_number': 'Order number already exists.'})
+            attrs['order_number'] = number
+        return attrs
+
+    def update(self, instance, validated_data):
+        items = validated_data.pop('order_items', None)
+        if items is None:
+            items = [{'product_id': i.product_id, 'quantity': i.quantity, 'unit_price': i.unit_price} for i in instance.order_items.all()]
+            replace = False
+        else:
+            replace = True
+        validated_data['total_amount'] = self._amounts(validated_data, items)
+        with transaction.atomic():
+            instance = super().update(instance, validated_data)
+            if replace:
+                self._replace_items(instance, items)
+        return instance
+
 
 class ShipmentItemSerializer(serializers.ModelSerializer):
     """Serializer for ShipmentItem model."""
@@ -141,8 +230,14 @@ class ShipmentListSerializer(serializers.ModelSerializer):
             'warehouse_id', 'warehouse_name', 'driver_id', 'driver_name',
             'status', 'carrier', 'tracking_number', 'shipping_date',
             'estimated_delivery', 'actual_delivery', 'delivery_days',
-            'is_delayed', 'created_at'
+            'is_delayed', 'destination_address', 'recipient_name', 'customer_name', 'item_count', 'created_at'
         ]
+
+    customer_name = serializers.CharField(source='order.customer_name', read_only=True, default=None)
+    item_count = serializers.SerializerMethodField()
+
+    def get_item_count(self, obj):
+        return sum(i.quantity for i in obj.shipment_items.all())
 
 class ShipmentDetailSerializer(serializers.ModelSerializer):
     """Detailed serializer for Shipment model."""
@@ -165,9 +260,40 @@ class ShipmentDetailSerializer(serializers.ModelSerializer):
             'warehouse_id', 'warehouse_name', 'driver_id', 'driver_name',
             'status', 'carrier', 'tracking_number', 'shipping_date',
             'estimated_delivery', 'actual_delivery', 'vehicle_info', 'notes',
-            'delivery_days', 'is_delayed', 'shipment_items', 'created_at', 'updated_at'
+            'destination_address', 'recipient_name', 'recipient_phone', 'stock_deducted',
+            'delivery_days', 'is_delayed', 'shipment_items', 'events', 'route_stop', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'company_id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'company_id', 'status', 'shipping_date', 'actual_delivery', 'stock_deducted',
+                            'created_at', 'updated_at']
+        extra_kwargs = {'shipment_number': {'required': False, 'allow_blank': True}}
+
+    events = serializers.SerializerMethodField()
+    route_stop = serializers.SerializerMethodField()
+
+    def get_events(self, obj):
+        return [
+            {'type': e.event_type, 'message': e.message, 'from_status': e.from_status, 'to_status': e.to_status,
+             'actor': e.actor.get_full_name() if e.actor else None, 'occurred_at': e.occurred_at}
+            for e in obj.events.select_related('actor').order_by('-occurred_at')[:30]
+        ]
+
+    def get_route_stop(self, obj):
+        stop = obj.route_stops.select_related('route').exclude(route__status='CANCELLED').order_by('-created_at').first()
+        if not stop:
+            return None
+        return {'route_id': str(stop.route_id), 'route_name': stop.route.route_name, 'stop_number': stop.stop_number, 'status': stop.status}
+
+    def validate(self, attrs):
+        if self.instance is not None and self.instance.status not in ('PENDING', 'PICKED', 'PACKED'):
+            editable = {'notes', 'carrier', 'tracking_number', 'estimated_delivery', 'driver_id', 'recipient_phone'}
+            locked = [k for k in attrs if k not in editable and attrs[k] != getattr(self.instance, k, None)]
+            if locked:
+                raise serializers.ValidationError('Only the carrier, tracking, ETA, driver and notes can change once a shipment has left.')
+        number = (attrs.get('shipment_number') or '').strip()
+        company = self.context['request'].user.company
+        if number and Shipment.objects.filter(company=company, shipment_number__iexact=number).exclude(pk=getattr(self.instance, 'pk', None)).exists():
+            raise serializers.ValidationError({'shipment_number': 'Shipment number already exists.'})
+        return attrs
 
     # These validators return the id (not the instance) because the values are
     # saved straight onto the *_id attributes.
@@ -211,15 +337,18 @@ class RouteStopSerializer(serializers.ModelSerializer):
             'status', 'notes', 'stop_duration_minutes', 'created_at', 'updated_at',
             'latitude', 'longitude', 'customer_name',
         ]
-        read_only_fields = ['id', 'route_id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'route_id', 'status', 'actual_arrival', 'departure_time', 'created_at', 'updated_at']
         # add_stop assigns the next stop number when it isn't given
         extra_kwargs = {'stop_number': {'required': False}}
 
     def validate_shipment_id(self, value):
-        """Validate that shipment belongs to the same company."""
+        """The shipment must be the company's and still need delivering."""
         company = self.context['request'].user.company
-        if not Shipment.objects.filter(id=value, company=company).exists():
+        shipment = Shipment.objects.filter(id=value, company=company).first()
+        if shipment is None:
             raise serializers.ValidationError("Shipment not found.")
+        if shipment.status in ('DELIVERED', 'CANCELLED', 'RETURNED'):
+            raise serializers.ValidationError(f'This shipment is {shipment.get_status_display().lower()}; it doesn’t need a stop.')
         return value
 
     def get_customer_name(self, obj):
@@ -263,7 +392,7 @@ class DeliveryRouteDetailSerializer(serializers.ModelSerializer):
             'notes', 'duration_hours', 'stop_count', 'route_stops','description', 
             'start_location', 'estimated_duration', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'company_id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'company_id', 'status', 'start_time', 'end_time', 'created_at', 'updated_at']
 
     def validate_driver_id(self, value):
         """Validate that driver belongs to the same company."""
