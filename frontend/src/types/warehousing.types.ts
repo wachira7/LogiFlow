@@ -26,6 +26,7 @@ export interface WarehouseTransfer {
   total_quantity: number;
   total_value: number;
   can_be_completed: boolean;
+  stock_dispatched?: boolean;
 }
 
 export interface WarehouseTransferDetail extends WarehouseTransfer {
@@ -72,6 +73,8 @@ export interface TransferItem {
 }
 
 export interface CreateTransferItemData {
+  /** Required when adding an item to an existing (pending) transfer */
+  transfer_id?: string;
   product_id: string;
   quantity: number;
   source_location?: string;
@@ -106,7 +109,9 @@ export interface StockMovement {
   destination_warehouse: string;
   transfer_count: number;
   total_items: number;
+  total_quantity: number;
   total_value: number;
+  last_transfer_at: string | null;
 }
 
 export interface StockMovementsReport {
@@ -115,6 +120,7 @@ export interface StockMovementsReport {
 }
 
 export interface InsufficientStockItem {
+  transfer_id: string;
   transfer_number: string;
   product_name: string;
   product_sku: string;

@@ -40,9 +40,11 @@ export const warehouseTransferService = {
     if (filters?.search) params.append('search', filters.search);
     if (filters?.ordering) params.append('ordering', filters.ordering);
 
-    const response = await api.get<WarehouseTransfer[]>(`${BASE_URL}/transfers/?${params.toString()}`);
+    params.append('page_size', '100');
+    // The endpoint is paginated ({ results: [...] }); callers get a plain list
+    const response = await api.get<WarehouseTransfer[] | { results: WarehouseTransfer[] }>(`${BASE_URL}/transfers/?${params.toString()}`);
     if (!response.success || !response.data) throw new Error(response.error || 'Failed')
-    return response.data;
+    return Array.isArray(response.data) ? response.data : response.data.results ?? [];
   },
 
   /**
@@ -149,9 +151,10 @@ export const transferItemService = {
     if (filters?.search) params.append('search', filters.search);
     if (filters?.ordering) params.append('ordering', filters.ordering);
 
-    const response = await api.get<TransferItem[]>(`${BASE_URL}/transfer-items/?${params.toString()}`);
+    params.append('page_size', '100');
+    const response = await api.get<TransferItem[] | { results: TransferItem[] }>(`${BASE_URL}/transfer-items/?${params.toString()}`);
     if (!response.success || !response.data) throw new Error(response.error || 'Failed')
-    return response.data;
+    return Array.isArray(response.data) ? response.data : response.data.results ?? [];
   },
 
   /**

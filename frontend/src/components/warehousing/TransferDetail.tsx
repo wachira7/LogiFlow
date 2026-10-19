@@ -3,430 +3,376 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion, useReducedMotion } from 'framer-motion'
+import {
+  AlertTriangle, ArrowRightLeft, Ban, CheckCircle2, Clock, Edit, Package, PlayCircle, Trash2, Truck, Warehouse, XCircle,
+} from 'lucide-react'
 import { useWarehouseTransfers } from '@/hooks/useWarehousing'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Separator } from '@/components/ui/separator'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
-import { ArrowLeft, Edit, Trash2, CheckCircle, XCircle, PlayCircle, Package, Calendar, User, ArrowRightLeft, AlertCircle } from 'lucide-react'
-import type { TransferStatus } from '@/types/warehousing.types'
+import { ErrorBanner, PageHeader, Panel } from '@/components/app/kit'
+import { FadeIn, ease } from '@/components/app/motion'
+import { formatCount, formatDateTime, formatMoney, timeAgo } from '@/lib/format'
+import { cn } from '@/lib/utils'
+import { TransferStatusPill } from './status'
+import type { WarehouseTransferDetail } from '@/types/warehousing.types'
 
-interface TransferDetailProps {
-  transferId: string
-}
+type Action = 'approve' | 'start' | 'complete' | 'cancel' | 'delete'
 
-const statusColors: Record<TransferStatus, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  IN_TRANSIT: 'bg-blue-100 text-blue-800 border-blue-200',
-  COMPLETED: 'bg-green-100 text-green-800 border-green-200',
-  CANCELLED: 'bg-red-100 text-red-800 border-red-200',
-}
+const STEPS = [
+  { key: 'PENDING', label: 'Requested', icon: Clock },
+  { key: 'IN_TRANSIT', label: 'In transit', icon: Truck },
+  { key: 'COMPLETED', label: 'Received', icon: CheckCircle2 },
+] as const
 
-const statusLabels: Record<TransferStatus, string> = {
-  PENDING: 'Pending',
-  IN_TRANSIT: 'In Transit',
-  COMPLETED: 'Completed',
-  CANCELLED: 'Cancelled',
-}
-
-export function TransferDetail({ transferId }: TransferDetailProps) {
-  const router = useRouter()
-  const {
-    currentTransfer,
-    loading,
-    error,
-    fetchTransferById,
-    deleteTransfer,
-    approveTransfer,
-    startTransfer,
-    completeTransfer,
-    cancelTransfer,
-  } = useWarehouseTransfers()
-
-  const [actionLoading, setActionLoading] = useState(false)
-  const [actionError, setActionError] = useState<string | null>(null)
-  const [dialogState, setDialogState] = useState<{
-    open: boolean
-    action: 'approve' | 'start' | 'complete' | 'cancel' | 'delete' | null
-    title: string
-    description: string
-  }>({
-    open: false,
-    action: null,
-    title: '',
-    description: '',
-  })
-
-  useEffect(() => {
-    fetchTransferById(transferId)
-  }, [transferId, fetchTransferById])
-
-  const handleAction = (action: 'approve' | 'start' | 'complete' | 'cancel' | 'delete') => {
-    const dialogConfig = {
-      approve: {
-        title: 'Approve Transfer',
-        description: 'Are you sure you want to approve this transfer? This will move it to IN_TRANSIT status.',
-      },
-      start: {
-        title: 'Start Transfer',
-        description: 'This will deduct stock from the source warehouse. Are you sure you want to continue?',
-      },
-      complete: {
-        title: 'Complete Transfer',
-        description: 'This will add stock to the destination warehouse and mark the transfer as completed.',
-      },
-      cancel: {
-        title: 'Cancel Transfer',
-        description: 'Are you sure you want to cancel this transfer? Stock will be restored if applicable.',
-      },
-      delete: {
-        title: 'Delete Transfer',
-        description: 'Are you sure you want to delete this transfer? This action cannot be undone.',
-      },
-    }
-
-    setDialogState({
-      open: true,
-      action,
-      ...dialogConfig[action],
-    })
-  }
-
-  const handleConfirmAction = async () => {
-    if (!dialogState.action) return
-
-    setActionLoading(true)
-    setActionError(null)
-
-    try {
-      switch (dialogState.action) {
-        case 'approve':
-          await approveTransfer(transferId)
-          break
-        case 'start':
-          await startTransfer(transferId)
-          break
-        case 'complete':
-          await completeTransfer(transferId)
-          break
-        case 'cancel':
-          await cancelTransfer(transferId)
-          break
-        case 'delete':
-          await deleteTransfer(transferId)
-          router.push('/warehousing/transfers')
-          return
-      }
-      await fetchTransferById(transferId)
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Action failed')
-    } finally {
-      setActionLoading(false)
-      setDialogState({ open: false, action: null, title: '', description: '' })
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount)
-  }
-
-  if (loading) {
+/** Pending → In transit → Received, with the line filling up to the current step. */
+function ProgressTracker({ transfer }: { transfer: WarehouseTransferDetail }) {
+  const reduce = useReducedMotion()
+  if (transfer.status === 'CANCELLED') {
     return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
+      <div className="flex items-center gap-3 rounded-xl border bg-muted/50 px-4 py-3 text-sm">
+        <Ban className="h-5 w-5 shrink-0 text-muted-foreground" />
+        <p>
+          <span className="font-medium">This transfer was cancelled.</span>{' '}
+          <span className="text-muted-foreground">Any stock that had left the source warehouse was put back.</span>
+        </p>
       </div>
     )
   }
+  const current = STEPS.findIndex((s) => s.key === transfer.status)
+  return (
+    <div className="relative grid grid-cols-3">
+      <div className="absolute left-[16.66%] right-[16.66%] top-5 h-0.5 rounded-full bg-border">
+        <motion.div
+          className="h-full rounded-full bg-brand"
+          initial={reduce ? false : { width: 0 }}
+          animate={{ width: `${(current / (STEPS.length - 1)) * 100}%` }}
+          transition={{ duration: 0.9, ease, delay: 0.2 }}
+        />
+      </div>
+      {STEPS.map((step, i) => {
+        const done = i < current || transfer.status === 'COMPLETED'
+        const active = i === current && transfer.status !== 'COMPLETED'
+        const Icon = step.icon
+        return (
+          <div key={step.key} className="relative flex flex-col items-center gap-2 text-center">
+            <motion.span
+              initial={reduce ? false : { scale: 0.6, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4, ease, delay: 0.15 + i * 0.12 }}
+              className={cn(
+                'relative flex h-10 w-10 items-center justify-center rounded-full border-2 bg-card transition-colors',
+                done && 'border-brand bg-brand text-brand-foreground',
+                active && 'border-brand text-brand',
+                !done && !active && 'text-muted-foreground',
+              )}
+            >
+              {active && <span className="absolute inset-0 animate-ping rounded-full bg-brand/25 motion-reduce:hidden" />}
+              <Icon className="h-4 w-4" />
+            </motion.span>
+            <span className={cn('text-xs font-medium sm:text-sm', !done && !active && 'text-muted-foreground')}>{step.label}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
-  if (error || !currentTransfer) {
+/** Source → destination, with a truck travelling the line while stock is on the road. */
+function RouteStrip({ transfer }: { transfer: WarehouseTransferDetail }) {
+  const reduce = useReducedMotion()
+  const moving = transfer.status === 'IN_TRANSIT' && transfer.stock_dispatched !== false
+  const arrived = transfer.status === 'COMPLETED'
+  return (
+    <div className="flex items-center gap-3 sm:gap-4">
+      <div className="min-w-0 flex-1">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">From</p>
+        <p className="flex items-start gap-1.5 font-semibold leading-snug"><Warehouse className="mt-0.5 h-4 w-4 shrink-0 text-brand" /><span className="line-clamp-2 break-words">{transfer.source_warehouse_name}</span></p>
+      </div>
+      <div className="relative h-8 w-16 shrink-0 sm:w-40">
+        <svg className="absolute inset-x-0 top-1/2 h-1 w-full -translate-y-1/2 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 2" aria-hidden>
+          <line x1="0" y1="1" x2="100" y2="1" stroke="var(--border)" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          <line x1="0" y1="1" x2="100" y2="1" stroke="var(--brand)" strokeWidth="2" strokeDasharray="6 6" vectorEffect="non-scaling-stroke"
+            className={cn(moving && 'animate-dash-flow', !moving && !arrived && 'opacity-30')} />
+        </svg>
+        <motion.span
+          className="absolute top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-brand text-brand-foreground shadow-md"
+          initial={false}
+          animate={moving && !reduce ? { left: ['0%', 'calc(100% - 1.75rem)'] } : { left: arrived ? 'calc(100% - 1.75rem)' : '0%' }}
+          transition={moving && !reduce ? { duration: 3.2, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' } : { duration: 0.6, ease }}
+        >
+          <Truck className="h-3.5 w-3.5" />
+        </motion.span>
+      </div>
+      <div className="min-w-0 flex-1 text-right">
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">To</p>
+        <p className="flex items-start justify-end gap-1.5 font-semibold leading-snug"><span className="line-clamp-2 break-words">{transfer.destination_warehouse_name}</span><Warehouse className="mt-0.5 h-4 w-4 shrink-0 text-brand" /></p>
+      </div>
+    </div>
+  )
+}
+
+function DetailSkeleton() {
+  return (
+    <div className="space-y-6" aria-busy aria-label="Loading transfer">
+      <div className="flex items-end justify-between">
+        <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-8 w-56" /><Skeleton className="h-4 w-40" /></div>
+        <Skeleton className="h-9 w-48" />
+      </div>
+      <Skeleton className="h-28 w-full rounded-xl" />
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Skeleton className="h-72 rounded-xl lg:col-span-2" />
+        <Skeleton className="h-72 rounded-xl" />
+      </div>
+    </div>
+  )
+}
+
+export function TransferDetail({ transferId }: { transferId: string }) {
+  const router = useRouter()
+  const {
+    currentTransfer, error, fetchTransferById, deleteTransfer, approveTransfer, startTransfer, completeTransfer, cancelTransfer,
+  } = useWarehouseTransfers()
+
+  const [initialLoad, setInitialLoad] = useState(true)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [pending, setPending] = useState<Action | null>(null)
+
+  useEffect(() => {
+    fetchTransferById(transferId).catch(() => {}).finally(() => setInitialLoad(false))
+  }, [transferId, fetchTransferById])
+
+  if (initialLoad) return <DetailSkeleton />
+
+  if (!currentTransfer) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <AlertCircle className="h-12 w-12 text-red-500" />
-        <p className="text-lg font-medium">Failed to load transfer details</p>
-        <p className="text-sm text-muted-foreground">{error}</p>
-        <Button onClick={() => router.back()}>Go Back</Button>
+      <div className="space-y-6">
+        <PageHeader title="Transfer not found" back={{ href: '/warehousing/transfers', label: 'Transfers' }} />
+        <ErrorBanner title="Couldn’t load this transfer" message={error || 'It may have been deleted.'} onRetry={() => fetchTransferById(transferId)} />
       </div>
     )
   }
 
   const transfer = currentTransfer
+  const source = transfer.source_warehouse_name ?? 'the source warehouse'
+  const destination = transfer.destination_warehouse_name ?? 'the destination warehouse'
+  const short = transfer.status === 'PENDING' && !transfer.all_items_sufficient_stock
+
+  const dialogs: Record<Action, { title: string; description: string; confirm: string }> = {
+    approve: { title: 'Approve transfer?', description: `Approving takes the stock out of ${source} now and marks the transfer as in transit.`, confirm: 'Approve' },
+    start: { title: 'Start transfer?', description: `This transfer was approved before stock moved automatically. Starting it takes the stock out of ${source}.`, confirm: 'Start' },
+    complete: { title: 'Mark as received?', description: `Confirm the goods arrived: this adds the stock to ${destination} and completes the transfer.`, confirm: 'Mark received' },
+    cancel: {
+      title: 'Cancel transfer?',
+      description: transfer.stock_dispatched ? `The stock has already left ${source}; cancelling puts it back there.` : 'No stock has moved yet, so nothing changes in your warehouses.',
+      confirm: 'Cancel transfer',
+    },
+    delete: { title: 'Delete transfer?', description: 'This removes the transfer for good. No stock is affected.', confirm: 'Delete' },
+  }
+
+  const run = async () => {
+    if (!pending) return
+    setActionLoading(true)
+    setActionError(null)
+    try {
+      if (pending === 'delete') {
+        await deleteTransfer(transferId)
+        router.push('/warehousing/transfers')
+        return
+      }
+      await { approve: approveTransfer, start: startTransfer, complete: completeTransfer, cancel: cancelTransfer }[pending](transferId)
+      await fetchTransferById(transferId)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'That didn’t work. Please try again.')
+    } finally {
+      setActionLoading(false)
+      setPending(null)
+    }
+  }
+
+  const isPending = transfer.status === 'PENDING'
+  const legacyApproved = transfer.status === 'IN_TRANSIT' && !transfer.stock_dispatched
+  const onRoad = transfer.status === 'IN_TRANSIT' && transfer.stock_dispatched
+
+  const timeline = [
+    { label: 'Requested', at: transfer.initiated_at, by: transfer.initiated_by_name },
+    transfer.approved_by_name ? { label: 'Approved', at: null, by: transfer.approved_by_name } : null,
+    transfer.completed_at ? { label: 'Received', at: transfer.completed_at, by: null } : null,
+  ].filter(Boolean) as { label: string; at: string | null; by: string | null }[]
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">{transfer.transfer_number}</h2>
-            <p className="text-muted-foreground">Warehouse Transfer Details</p>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          {transfer.status === 'PENDING' && (
-            <>
+      <PageHeader
+        icon={ArrowRightLeft}
+        back={{ href: '/warehousing/transfers', label: 'Transfers' }}
+        title={transfer.transfer_number}
+        description={
+          <span className="flex flex-wrap items-center gap-2">
+            <TransferStatusPill transfer={transfer} />
+            <span>Requested {timeAgo(transfer.initiated_at)}{transfer.initiated_by_name ? ` by ${transfer.initiated_by_name}` : ''}</span>
+          </span>
+        }
+        actions={
+          <>
+            {isPending && (
               <Button variant="outline" size="sm" onClick={() => router.push(`/warehousing/transfers/${transferId}/edit`)}>
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
+                <Edit className="mr-2 h-4 w-4" />Edit
               </Button>
-              <Button variant="outline" size="sm" onClick={() => handleAction('approve')}>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Approve
+            )}
+            {(isPending || transfer.status === 'CANCELLED') && (
+              <Button variant="outline" size="sm" onClick={() => setPending('delete')} className="text-danger hover:text-danger">
+                <Trash2 className="mr-2 h-4 w-4" />Delete
               </Button>
-            </>
-          )}
-          {transfer.status === 'IN_TRANSIT' && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => handleAction('start')}>
-                <PlayCircle className="h-4 w-4 mr-2" />
-                Start Transfer
+            )}
+            {(isPending || transfer.status === 'IN_TRANSIT') && (
+              <Button variant="outline" size="sm" onClick={() => setPending('cancel')}>
+                <XCircle className="mr-2 h-4 w-4" />Cancel
               </Button>
-              <Button variant="default" size="sm" onClick={() => handleAction('complete')}>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Complete
+            )}
+            {isPending && (
+              <Button size="sm" onClick={() => setPending('approve')} disabled={short} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90">
+                <CheckCircle2 className="mr-2 h-4 w-4" />Approve &amp; dispatch
               </Button>
-            </>
-          )}
-          {(transfer.status === 'PENDING' || transfer.status === 'IN_TRANSIT') && (
-            <Button variant="outline" size="sm" onClick={() => handleAction('cancel')}>
-              <XCircle className="h-4 w-4 mr-2" />
-              Cancel
-            </Button>
-          )}
-          {(transfer.status === 'PENDING' || transfer.status === 'CANCELLED') && (
-            <Button variant="outline" size="sm" onClick={() => handleAction('delete')}>
-              <Trash2 className="h-4 w-4 mr-2 text-red-600" />
-              Delete
-            </Button>
-          )}
-        </div>
-      </div>
+            )}
+            {legacyApproved && (
+              <Button size="sm" onClick={() => setPending('start')} className="bg-brand text-brand-foreground hover:bg-brand/90">
+                <PlayCircle className="mr-2 h-4 w-4" />Start transfer
+              </Button>
+            )}
+            {onRoad && (
+              <Button size="sm" onClick={() => setPending('complete')} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90">
+                <CheckCircle2 className="mr-2 h-4 w-4" />Mark as received
+              </Button>
+            )}
+          </>
+        }
+      />
 
-      {/* Action Error */}
-      {actionError && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-          <p className="font-medium">Action Failed</p>
-          <p className="text-sm">{actionError}</p>
-        </div>
-      )}
+      {actionError && <ErrorBanner title="Action failed" message={actionError} />}
 
-      {/* Status Warning for Insufficient Stock */}
-      {transfer.status === 'PENDING' && !transfer.all_items_sufficient_stock && (
-        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded-lg flex items-start space-x-3">
-          <AlertCircle className="h-5 w-5 mt-0.5" />
-          <div>
-            <p className="font-medium">Insufficient Stock</p>
-            <p className="text-sm">Some items don&apos;t have sufficient stock in the source warehouse. Please review before approving.</p>
+      {short && (
+        <FadeIn>
+          <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm text-warning">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+              <p className="font-medium">Not enough stock to approve yet</p>
+              <p className="opacity-90">Some items need more stock in {source} than it holds. Restock or edit the quantities first.</p>
+            </div>
           </div>
-        </div>
+        </FadeIn>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Transfer Route */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <ArrowRightLeft className="h-5 w-5 mr-2" />
-                Transfer Route
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">From</p>
-                  <p className="text-lg font-semibold">{transfer.source_warehouse_name}</p>
+      <Panel delay={0.05} bodyClassName="space-y-6 p-5 sm:p-6">
+        <ProgressTracker transfer={transfer} />
+        <div className="border-t pt-5"><RouteStrip transfer={transfer} /></div>
+      </Panel>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Panel
+          className="lg:col-span-2"
+          icon={Package}
+          title={`Items (${transfer.total_items})`}
+          description={`${formatCount(transfer.total_quantity)} units in total`}
+          bodyClassName="p-0"
+          delay={0.12}
+        >
+          {/* Phones: one card per item */}
+          <ul className="divide-y sm:hidden">
+            {transfer.transfer_items.map((item) => (
+              <li key={item.id} className="space-y-1 px-4 py-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{item.product_name}</p>
+                    <p className="text-xs text-muted-foreground">{item.product_sku}</p>
+                  </div>
+                  <p className="shrink-0 font-semibold tabular-nums">× {formatCount(item.quantity)}</p>
                 </div>
-                <ArrowRightLeft className="h-8 w-8 text-muted-foreground mx-4" />
-                <div className="flex-1 text-right">
-                  <p className="text-sm text-muted-foreground">To</p>
-                  <p className="text-lg font-semibold">{transfer.destination_warehouse_name}</p>
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span className={cn(isPending && !item.sufficient_source_stock && 'font-medium text-danger')}>
+                    {isPending ? `${formatCount(item.source_stock_available)} available` : item.source_location || 'No bin set'}
+                  </span>
+                  <span>{formatMoney(item.item_value)}</span>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </li>
+            ))}
+          </ul>
+          {/* Larger screens: table */}
+          <div className="hidden overflow-x-auto sm:block">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-5 py-2.5 font-medium">Product</th>
+                  <th className="px-3 py-2.5 text-right font-medium">Qty</th>
+                  <th className="px-3 py-2.5 font-medium">Bins (from → to)</th>
+                  {isPending && <th className="px-3 py-2.5 text-right font-medium">Available</th>}
+                  <th className="px-5 py-2.5 text-right font-medium">Value</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {transfer.transfer_items.map((item, i) => (
+                  <motion.tr key={item.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 + i * 0.04 }} className="transition-colors hover:bg-muted/40">
+                    <td className="px-5 py-3">
+                      <p className="font-medium">{item.product_name}</p>
+                      <p className="text-xs text-muted-foreground">{item.product_sku}</p>
+                    </td>
+                    <td className="px-3 py-3 text-right font-semibold tabular-nums">{formatCount(item.quantity)}</td>
+                    <td className="px-3 py-3 text-muted-foreground">{item.source_location || '—'} → {item.destination_location || '—'}</td>
+                    {isPending && (
+                      <td className={cn('px-3 py-3 text-right tabular-nums', !item.sufficient_source_stock && 'font-medium text-danger')}>
+                        {formatCount(item.source_stock_available)}
+                        {!item.sufficient_source_stock && <AlertTriangle className="ml-1 inline h-3.5 w-3.5" />}
+                      </td>
+                    )}
+                    <td className="px-5 py-3 text-right tabular-nums">{formatMoney(item.item_value)}</td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex items-center justify-between border-t bg-muted/30 px-4 py-3 sm:px-5">
+            <span className="text-sm text-muted-foreground">Total value</span>
+            <span className="text-lg font-semibold tabular-nums">{formatMoney(transfer.total_value)}</span>
+          </div>
+        </Panel>
 
-          {/* Transfer Items */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Package className="h-5 w-5 mr-2" />
-                Transfer Items ({transfer.total_items})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Source Location</TableHead>
-                    <TableHead>Dest. Location</TableHead>
-                    <TableHead>Available</TableHead>
-                    <TableHead className="text-right">Value</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transfer.transfer_items.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{item.product_name}</p>
-                          <p className="text-sm text-muted-foreground">{item.product_sku}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{item.quantity}</TableCell>
-                      <TableCell>
-                        {item.source_location || (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {item.destination_location || (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <span>{item.source_stock_available}</span>
-                          {!item.sufficient_source_stock && (
-                            <AlertCircle className="h-4 w-4 text-red-500" />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {formatCurrency(item.item_value)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              <Separator className="my-4" />
-
-              <div className="flex justify-between items-center">
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Total Items: {transfer.total_items}</p>
-                  <p className="text-sm text-muted-foreground">Total Quantity: {transfer.total_quantity}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Total Value</p>
-                  <p className="text-2xl font-bold">{formatCurrency(transfer.total_value)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notes */}
-          {transfer.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm whitespace-pre-wrap">{transfer.notes}</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Badge className={`${statusColors[transfer.status]} text-base px-4 py-2`}>
-                {statusLabels[transfer.status]}
-              </Badge>
-            </CardContent>
-          </Card>
-
-          {/* Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Calendar className="h-5 w-5 mr-2" />
-                Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm font-medium">Initiated</p>
-                <p className="text-sm text-muted-foreground">{formatDate(transfer.initiated_at)}</p>
-              </div>
-              {transfer.completed_at && (
-                <div>
-                  <p className="text-sm font-medium">Completed</p>
-                  <p className="text-sm text-muted-foreground">{formatDate(transfer.completed_at)}</p>
-                </div>
-              )}
-              {transfer.transfer_duration_days !== null && (
-                <div>
-                  <p className="text-sm font-medium">Duration</p>
-                  <p className="text-sm text-muted-foreground">
-                    {transfer.transfer_duration_days} {transfer.transfer_duration_days === 1 ? 'day' : 'days'}
+          <Panel icon={Clock} title="Timeline" delay={0.18}>
+            <ol className="relative space-y-5 border-l pl-5">
+              {timeline.map((t) => (
+                <li key={t.label} className="relative">
+                  <span className="absolute -left-[1.6rem] top-1 h-2.5 w-2.5 rounded-full bg-brand ring-4 ring-card" />
+                  <p className="text-sm font-medium">{t.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {[t.at && formatDateTime(t.at), t.by && `by ${t.by}`].filter(Boolean).join(' · ') || '—'}
                   </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* People */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <User className="h-5 w-5 mr-2" />
-                People
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm font-medium">Initiated By</p>
-                <p className="text-sm text-muted-foreground">{transfer.initiated_by_name}</p>
-              </div>
-              {transfer.approved_by_name && (
-                <div>
-                  <p className="text-sm font-medium">Approved By</p>
-                  <p className="text-sm text-muted-foreground">{transfer.approved_by_name}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </li>
+              ))}
+            </ol>
+            {transfer.transfer_duration_days !== null && (
+              <p className="mt-5 rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+                Took {transfer.transfer_duration_days} {transfer.transfer_duration_days === 1 ? 'day' : 'days'} end to end.
+              </p>
+            )}
+          </Panel>
+          {transfer.notes && (
+            <Panel title="Notes" delay={0.22}>
+              <p className="whitespace-pre-wrap text-sm text-muted-foreground">{transfer.notes}</p>
+            </Panel>
+          )}
         </div>
       </div>
 
-      {/* Confirmation Dialog */}
       <ConfirmDialog
-        open={dialogState.open}
-        onOpenChange={(open) => setDialogState({ ...dialogState, open })}
-        title={dialogState.title}
-        description={dialogState.description}
-        onConfirm={handleConfirmAction}
+        open={pending !== null}
+        onOpenChange={(open) => !open && !actionLoading && setPending(null)}
+        title={pending ? dialogs[pending].title : ''}
+        description={pending ? dialogs[pending].description : ''}
+        confirmText={pending ? dialogs[pending].confirm : undefined}
+        onConfirm={run}
         loading={actionLoading}
-        variant={dialogState.action === 'delete' || dialogState.action === 'cancel' ? 'destructive' : 'default'}
+        variant={pending === 'delete' || pending === 'cancel' ? 'destructive' : 'default'}
       />
     </div>
   )
