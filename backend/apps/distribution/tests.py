@@ -160,8 +160,7 @@ class ShipmentTests(AuthenticatedAPITestCase):
         self.assertEqual(data['delayed_shipments'], 1)
 
 
-@patch('apps.distribution.views.time.sleep')
-@patch('apps.distribution.views.geocode_address', return_value=(-1.2921, 36.8219))
+@patch('apps.ops.geo.geocode', return_value=(-1.2921, 36.8219))
 class RouteTests(AuthenticatedAPITestCase):
     def setUp(self):
         super().setUp()
@@ -217,7 +216,7 @@ class RouteTests(AuthenticatedAPITestCase):
         r = self.client.post(f'{BASE}/route-stops/{stop.id}/fail_stop/', {'notes': 'Customer absent'})
         self.assertEqual(r.json()['status'], 'FAILED')
 
-    def test_update_geocodes_only_when_address_changes(self, geocode, sleep):
+    def test_update_geocodes_only_when_address_changes(self, geocode):
         self.add_stop()
         stop = self.route.route_stops.get()
         geocode.reset_mock()
@@ -312,8 +311,7 @@ class ShipmentEventRecordingTests(AuthenticatedAPITestCase):
         self.client.patch(f'{BASE}/shipments/{shipment.id}/', {'notes': 'Fragile'}, format='json')
         self.assertEqual(shipment.events.count(), 1)
 
-    @patch('apps.distribution.views.time.sleep')
-    @patch('apps.distribution.views.geocode_address', return_value=None)
+    @patch('apps.ops.geo.geocode', return_value=None)
     def test_route_stop_actions_record_stop_events(self, *_):
         route = DeliveryRoute.objects.create(company=self.company, route_name='CBD')
         delivered = make_shipment(self.company, warehouse=self.warehouse, status='SHIPPED')
@@ -331,9 +329,11 @@ class ShipmentEventRecordingTests(AuthenticatedAPITestCase):
             ('STOP_COMPLETED', '', ''),
             ('STATUS_CHANGED', 'SHIPPED', 'DELIVERED'),
         ])
-        fail_event = failed.events.get()
-        self.assertEqual(fail_event.event_type, 'STOP_FAILED')
+        fail_event = failed.events.get(event_type='STOP_FAILED')
         self.assertEqual(fail_event.data['notes'], 'Gate locked')
+        # a failed stop also opens an exception for someone to follow up
+        self.assertEqual(failed.events.filter(event_type='EXCEPTION_RAISED').count(), 1)
+        self.assertEqual(failed.exceptions.get().exception_type, 'FAILED_DELIVERY')
 
 
 class LogisticsModelTests(AuthenticatedAPITestCase):
@@ -466,8 +466,7 @@ class StockAndRulesTests(AuthenticatedAPITestCase):
         r = self.client.post(f'{BASE}/orders/{oid2}/ship_order/', {'warehouse_id': str(self.warehouse.id)})
         self.assertEqual(r.status_code, 400)
 
-    @patch('apps.distribution.views.time.sleep')
-    @patch('apps.distribution.views.geocode_address', return_value=None)
+    @patch('apps.ops.geo.geocode', return_value=None)
     def test_route_stop_ships_and_delivers_and_failed_stops_dont_block(self, *_):
         oid = self.create_order().json()['id']
         sid = self.to_shipment(oid)

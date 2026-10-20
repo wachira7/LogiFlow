@@ -25,6 +25,12 @@ app.autodiscover_tasks()
 # ============================================================================
 
 app.conf.beat_schedule = {
+    # Open DELAY exceptions for shipments past their ETA
+    'raise-delay-exceptions': {
+        'task': 'apps.ops.tasks.raise_delay_exceptions',
+        'schedule': crontab(minute='*/10'),
+    },
+
     # Check for trial expirations daily at midnight
     'process-trial-expiration': {
         'task': 'apps.payments.tasks.process_trial_expiration',

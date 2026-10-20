@@ -3,6 +3,7 @@
 URL configuration for logistics_project project.
 """
 from django.contrib import admin
+from apps.ops.views import public_track
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
@@ -28,6 +29,8 @@ urlpatterns = [
     path('api/v1/payments/', include('apps.payments.urls')),
     path('api/v1/platform-admin/', include('apps.platform_admin.urls')),
     path('api/v1/analytics/', include('apps.analytics.urls')),
+    path('api/v1/ops/', include('apps.ops.urls')),
+    path('api/v1/public/track/<str:token>/', public_track, name='public-track'),
     path('api/v1/auth/set-cookies/', SetAuthCookiesView.as_view()),
     path('api/v1/contact/', ContactFormView.as_view(), name='contact'),
     

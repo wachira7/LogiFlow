@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { ErrorBanner, PageHeader, Panel } from '@/components/app/kit'
 import { RoutePill, StopPill } from '@/components/distribution/status'
-import { StopsMap } from '@/components/distribution/StopsMap'
+import { RouteLiveMap } from '@/components/ops/RouteLiveMap'
 import { timeAgo } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { DeliveryRouteDetail, RouteStop, Shipment } from '@/types/distribution.types'
@@ -63,7 +63,7 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="space-y-6">
       <PageHeader icon={Route} back={{ href: '/distribution/routes', label: 'Routes' }} title={r.route_name}
-        description={<span className="flex flex-wrap items-center gap-2"><RoutePill status={r.status} /><span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{r.driver_name ?? 'No driver'}{r.vehicle_id ? ` · ${r.vehicle_id}` : ''}</span></span>}
+        description={<span className="flex flex-wrap items-center gap-2"><RoutePill status={r.status} /><span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{r.driver_name ?? 'No driver'}{(r.fleet_vehicle_registration || r.vehicle_id) ? ` · ${r.fleet_vehicle_registration || r.vehicle_id}` : ''}</span></span>}
         actions={<>
           {open && <Button size="sm" variant="outline" onClick={() => router.push(`/distribution/routes/${id}/edit`)}><Edit className="mr-2 h-4 w-4" />Edit</Button>}
           {['PLANNED', 'CANCELLED'].includes(r.status) && <Button size="sm" variant="outline" className="text-danger hover:text-danger" onClick={() => setConfirm('delete')}><Trash2 className="mr-2 h-4 w-4" />Delete</Button>}
@@ -74,7 +74,7 @@ export default function RouteDetailPage({ params }: { params: Promise<{ id: stri
 
       <Panel delay={0.05} bodyClassName="p-0">
         <div className="grid lg:grid-cols-5">
-          <StopsMap stops={stops} className="h-72 lg:col-span-3 lg:h-96" />
+          <RouteLiveMap routeId={id} stops={stops} running={r.status === 'IN_PROGRESS'} className="h-72 lg:col-span-3 lg:h-96" />
           <div className="flex flex-col justify-between gap-4 p-5 lg:col-span-2">
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">{r.start_location ? `Starts from ${r.start_location}` : 'No start location set'}</p>

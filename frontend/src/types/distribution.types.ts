@@ -108,6 +108,10 @@ export interface ShipmentDetail extends Shipment {
   shipment_items: { id: string; product_id: string; product_name: string; product_sku: string; quantity: number }[]
   events: ShipmentEvent[]
   route_stop: { route_id: string; route_name: string; stop_number: number; status: StopStatus } | null
+  vehicle_id: string | null
+  vehicle_registration: string | null
+  public_token: string
+  open_exceptions: number
 }
 
 export interface RouteStop {
@@ -133,6 +137,8 @@ export interface DeliveryRoute {
   driver_id: string | null
   driver_name: string | null
   vehicle_id: string
+  fleet_vehicle_id: string | null
+  fleet_vehicle_registration: string | null
   start_time: string | null
   end_time: string | null
   status: RouteStatus

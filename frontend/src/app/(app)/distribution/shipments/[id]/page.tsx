@@ -4,8 +4,7 @@
 import { use, useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { AlertTriangle, CheckCircle2, ClipboardList, Copy, Edit, Hand, History, Loader2, MapPin, Package, Phone, Route, RotateCcw, Trash2, Truck, Warehouse, XCircle } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, ClipboardList, Copy, Edit, Hand, Loader2, MapPin, Package, Phone, Route, RotateCcw, Trash2, Truck, Warehouse, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { distributionService } from '@/services/distributionService'
 import { Button } from '@/components/ui/button'
@@ -16,9 +15,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
 import { ErrorBanner, PageHeader, Panel } from '@/components/app/kit'
-import { ShipmentPill, ShipmentProgress, SHIPMENT, StopPill } from '@/components/distribution/status'
-import { formatCount, formatDateTime, timeAgo } from '@/lib/format'
+import { ShipmentPill, ShipmentProgress, StopPill } from '@/components/distribution/status'
+import { formatCount, formatDateTime } from '@/lib/format'
 import type { ShipmentDetail } from '@/types/distribution.types'
+import { ShipmentTimeline } from '@/components/ops/ShipmentTimeline'
+import { VehicleAssign } from '@/components/ops/VehicleAssign'
 
 export default function ShipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -92,19 +93,7 @@ export default function ShipmentDetailPage({ params }: { params: Promise<{ id: s
               ))}</ul>
             )}
           </Panel>
-          <Panel icon={History} title="History" delay={0.15}>
-            {s.events.length === 0 ? <p className="text-sm text-muted-foreground">Nothing recorded yet.</p> : (
-              <ol className="relative space-y-4 border-l pl-5">
-                {s.events.map((e, i) => (
-                  <motion.li key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 + i * 0.04 }} className="relative">
-                    <span className="absolute -left-[1.6rem] top-1 h-2.5 w-2.5 rounded-full bg-brand ring-4 ring-card" />
-                    <p className="text-sm font-medium">{e.to_status ? SHIPMENT[e.to_status as keyof typeof SHIPMENT]?.[0] ?? e.to_status : e.type.replace(/_/g, ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase())}</p>
-                    <p className="text-xs text-muted-foreground">{e.message}{e.actor ? ` · ${e.actor}` : ''} · {timeAgo(e.occurred_at)}</p>
-                  </motion.li>
-                ))}
-              </ol>
-            )}
-          </Panel>
+          <ShipmentTimeline shipmentId={id} refreshKey={s.events.length} />
         </div>
         <div className="space-y-6">
           <Panel icon={MapPin} title="Delivery" delay={0.12}>
@@ -118,6 +107,12 @@ export default function ShipmentDetailPage({ params }: { params: Promise<{ id: s
                 <div><dt className="text-muted-foreground">Shipped</dt><dd className="font-medium">{s.shipping_date ? formatDateTime(s.shipping_date) : '—'}</dd></div>
                 <div><dt className="text-muted-foreground">{s.actual_delivery ? 'Delivered' : 'ETA'}</dt><dd className="font-medium">{formatDateTime(s.actual_delivery ?? s.estimated_delivery)}</dd></div>
               </dl>
+              {!['DELIVERED', 'CANCELLED', 'RETURNED'].includes(s.status) ? (
+                <div className="border-t pt-3"><VehicleAssign value={s.vehicle_id} onChange={async (vehicle_id) => {
+                  try { setS(await distributionService.updateShipment(id, { vehicle_id })); toast.success(vehicle_id ? 'Vehicle assigned' : 'Vehicle removed') }
+                  catch (err) { toast.error(err instanceof Error ? err.message : 'Couldn’t assign it.') }
+                }} /></div>
+              ) : s.vehicle_registration && <p className="border-t pt-3 text-xs text-muted-foreground">Vehicle <span className="font-medium text-foreground">{s.vehicle_registration}</span></p>}
             </div>
           </Panel>
           <Panel title="Linked" delay={0.18}>

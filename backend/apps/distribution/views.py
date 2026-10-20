@@ -7,7 +7,7 @@ from django.db.models import Q, Sum, Count, Avg , Max
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
 from django.utils import timezone
-from .models import CustomerOrder, OrderItem, Shipment, ShipmentItem, DeliveryRoute, RouteStop
+from .models import CustomerOrder, OrderItem, Shipment, ShipmentItem, DeliveryRoute, RouteStop, DeliveryException
 from .serializers import (
     CustomerOrderListSerializer, CustomerOrderDetailSerializer, CreateCustomerOrderSerializer, UpdateCustomerOrderSerializer,
     ShipmentListSerializer, ShipmentDetailSerializer, DeliveryRouteListSerializer,
@@ -15,11 +15,11 @@ from .serializers import (
 )
 from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
-from .utils import geocode_address, mark_shipment_delivered
+from .utils import mark_shipment_delivered
+from apps.ops import geo, services as ops
 from .events import record_event, record_status_change
 from . import services
 from .services import ShipmentError
-import time
 
 
 def error(message, status_code=status.HTTP_400_BAD_REQUEST, **extra):
@@ -177,7 +177,7 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
     def get_queryset(self):
         return Shipment.objects.filter(
             company=self.request.user.company
-        ).select_related('order', 'warehouse', 'driver').prefetch_related('shipment_items__product')
+        ).select_related('order', 'warehouse', 'driver', 'vehicle').prefetch_related('shipment_items__product')
 
     def get_serializer_class(self):
         if self.action in ('retrieve', 'create', 'update', 'partial_update'):
@@ -317,12 +317,22 @@ class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
     def get_queryset(self):
         return DeliveryRoute.objects.filter(
             company=self.request.user.company
-        ).select_related('driver').prefetch_related('route_stops__shipment')
+        ).select_related('driver', 'fleet_vehicle').prefetch_related('route_stops__shipment')
 
     def get_serializer_class(self):
         if self.action in ('retrieve', 'create', 'update', 'partial_update'):
             return DeliveryRouteDetailSerializer
         return DeliveryRouteListSerializer
+
+    def perform_update(self, serializer):
+        old_vehicle = serializer.instance.fleet_vehicle
+        route = serializer.save()
+        if old_vehicle and old_vehicle.id != route.fleet_vehicle_id and route.status == 'IN_PROGRESS':
+            # the vehicle taken off a running route frees up (unless it's on another one)
+            if not DeliveryRoute.objects.filter(fleet_vehicle=old_vehicle, status='IN_PROGRESS').exists() and old_vehicle.status == 'IN_USE':
+                old_vehicle.status = 'AVAILABLE'
+                old_vehicle.save(update_fields=['status', 'updated_at'])
+        ops.set_vehicle_status_for_route(route)
 
     @action(detail=True, methods=['post'])
     def start_route(self, request, pk=None):
@@ -334,9 +344,18 @@ class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
                 'error': 'Route must be in PLANNED status to start'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        route.status = 'IN_PROGRESS'
-        route.start_time = timezone.now()
-        route.save()
+        # The goods leave with the driver: ship everything on the route that hasn't shipped yet (stock moves now)
+        try:
+            with transaction.atomic():
+                for stop in route.route_stops.select_related('shipment').filter(status='PENDING'):
+                    if stop.shipment.status in services.PRE_SHIP:
+                        services.ship(stop.shipment, request.user, allow_unpacked=True)
+                route.status = 'IN_PROGRESS'
+                route.start_time = timezone.now()
+                route.save()
+        except ShipmentError as exc:
+            return error(f'Can’t start the route: {exc}', **exc.details)
+        ops.set_vehicle_status_for_route(route)
         
         return Response({
             'message': 'Route started successfully',
@@ -369,6 +388,7 @@ class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
         route.status = 'COMPLETED'
         route.end_time = timezone.now()
         route.save()
+        ops.set_vehicle_status_for_route(route)
         
         return Response({
             'message': 'Route completed successfully',
@@ -385,6 +405,7 @@ class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
         route.status = 'CANCELLED'
         route.end_time = timezone.now() if route.start_time else None
         route.save()
+        ops.set_vehicle_status_for_route(route)
         return Response({'message': 'Route cancelled', 'status': route.status})
 
     def destroy(self, request, *args, **kwargs):
@@ -409,8 +430,7 @@ class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
         max_stop = route.route_stops.aggregate(max_stop=models.Max('stop_number'))['max_stop'] or 0
         save_kwargs = {'route': route, 'stop_number': max_stop + 1}
 
-        coords = geocode_address(serializer.validated_data['address'])
-        time.sleep(1)  # Nominatim rate limit: 1 req/sec
+        coords = geo.geocode(serializer.validated_data['address'])
         if coords:
             save_kwargs.update(latitude=coords[0], longitude=coords[1])
         serializer.save(**save_kwargs)
@@ -452,8 +472,7 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
     def perform_update(self, serializer):
         address = serializer.validated_data.get('address')
         if address and address != serializer.instance.address:
-            coords = geocode_address(address)
-            time.sleep(1)  # Nominatim rate limit: 1 req/sec
+            coords = geo.geocode(address)
             if coords:
                 serializer.save(latitude=coords[0], longitude=coords[1])
                 return
@@ -536,6 +555,14 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
         record_event(stop.shipment, 'STOP_FAILED', actor=request.user,
                      message=f'Stop {stop.stop_number} failed' + (f': {notes}' if notes else ''),
                      data={'route_id': str(stop.route_id), 'stop_id': str(stop.id), 'notes': notes})
+        reason = request.data.get('reason') or 'FAILED_DELIVERY'
+        if reason not in dict(DeliveryException.TYPE_CHOICES):
+            reason = 'FAILED_DELIVERY'
+        ops.raise_exception(
+            stop.route.company, user=request.user, shipment=stop.shipment, route_stop=stop, exception_type=reason,
+            severity='HIGH', title=f'Delivery failed at stop {stop.stop_number} ({stop.shipment.shipment_number})',
+            description=notes, recommended_action='Contact the customer to rebook, or return the goods to the warehouse.',
+        )
         
         return Response({
             'message': 'Stop marked as failed',
