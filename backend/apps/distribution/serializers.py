@@ -2,7 +2,7 @@
 from rest_framework import serializers
 from django.db import transaction
 from django.utils import timezone
-from .models import CustomerOrder, OrderItem, Shipment, ShipmentItem, DeliveryRoute, RouteStop
+from .models import CustomerOrder, OrderItem, Shipment, ShipmentItem, DeliveryRoute, RouteStop, Vehicle
 from apps.inventory.models import Product, Warehouse
 from apps.users.models import User
 
@@ -246,6 +246,8 @@ class ShipmentDetailSerializer(serializers.ModelSerializer):
     order_id = serializers.UUIDField(required=False, allow_null=True)
     warehouse_id = serializers.UUIDField()
     driver_id = serializers.UUIDField(required=False, allow_null=True)
+    vehicle_id = serializers.UUIDField(required=False, allow_null=True)
+    vehicle_registration = serializers.CharField(source='vehicle.registration', read_only=True, default=None)
     order_number = serializers.CharField(source='order.order_number', read_only=True)
     warehouse_name = serializers.CharField(source='warehouse.name', read_only=True)
     driver_name = serializers.CharField(source='driver.get_full_name', read_only=True)
@@ -261,14 +263,19 @@ class ShipmentDetailSerializer(serializers.ModelSerializer):
             'status', 'carrier', 'tracking_number', 'shipping_date',
             'estimated_delivery', 'actual_delivery', 'vehicle_info', 'notes',
             'destination_address', 'recipient_name', 'recipient_phone', 'stock_deducted',
-            'delivery_days', 'is_delayed', 'shipment_items', 'events', 'route_stop', 'created_at', 'updated_at'
+            'delivery_days', 'is_delayed', 'shipment_items', 'events', 'route_stop', 'vehicle_id', 'vehicle_registration',
+            'public_token', 'open_exceptions', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'company_id', 'status', 'shipping_date', 'actual_delivery', 'stock_deducted',
-                            'created_at', 'updated_at']
+                            'public_token', 'created_at', 'updated_at']
         extra_kwargs = {'shipment_number': {'required': False, 'allow_blank': True}}
 
     events = serializers.SerializerMethodField()
     route_stop = serializers.SerializerMethodField()
+    open_exceptions = serializers.SerializerMethodField()
+
+    def get_open_exceptions(self, obj):
+        return obj.exceptions.filter(status__in=('OPEN', 'ACKNOWLEDGED')).count()
 
     def get_events(self, obj):
         return [
@@ -285,10 +292,10 @@ class ShipmentDetailSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if self.instance is not None and self.instance.status not in ('PENDING', 'PICKED', 'PACKED'):
-            editable = {'notes', 'carrier', 'tracking_number', 'estimated_delivery', 'driver_id', 'recipient_phone'}
+            editable = {'notes', 'carrier', 'tracking_number', 'estimated_delivery', 'driver_id', 'vehicle_id', 'recipient_phone'}
             locked = [k for k in attrs if k not in editable and attrs[k] != getattr(self.instance, k, None)]
             if locked:
-                raise serializers.ValidationError('Only the carrier, tracking, ETA, driver and notes can change once a shipment has left.')
+                raise serializers.ValidationError('Only the carrier, tracking, ETA, driver, vehicle and notes can change once a shipment has left.')
         number = (attrs.get('shipment_number') or '').strip()
         company = self.context['request'].user.company
         if number and Shipment.objects.filter(company=company, shipment_number__iexact=number).exclude(pk=getattr(self.instance, 'pk', None)).exists():
@@ -319,6 +326,21 @@ class ShipmentDetailSerializer(serializers.ModelSerializer):
             if not User.objects.filter(id=value, company=company, is_driver=True).exists():
                 raise serializers.ValidationError("Driver not found.")
         return value
+
+    def validate_vehicle_id(self, value):
+        return _validate_vehicle(self, value)
+
+
+def _validate_vehicle(serializer, value):
+    if value:
+        company = serializer.context['request'].user.company
+        vehicle = Vehicle.objects.filter(id=value, company=company).first()
+        if vehicle is None:
+            raise serializers.ValidationError('Vehicle not found.')
+        current = getattr(serializer.instance, 'vehicle_id', getattr(serializer.instance, 'fleet_vehicle_id', None))
+        if vehicle.status in ('MAINTENANCE', 'INACTIVE') and vehicle.id != current:
+            raise serializers.ValidationError(f'{vehicle.registration} is {"in maintenance" if vehicle.status == "MAINTENANCE" else "inactive"}.')
+    return value
 
 class RouteStopSerializer(serializers.ModelSerializer):
     """Serializer for RouteStop model."""
@@ -362,13 +384,15 @@ class DeliveryRouteListSerializer(serializers.ModelSerializer):
     company_id = serializers.UUIDField(read_only=True)
     driver_id = serializers.UUIDField(read_only=True)
     driver_name = serializers.CharField(source='driver.get_full_name', read_only=True)
+    fleet_vehicle_id = serializers.UUIDField(read_only=True)
+    fleet_vehicle_registration = serializers.CharField(source='fleet_vehicle.registration', read_only=True, default=None)
     duration_hours = serializers.ReadOnlyField()
     stop_count = serializers.ReadOnlyField()
 
     class Meta:
         model = DeliveryRoute
         fields = [
-            'id', 'company_id', 'route_name', 'driver_id', 'driver_name',
+            'id', 'company_id', 'route_name', 'driver_id', 'driver_name', 'fleet_vehicle_id', 'fleet_vehicle_registration',
             'vehicle_id', 'start_time', 'end_time', 'status', 'total_distance','description', 
             'start_location', 'estimated_duration',
             'duration_hours', 'stop_count', 'created_at'
@@ -380,14 +404,19 @@ class DeliveryRouteDetailSerializer(serializers.ModelSerializer):
     company_id = serializers.UUIDField(read_only=True)
     driver_id = serializers.UUIDField(required=False, allow_null=True)
     driver_name = serializers.CharField(source='driver.get_full_name', read_only=True)
+    fleet_vehicle_id = serializers.UUIDField(required=False, allow_null=True)
+    fleet_vehicle_registration = serializers.CharField(source='fleet_vehicle.registration', read_only=True, default=None)
     duration_hours = serializers.ReadOnlyField()
     stop_count = serializers.ReadOnlyField()
     route_stops = RouteStopSerializer(many=True, read_only=True)
 
+    def validate_fleet_vehicle_id(self, value):
+        return _validate_vehicle(self, value)
+
     class Meta:
         model = DeliveryRoute
         fields = [
-            'id', 'company_id', 'route_name', 'driver_id', 'driver_name',
+            'id', 'company_id', 'route_name', 'driver_id', 'driver_name', 'fleet_vehicle_id', 'fleet_vehicle_registration',
             'vehicle_id', 'start_time', 'end_time', 'status', 'total_distance',
             'notes', 'duration_hours', 'stop_count', 'route_stops','description', 
             'start_location', 'estimated_duration', 'created_at', 'updated_at'

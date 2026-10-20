@@ -10,7 +10,7 @@ import { useAuth, useAuthUtils } from '@/hooks/useAuth'
 import {
   LayoutDashboard, Package, Truck, Factory, Warehouse, BarChart3, CreditCard, Settings, Users, Building,
   ChevronDown, X, ChevronLeft, ChevronRight, Shield, TrendingUp, Building2, User, Boxes, Tags, History,
-  ArrowRightLeft, Route, MapPin, ClipboardList, Layers, ListChecks, Wallet, Receipt, Bell, Lock, Home,
+  ArrowRightLeft, Route, MapPin, ClipboardList, Layers, ListChecks, Wallet, Receipt, Bell, Lock, Home, Radar, Siren, Smartphone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -39,6 +39,15 @@ export interface NavItem {
 
 const navigation: NavItem[] = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  {
+    title: 'Operations', href: '/ops', icon: Radar,
+    children: [
+      { title: 'Ops board', href: '/ops', icon: Radar },
+      { title: 'Exceptions', href: '/ops/exceptions', icon: Siren },
+      { title: 'Fleet', href: '/ops/fleet', icon: Truck },
+      { title: 'Driver app', href: '/driver', icon: Smartphone },
+    ],
+  },
   {
     title: 'Inventory', href: '/inventory', icon: Package,
     children: [

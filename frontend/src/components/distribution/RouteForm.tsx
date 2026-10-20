@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageHeader, Panel } from '@/components/app/kit'
+import { VehicleAssign } from '@/components/ops/VehicleAssign'
 
 type Driver = { id: string; first_name?: string; last_name?: string; email: string; role?: string; is_driver?: boolean }
 
@@ -20,7 +21,7 @@ export function RouteForm({ routeId }: { routeId?: string }) {
   const router = useRouter()
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [loading, setLoading] = useState(!!routeId)
-  const [f, setF] = useState({ route_name: '', driver_id: '', vehicle_id: '', start_location: '', total_distance: '', estimated_duration: '', description: '', notes: '' })
+  const [f, setF] = useState({ route_name: '', driver_id: '', fleet_vehicle_id: '', vehicle_id: '', start_location: '', total_distance: '', estimated_duration: '', description: '', notes: '' })
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -30,7 +31,7 @@ export function RouteForm({ routeId }: { routeId?: string }) {
       setDrivers(((Array.isArray(d) ? d : (d as { results?: Driver[] })?.results ?? []) as Driver[]).filter((u) => u.is_driver || u.role === 'driver'))
     })
     if (routeId) distributionService.route(routeId).then((r) => setF({
-      route_name: r.route_name, driver_id: r.driver_id ?? '', vehicle_id: r.vehicle_id, start_location: r.start_location,
+      route_name: r.route_name, driver_id: r.driver_id ?? '', fleet_vehicle_id: r.fleet_vehicle_id ?? '', vehicle_id: r.vehicle_id, start_location: r.start_location,
       total_distance: r.total_distance ?? '', estimated_duration: r.estimated_duration ?? '', description: r.description, notes: r.notes,
     })).finally(() => setLoading(false))
   }, [routeId])
@@ -41,7 +42,7 @@ export function RouteForm({ routeId }: { routeId?: string }) {
     if (!f.route_name.trim()) return setError('Name the route, e.g. “Westlands Tuesday run”.')
     setSaving(true)
     setError(null)
-    const data = { ...f, route_name: f.route_name.trim(), driver_id: f.driver_id || null, total_distance: f.total_distance || null, estimated_duration: f.estimated_duration || null }
+    const data = { ...f, route_name: f.route_name.trim(), driver_id: f.driver_id || null, fleet_vehicle_id: f.fleet_vehicle_id || null, total_distance: f.total_distance || null, estimated_duration: f.estimated_duration || null }
     try {
       const saved = routeId ? await distributionService.updateRoute(routeId, data) : await distributionService.createRoute(data)
       router.push(`/distribution/routes/${saved.id}`)
@@ -63,7 +64,7 @@ export function RouteForm({ routeId }: { routeId?: string }) {
             <div className="space-y-1.5"><Label htmlFor="r-driver">Driver</Label>
               <Select value={f.driver_id || 'none'} onValueChange={(v) => set('driver_id', v === 'none' ? '' : v)}><SelectTrigger id="r-driver" className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent><SelectItem value="none">Assign later</SelectItem>{drivers.map((d) => <SelectItem key={d.id} value={d.id}>{`${d.first_name ?? ''} ${d.last_name ?? ''}`.trim() || d.email}</SelectItem>)}</SelectContent></Select></div>
-            <div className="space-y-1.5"><Label htmlFor="r-veh">Vehicle</Label><Input id="r-veh" value={f.vehicle_id} onChange={(e) => set('vehicle_id', e.target.value)} placeholder="KCD 214T" /></div>
+            <VehicleAssign id="r-veh" value={f.fleet_vehicle_id || null} onChange={(v) => set('fleet_vehicle_id', v ?? '')} label="Vehicle" />
             <div className="space-y-1.5"><Label htmlFor="r-start">Starts from</Label><Input id="r-start" value={f.start_location} onChange={(e) => set('start_location', e.target.value)} placeholder="Nairobi Central warehouse" /></div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5"><Label htmlFor="r-km">Distance (km)</Label><Input id="r-km" type="number" min={0} step="0.1" value={f.total_distance} onChange={(e) => set('total_distance', e.target.value)} /></div>

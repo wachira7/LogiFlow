@@ -1,4 +1,5 @@
 # backend/apps/distribution/models.py
+import secrets
 import uuid
 from django.db import models
 from django.utils import timezone
@@ -89,6 +90,10 @@ class OrderItem(TimeStampedModel):
         super().save(*args, **kwargs)
 
 
+def new_public_token():
+    return secrets.token_urlsafe(16)
+
+
 class Shipment(TimeStampedModel):
     """
     Shipments model - matches 'shipments' table from schema
@@ -136,6 +141,9 @@ class Shipment(TimeStampedModel):
     recipient_phone = models.CharField(max_length=20, blank=True)
     
     notes = models.TextField(blank=True)
+
+    # Unguessable key for the public tracking page (tracking numbers are short and per company)
+    public_token = models.CharField(max_length=32, unique=True, default=new_public_token, editable=False)
     
     class Meta:
         db_table = 'shipments'
@@ -421,7 +429,8 @@ class DeliveryException(TimeStampedModel):
 
 
 def proof_upload_path(instance, filename):
-    return f"proof_of_delivery/{instance.shipment.company_id}/{instance.shipment_id}/{filename}"
+    # kept short: two full UUIDs plus a filename overflowed the field
+    return f"pod/{instance.shipment.company_id.hex[:12]}/{instance.shipment_id.hex}/{filename[-60:]}"
 
 
 class ProofOfDelivery(TimeStampedModel):
@@ -429,8 +438,8 @@ class ProofOfDelivery(TimeStampedModel):
     shipment = models.ForeignKey(Shipment, on_delete=models.CASCADE, related_name='proofs')
     route_stop = models.ForeignKey(RouteStop, on_delete=models.SET_NULL, null=True, blank=True, related_name='proofs')
     recipient_name = models.CharField(max_length=255, blank=True)
-    signature = models.ImageField(upload_to=proof_upload_path, null=True, blank=True)
-    photo = models.ImageField(upload_to=proof_upload_path, null=True, blank=True)
+    signature = models.ImageField(upload_to=proof_upload_path, max_length=255, null=True, blank=True)
+    photo = models.ImageField(upload_to=proof_upload_path, max_length=255, null=True, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     notes = models.TextField(blank=True)
