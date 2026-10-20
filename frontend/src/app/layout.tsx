@@ -5,7 +5,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/context/AuthContext"; 
-import { Toaster } from "@/components/ui/toaster"; 
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -180,6 +181,7 @@ export default function RootLayout({
 
             {/* Toast notifications */}
             <Toaster />
+            <SonnerToaster position="top-right" richColors closeButton />
           </AuthProvider>
         </ThemeProvider>
 

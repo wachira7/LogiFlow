@@ -464,6 +464,8 @@ MPESA_STK_QUERY_URL = os.getenv('MPESA_STK_QUERY_URL', f"{MPESA_BASE_URL}/mpesa/
 MPESA_ACCOUNT_BALANCE_URL = os.getenv('MPESA_ACCOUNT_BALANCE_URL', f"{MPESA_BASE_URL}/mpesa/accountbalance/v1/query")
 
 # M-Pesa Callbacks
+# Secret token appended to the STK callback URL (?token=...) so forged callbacks are rejected. Set it in production.
+MPESA_CALLBACK_TOKEN = os.getenv('MPESA_CALLBACK_TOKEN', '')
 MPESA_CALLBACK_URL = os.getenv('MPESA_CALLBACK_URL', 'https://your-domain.com/api/v1/payments/callbacks/mpesa/')
 MPESA_RESULT_URL = os.getenv('MPESA_RESULT_URL', 'https://your-domain.com/api/v1/payments/callbacks/mpesa/result/')
 MPESA_TIMEOUT_URL = os.getenv('MPESA_TIMEOUT_URL', 'https://your-domain.com/api/v1/payments/callbacks/mpesa/timeout/')

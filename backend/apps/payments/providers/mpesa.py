@@ -65,7 +65,8 @@ class MPesaService:
         
         return password_b64, timestamp
     
-    def initiate_stk_push(self, phone_number, amount, account_reference, transaction_desc, user=None, company=None):
+    def initiate_stk_push(self, phone_number, amount, account_reference, transaction_desc, user=None, company=None,
+                          subscription=None):
         """Initiate STK Push payment."""
         try:
             # Get access token
@@ -97,9 +98,10 @@ class MPesaService:
                 'TransactionDesc': transaction_desc
             }
             
-            # Add metadata for tracking
-            if user and company:
-                payload['CallBackURL'] = f"{settings.MPESA_CALLBACK_URL}?user_id={user.id}&company_id={company.id}"
+            # Safaricom doesn't sign callbacks; a secret token in the URL proves a callback came from our request
+            token = getattr(settings, 'MPESA_CALLBACK_TOKEN', '')
+            if token:
+                payload['CallBackURL'] = f"{settings.MPESA_CALLBACK_URL}?token={token}"
             
             headers = {
                 'Authorization': f'Bearer {access_token}',
@@ -117,17 +119,19 @@ class MPesaService:
             
             logger.info(f"STK Push initiated: {response_data}")
             
-            # Create pending payment transaction
-            if user and company:
+            # Create pending payment transaction (the callback completes or fails it)
+            if user and company and response_data.get('CheckoutRequestID'):
                 transaction = PaymentTransaction.objects.create(
                     company=company,
                     user=user,
-                    amount=amount,
+                    subscription=subscription,
+                    amount=int(amount),
                     currency='KES',
                     status='PENDING',
-                    payment_type='ONE_TIME',
+                    payment_type='SUBSCRIPTION' if subscription else 'ONE_TIME',
                     provider='MPESA',
-                    provider_transaction_id=response_data.get('CheckoutRequestID', ''),
+                    provider_transaction_id=response_data['CheckoutRequestID'],
+                    provider_payment_method=f'M-Pesa {phone_number}',
                     description=transaction_desc
                 )
                 
@@ -191,72 +195,41 @@ class MPesaService:
             raise
     
     def handle_callback(self, callback_data):
-        """Handle M-Pesa callback/webhook."""
-        try:
-            logger.info(f"Processing M-Pesa callback: {callback_data}")
-            
-            # Extract relevant data
-            stk_callback = callback_data.get('Body', {}).get('stkCallback', {})
-            result_code = stk_callback.get('ResultCode')
-            result_desc = stk_callback.get('ResultDesc', '')
-            checkout_request_id = stk_callback.get('CheckoutRequestID', '')
-            
-            # Find the transaction
-            try:
-                transaction = PaymentTransaction.objects.get(
-                    provider_transaction_id=checkout_request_id,
-                    provider='MPESA'
-                )
-            except PaymentTransaction.DoesNotExist:
-                logger.warning(f"Transaction not found for CheckoutRequestID: {checkout_request_id}")
-                return False
-            
-            # Update transaction based on result
-            if result_code == 0:  # Success
-                # Extract payment details from callback metadata
-                callback_metadata = stk_callback.get('CallbackMetadata', {}).get('Item', [])
-                
-                mpesa_receipt_number = None
-                phone_number = None
-                amount = None
-                transaction_date = None
-                
-                for item in callback_metadata:
-                    name = item.get('Name', '')
-                    value = item.get('Value')
-                    
-                    if name == 'MpesaReceiptNumber':
-                        mpesa_receipt_number = value
-                    elif name == 'PhoneNumber':
-                        phone_number = value
-                    elif name == 'Amount':
-                        amount = value
-                    elif name == 'TransactionDate':
-                        transaction_date = value
-                
-                # Update transaction as successful
-                transaction.status = 'COMPLETED'
-                transaction.provider_payment_method = f"M-Pesa {phone_number}" if phone_number else "M-Pesa"
-                transaction.receipt_url = f"M-Pesa Receipt: {mpesa_receipt_number}" if mpesa_receipt_number else ""
-                transaction.save()
-                
-                logger.info(f"M-Pesa payment completed: {transaction.id} - Receipt: {mpesa_receipt_number}")
-                
-                return True
-                
-            else:  # Failed
-                transaction.status = 'FAILED'
-                transaction.description = f"{transaction.description} - {result_desc}"
-                transaction.save()
-                
-                logger.error(f"M-Pesa payment failed: {transaction.id} - {result_desc}")
-                
-                return False
-                
-        except Exception as e:
-            logger.error(f"Error processing M-Pesa callback: {str(e)}")
+        """
+        Complete or fail the pending transaction for an STK callback. Safe to receive twice: only a pending
+        transaction changes, and a success must be for the exact amount we asked for.
+        """
+        from ..billing import mark_payment_failed, record_payment
+
+        stk = callback_data.get('Body', {}).get('stkCallback', {})
+        result_code = stk.get('ResultCode')
+        checkout_request_id = stk.get('CheckoutRequestID', '')
+        tx = PaymentTransaction.objects.filter(provider='MPESA', provider_transaction_id=checkout_request_id).first()
+        if tx is None:
+            logger.warning('M-Pesa callback for unknown CheckoutRequestID %s', checkout_request_id)
             return False
-    
+        if tx.status != 'PENDING':
+            return True  # already handled
+
+        if result_code != 0:
+            mark_payment_failed(tx, stk.get('ResultDesc', 'cancelled or failed'))
+            return True
+
+        items = {i.get('Name'): i.get('Value') for i in stk.get('CallbackMetadata', {}).get('Item', [])}
+        paid = items.get('Amount')
+        if paid is None or int(float(paid)) != int(tx.amount):
+            logger.error('M-Pesa callback amount %s does not match transaction %s (%s)', paid, tx.id, tx.amount)
+            mark_payment_failed(tx, 'amount mismatch')
+            return False
+        receipt = items.get('MpesaReceiptNumber', '')
+        record_payment(
+            company=tx.company, user=tx.user, provider='MPESA', provider_transaction_id=checkout_request_id,
+            amount=tx.amount, currency=tx.currency, status='COMPLETED', subscription=tx.subscription,
+            payment_type=tx.payment_type, invoice_number=str(receipt),
+        )
+        logger.info('M-Pesa payment completed: %s receipt %s', tx.id, receipt)
+        return True
+
     def get_account_balance(self):
         """Get M-Pesa account balance."""
         try:

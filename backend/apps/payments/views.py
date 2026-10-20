@@ -1,46 +1,66 @@
 # apps/payments/views.py
-from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action, api_view, permission_classes as api_permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.response import Response
-from rest_framework import status
-from .providers.stripe import StripeService
-from django.db import transaction
-from django.db.models import Q, Sum, Count
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
-from django.utils import timezone
-from datetime import datetime, timedelta, timezone as dt_timezone
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-from django.utils.decorators import method_decorator
-from django.views import View
-from django.http import HttpResponse, JsonResponse
-from drf_spectacular.utils import extend_schema
-from .serializers import MPesaPaymentSerializer, MPesaStatusCheckSerializer, CryptoPaymentSerializer, CryptoStatusCheckSerializer
+"""
+Billing API. Plans are visible to any signed-in user; everything else (subscriptions, payments, payment
+methods, checkout) is for company owners. All state changes go through billing.py / stripe_flow.py.
+"""
 import json
 import logging
-from .models import SubscriptionPlan, UserSubscription, PaymentTransaction, PaymentMethod
-from .serializers import (
-    SubscriptionPlanSerializer, UserSubscriptionListSerializer, 
-    UserSubscriptionDetailSerializer, CreateSubscriptionSerializer,
-    PaymentTransactionSerializer, PaymentMethodSerializer
-)
-from utils.mixins import TenantViewSetMixin, BulkActionMixin
-from utils.permissions import IsCompanyMember, IsSameCompany, IsPlatformAdmin
-from .providers.mpesa import MPesaService
-from .providers.crypto import CryptoService
-import stripe 
+from collections import defaultdict
+from datetime import timedelta
+
 from django.conf import settings
+from django.db import transaction
+from django.db.models import Sum
+from django.db.models.functions import TruncMonth
+from django.http import JsonResponse
+from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes as api_permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from utils.mixins import TenantViewSetMixin
+from utils.permissions import IsCompanyOwnerOrAdmin, IsPlatformAdmin, IsSameCompany
+
+from . import billing
+from .billing import BillingError
+from .models import PaymentMethod, PaymentTransaction, SubscriptionPlan, UserSubscription
+from .providers.crypto import CryptoService
+from .providers.mpesa import MPesaService
+from .serializers import (
+    CreateSubscriptionSerializer, CryptoPaymentSerializer, CryptoStatusCheckSerializer, MPesaPaymentSerializer,
+    MPesaStatusCheckSerializer, PaymentMethodSerializer, PaymentTransactionSerializer, SubscriptionPlanSerializer,
+    UserSubscriptionDetailSerializer, UserSubscriptionListSerializer,
+)
+from . import stripe_flow
 
 logger = logging.getLogger(__name__)
 
+OWNER = [IsAuthenticated, IsCompanyOwnerOrAdmin]
+
+
+def error(message, status_code=status.HTTP_400_BAD_REQUEST, **extra):
+    return Response({'error': message, 'message': message, **extra}, status=status_code)
+
+
+def provider_down(exc, what):
+    logger.error('%s failed: %s', what, exc)
+    return error(f'{what} is unavailable right now. Please try again in a few minutes.', status.HTTP_502_BAD_GATEWAY)
+
+
+def totals_by_currency(qs):
+    return {row['currency']: float(row['total'] or 0) for row in qs.values('currency').annotate(total=Sum('amount'))}
+
+
 class SubscriptionPlanViewSet(viewsets.ReadOnlyModelViewSet):
-    """ViewSet for SubscriptionPlan - read-only for customers."""
     serializer_class = SubscriptionPlanSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['billing_cycle', 'is_active']
+    filterset_fields = ['billing_cycle']
     search_fields = ['name', 'description']
     ordering_fields = ['name', 'price', 'created_at']
     ordering = ['price']
@@ -48,1171 +68,489 @@ class SubscriptionPlanViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return SubscriptionPlan.objects.filter(is_active=True)
 
-class UserSubscriptionViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
-    """ViewSet for UserSubscription management."""
-    permission_classes = [IsCompanyMember, IsSameCompany]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+
+class UserSubscriptionViewSet(TenantViewSetMixin, mixins.ListModelMixin, mixins.RetrieveModelMixin,
+                              mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """Subscriptions can be started, cancelled and resumed; never edited directly."""
+    permission_classes = OWNER + [IsSameCompany]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status', 'payment_provider', 'is_trial']
-    search_fields = ['plan__name', 'company__name']
     ordering_fields = ['start_date', 'end_date', 'created_at']
     ordering = ['-created_at']
 
     def get_queryset(self):
-        return UserSubscription.objects.filter(
-            company=self.request.user.company
-        ).select_related('plan', 'company', 'user').prefetch_related('transactions')
+        return UserSubscription.objects.filter(company=self.request.user.company).select_related('plan', 'company', 'user')
 
     def get_serializer_class(self):
         if self.action == 'create':
             return CreateSubscriptionSerializer
-        elif self.action == 'retrieve':
+        if self.action == 'retrieve':
             return UserSubscriptionDetailSerializer
         return UserSubscriptionListSerializer
 
-    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        """M-Pesa / crypto: start the free trial (once per company) or subscribe and pay now."""
+        serializer = CreateSubscriptionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        plan = serializer.validated_data['plan']
+        provider = serializer.validated_data['payment_provider']
+        pay_now = serializer.validated_data['pay_now']
+        company = request.user.company
+        try:
+            if not pay_now and billing.trial_available(company):
+                sub = billing.start_local_trial(company, request.user, plan, provider)
+            else:
+                if billing.live_subscription(company) and not pay_now:
+                    raise BillingError('You already have a subscription. Use “Change plan” to switch.')
+                sub = billing.start_paid_local(company, request.user, plan, provider)
+        except BillingError as exc:
+            return error(str(exc))
+        data = UserSubscriptionDetailSerializer(sub, context={'request': request}).data
+        return Response(data, status=status.HTTP_201_CREATED)
+
+    def _run(self, step, message):
+        try:
+            sub = step(self.get_object())
+        except BillingError as exc:
+            return error(str(exc))
+        except Exception as exc:  # Stripe unreachable: nothing was changed locally
+            return provider_down(exc, 'Stripe')
+        return Response({'message': message, 'subscription': UserSubscriptionDetailSerializer(sub, context={'request': self.request}).data,
+                         'status': sub.status})
+
     @action(detail=True, methods=['post'])
     def cancel_subscription(self, request, pk=None):
-        """Cancel a subscription."""
-        subscription = self.get_object()
-        
-        if subscription.status == 'CANCELLED':
-            return Response({
-                'error': 'Subscription is already cancelled'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        subscription.status = 'CANCELLED'
-        subscription.auto_renew = False
-        subscription.save()
-        
-        # Process refund if applicable
-        if subscription.is_trial:
-            # No refund needed for trial subscriptions
-            refund_amount = 0
-        else:
-            # Calculate prorated refund
-            from datetime import datetime
-            days_used = (timezone.now().date() - subscription.start_date.date()).days
-            total_days = (subscription.end_date.date() - subscription.start_date.date()).days
-            if total_days > 0:
-                days_remaining = max(0, total_days - days_used)
-                refund_amount = (subscription.plan.price * days_remaining) / total_days
-            else:
-                refund_amount = 0
-            
-            # Create refund transaction record
-            if refund_amount > 0:
-                PaymentTransaction.objects.create(
-                    company=subscription.company,
-                    user=request.user,
-                    subscription=subscription,
-                    amount=refund_amount,
-                    currency='USD',
-                    status='PENDING',
-                    payment_type='SUBSCRIPTION',
-                    provider=subscription.payment_provider,
-                    description=f'Prorated refund for cancelled subscription {subscription.id}'
-                )
-        
-        # Update payment provider subscription
-        try:
-            if subscription.provider_subscription_id:
-                # TODO: Call payment provider API to cancel recurring billing
-                # Example: stripe.Subscription.modify(subscription.provider_subscription_id, cancel_at_period_end=True)
-                pass
-        except Exception as e:
-            # Log the error but don't fail the cancellation
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.error(f"Failed to cancel provider subscription {subscription.provider_subscription_id}: {e}")
-        
-        return Response({
-            'message': 'Subscription cancelled successfully',
-            'status': subscription.status,
-            'refund_amount': refund_amount if 'refund_amount' in locals() else 0
-        })
+        """Stop renewal; access continues until the end of the current period."""
+        return self._run(billing.cancel, 'Your subscription won’t renew. You keep access until the end of the period.')
 
-    @transaction.atomic
     @action(detail=True, methods=['post'])
     def reactivate_subscription(self, request, pk=None):
-        """Reactivate a cancelled subscription."""
-        subscription = self.get_object()
-        
-        if subscription.status != 'CANCELLED':
-            return Response({
-                'error': 'Only cancelled subscriptions can be reactivated'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Check if subscription hasn't expired
-        if subscription.end_date < timezone.now():
-            return Response({
-                'error': 'Subscription has expired and cannot be reactivated'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        subscription.status = 'ACTIVE'
-        subscription.auto_renew = True
-        subscription.save()
-        
-        # Update payment provider subscription
-        try:
-            if subscription.provider_subscription_id:
-                # TODO: Call payment provider API to reactivate billing
-                # Example: stripe.Subscription.modify(subscription.provider_subscription_id, cancel_at_period_end=False)
-                pass
-            else:
-                # Create new provider subscription if none exists
-                # TODO: Set up new recurring billing with payment provider
-                pass
-        except Exception as e:
-            # Rollback status change if provider update fails
-            subscription.status = 'CANCELLED'
-            subscription.auto_renew = False
-            subscription.save()
-            
-            return Response({
-                'error': f'Failed to reactivate subscription with payment provider: {str(e)}'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+        """Undo a cancellation before the period ends."""
+        return self._run(billing.resume, 'Your subscription will renew as normal.')
+
+    @action(detail=False, methods=['get'])
+    def overview(self, request):
+        """Everything the billing page needs in one call."""
+        company = request.user.company
+        sub = billing.live_subscription(company)
+        completed = PaymentTransaction.objects.filter(company=company, status='COMPLETED')
+        month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        default_method = PaymentMethod.objects.filter(company=company).order_by('-is_default', '-created_at').first()
         return Response({
-            'message': 'Subscription reactivated successfully',
-            'status': subscription.status
+            'subscription': UserSubscriptionDetailSerializer(sub, context={'request': request}).data if sub else None,
+            'trial_available': billing.trial_available(company),
+            'spent_total': totals_by_currency(completed),
+            'spent_this_month': totals_by_currency(completed.filter(created_at__gte=month)),
+            'completed_payments': completed.count(),
+            'pending_payments': PaymentTransaction.objects.filter(company=company, status='PENDING').count(),
+            'default_payment_method': PaymentMethodSerializer(default_method).data if default_method else None,
+            'payment_methods': PaymentMethod.objects.filter(company=company).count(),
+            'recent_transactions': PaymentTransactionSerializer(
+                PaymentTransaction.objects.filter(company=company).select_related('subscription__plan')[:5], many=True).data,
+            'stripe_enabled': bool(settings.STRIPE_SECRET_KEY),
         })
 
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
-        """Get subscription dashboard data."""
-        queryset = self.get_queryset()
-        
-        total_subscriptions = queryset.count()
-        active_subscriptions = queryset.filter(status='ACTIVE').count()
-        trial_subscriptions = queryset.filter(is_trial=True, status='TRIALING').count()
-        cancelled_subscriptions = queryset.filter(status='CANCELLED').count()
-        expired_subscriptions = queryset.filter(status='EXPIRED').count()
-        
-        # Revenue calculations
-        total_transactions = PaymentTransaction.objects.filter(
-            company=request.user.company,
-            status='COMPLETED'
-        )
-        total_revenue = total_transactions.aggregate(
-            total=Sum('amount')
-        )['total'] or 0
-        
-        # Monthly revenue
-        this_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        monthly_revenue = total_transactions.filter(
-            created_at__gte=this_month
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        # Next billing
-        next_billing = queryset.filter(
-            status='ACTIVE',
-            end_date__gt=timezone.now()
-        ).order_by('end_date').first()
-        
+        """Older summary shape, kept for compatibility."""
+        qs = self.get_queryset()
+        sub = billing.live_subscription(request.user.company)
         return Response({
-            'total_subscriptions': total_subscriptions,
-            'active_subscriptions': active_subscriptions,
-            'trial_subscriptions': trial_subscriptions,
-            'cancelled_subscriptions': cancelled_subscriptions,
-            'expired_subscriptions': expired_subscriptions,
-            'total_revenue': total_revenue,
-            'monthly_revenue': monthly_revenue,
-            'next_billing_date': next_billing.end_date if next_billing else None
+            'total_subscriptions': qs.count(),
+            'active_subscriptions': qs.filter(status='ACTIVE').count(),
+            'trial_subscriptions': qs.filter(status='TRIALING').count(),
+            'cancelled_subscriptions': qs.filter(status='CANCELLED').count(),
+            'expired_subscriptions': qs.filter(status='EXPIRED').count(),
+            'spent_total': totals_by_currency(PaymentTransaction.objects.filter(company=request.user.company, status='COMPLETED')),
+            'next_billing_date': sub.end_date if sub and sub.auto_renew else None,
         })
 
+
 class PaymentTransactionViewSet(TenantViewSetMixin, viewsets.ReadOnlyModelViewSet):
-    """ViewSet for PaymentTransaction - read-only for security."""
     serializer_class = PaymentTransactionSerializer
-    permission_classes = [IsCompanyMember, IsSameCompany]
+    permission_classes = OWNER + [IsSameCompany]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'payment_type', 'provider', 'currency']
+    filterset_fields = ['status', 'payment_type', 'provider', 'currency', 'subscription']
     search_fields = ['provider_transaction_id', 'invoice_number', 'description']
     ordering_fields = ['amount', 'created_at']
     ordering = ['-created_at']
 
     def get_queryset(self):
-        return PaymentTransaction.objects.filter(
-            company=self.request.user.company
-        ).select_related('company', 'user', 'subscription')
+        return PaymentTransaction.objects.filter(company=self.request.user.company).select_related('company', 'user', 'subscription__plan')
 
     @action(detail=False, methods=['get'])
     def revenue_report(self, request):
-        """Get revenue analysis report."""
-        queryset = self.get_queryset().filter(status='COMPLETED')
-        
-        # Total revenue
-        total_revenue = queryset.aggregate(total=Sum('amount'))['total'] or 0
-        
-        # Revenue by provider
-        provider_revenue = {}
-        for provider in ['STRIPE', 'MPESA', 'CRYPTO']:
-            revenue = queryset.filter(provider=provider).aggregate(
-                total=Sum('amount')
-            )['total'] or 0
-            provider_revenue[provider.lower()] = revenue
-        
-        # Monthly revenue trend (last 6 months)
-        from datetime import timedelta
-        monthly_revenue = []
-        for i in range(6):
-            month_start = timezone.now().replace(
-                day=1, hour=0, minute=0, second=0, microsecond=0
-            ) - timedelta(days=30*i)
-            month_end = month_start + timedelta(days=30)
-            
-            revenue = queryset.filter(
-                created_at__gte=month_start,
-                created_at__lt=month_end
-            ).aggregate(total=Sum('amount'))['total'] or 0
-            
-            monthly_revenue.append({
-                'month': month_start.strftime('%Y-%m'),
-                'revenue': revenue
-            })
-        
+        """Completed payments by provider and by calendar month (last 12), per currency."""
+        qs = self.get_queryset().filter(status='COMPLETED')
+        by_provider = defaultdict(dict)
+        for row in qs.values('provider', 'currency').annotate(total=Sum('amount')):
+            by_provider[row['provider'].lower()][row['currency']] = float(row['total'] or 0)
+        since = (timezone.now().replace(day=1) - timedelta(days=330)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        months = defaultdict(dict)
+        for row in qs.filter(created_at__gte=since).annotate(m=TruncMonth('created_at')).values('m', 'currency').annotate(total=Sum('amount')):
+            months[row['m'].strftime('%Y-%m')][row['currency']] = float(row['total'] or 0)
         return Response({
-            'total_revenue': total_revenue,
-            'provider_revenue': provider_revenue,
-            'monthly_revenue': list(reversed(monthly_revenue)),
-            'transaction_count': queryset.count()
+            'total_by_currency': totals_by_currency(qs),
+            'provider_revenue': dict(by_provider),
+            'monthly_revenue': [{'month': m, 'totals': t} for m, t in sorted(months.items())],
+            'transaction_count': qs.count(),
         })
+
 
 class PaymentMethodViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
-    """ViewSet for PaymentMethod management."""
+    """M-Pesa numbers and crypto preferences are added here; cards come from Stripe setup checkout."""
     serializer_class = PaymentMethodSerializer
-    permission_classes = [IsCompanyMember, IsSameCompany]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    permission_classes = OWNER + [IsSameCompany]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['type', 'provider', 'is_default']
-    search_fields = ['last_four', 'phone_number', 'card_brand']
-    ordering_fields = ['created_at']
-    ordering = ['-created_at']
+    ordering = ['-is_default', '-created_at']
 
     def get_queryset(self):
-        return PaymentMethod.objects.filter(
-            company=self.request.user.company
-        ).select_related('company', 'user')
-    
-   
-    @transaction.atomic
+        return PaymentMethod.objects.filter(company=self.request.user.company).select_related('company', 'user')
+
+    def perform_create(self, serializer):
+        company = self.request.user.company
+        first = not PaymentMethod.objects.filter(company=company).exists()
+        serializer.save(company=company, user=self.request.user, is_default=first)
+
+    def destroy(self, request, *args, **kwargs):
+        method = self.get_object()
+        with transaction.atomic():
+            was_default = method.is_default
+            if method.provider == 'STRIPE' and method.provider_payment_method_id:
+                try:
+                    billing._stripe().PaymentMethod.detach(method.provider_payment_method_id)
+                except Exception as exc:  # already detached or Stripe down: still remove it here
+                    logger.warning('Could not detach Stripe card %s: %s', method.provider_payment_method_id, exc)
+            method.delete()
+            if was_default:
+                nxt = PaymentMethod.objects.filter(company=request.user.company).order_by('-created_at').first()
+                if nxt:
+                    nxt.is_default = True
+                    nxt.save(update_fields=['is_default'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(detail=True, methods=['post'])
     def set_default(self, request, pk=None):
-        """Set payment method as default."""
-        payment_method = self.get_object()
-        
-        # Remove default from other methods
-        PaymentMethod.objects.filter(
-            company=request.user.company,
-            is_default=True
-        ).update(is_default=False)
-        
-        # Set this method as default
-        payment_method.is_default = True
-        payment_method.save()
-        
-        return Response({
-            'message': 'Payment method set as default',
-            'is_default': payment_method.is_default
-        })
-
-@api_view(['POST'])
-@api_permission_classes([IsAuthenticated])
-def create_stripe_setup_session(request):
-    """
-    Create a Stripe Checkout Session in setup mode.
-    Used to save a card for future use WITHOUT charging the user.
-    """
-    try:
-        success_url = request.data.get(
-            'success_url',
-            f"{settings.FRONTEND_URL}/billing/payment-methods?setup=success"
-        )
-        cancel_url = request.data.get(
-            'cancel_url',
-            f"{settings.FRONTEND_URL}/billing/payment-methods?setup=cancelled"
-        )
-
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-
-        # Get or create Stripe customer
-        stripe_customer_id = None
-        try:
-            # Check if company already has a Stripe customer
-            existing_sub = UserSubscription.objects.filter(
-                company=request.user.company,
-                provider_customer_id__isnull=False
-            ).exclude(provider_customer_id='').first()
-
-            if existing_sub:
-                stripe_customer_id = existing_sub.provider_customer_id
-        except Exception:
-            pass
-
-        if not stripe_customer_id:
-            # Create new Stripe customer
-            customer = stripe.Customer.create(
-                email=request.user.email,
-                name=request.user.company.name,
-                metadata={
-                    'user_id': str(request.user.id),
-                    'company_id': str(request.user.company.id),
-                }
-            )
-            stripe_customer_id = customer.id
-
-        # Create setup session
-        session = stripe.checkout.Session.create(
-            customer=stripe_customer_id,
-            payment_method_types=['card'],
-            mode='setup',
-            success_url=success_url + '&session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=cancel_url,
-            metadata={
-                'user_id': str(request.user.id),
-                'company_id': str(request.user.company.id),
-            }
-        )
-
-        logger.info(f"Created Stripe Setup Session {session.id} for {request.user.company.name}")
-
-        return Response({
-            'checkout_url': session.url,
-            'session_id': session.id,
-        })
-
-    except stripe.error.StripeError as e:
-        logger.error(f"Stripe error creating setup session: {str(e)}")
-        return Response({
-            'error': f'Stripe error: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    except Exception as e:
-        logger.error(f"Error creating setup session: {str(e)}")
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)     
-       
-@api_view(['POST'])
-@api_permission_classes([IsAuthenticated])
-def create_stripe_checkout_session(request):
-    """
-    Create a Stripe Checkout Session for subscription payment.
-    Frontend receives checkout_url and redirects user to Stripe's hosted page.
-    """
-    try:
-        plan_id = request.data.get('plan_id')
-        success_url = request.data.get('success_url', f"{settings.FRONTEND_URL}/billing/subscriptions?checkout=success")
-        cancel_url = request.data.get('cancel_url', f"{settings.FRONTEND_URL}/billing/plans?checkout=cancelled")
-
-        if not plan_id:
-            return Response({
-                'error': 'plan_id is required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Get the plan
-        try:
-            plan = SubscriptionPlan.objects.get(id=plan_id, is_active=True)
-        except SubscriptionPlan.DoesNotExist:
-            return Response({
-                'error': 'Plan not found or inactive'
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-
-        # Build line items
-        # If plan has a stripe_price_id use it directly, otherwise create price inline
-        if plan.stripe_price_id:
-            line_items = [{
-                'price': plan.stripe_price_id,
-                'quantity': 1,
-            }]
-        else:
-            # Create price inline
-            billing_cycle_map = {
-                'MONTHLY': 'month',
-                'QUARTERLY': 'month',  # handled via quantity below
-                'ANNUAL': 'year',
-            }
-            interval = billing_cycle_map.get(plan.billing_cycle, 'month')
-            interval_count = 3 if plan.billing_cycle == 'QUARTERLY' else 1
-
-            line_items = [{
-                'price_data': {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': plan.name,
-                        'description': plan.description or f"LogiFlow {plan.name} Plan",
-                    },
-                    'unit_amount': int(float(plan.price) * 100),  # Convert to cents
-                    'recurring': {
-                        'interval': interval,
-                        'interval_count': interval_count,
-                    },
-                },
-                'quantity': 1,
-            }]
-
-        # Create Stripe Checkout Session
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=line_items,
-            mode='subscription',
-            success_url=success_url + '&session_id={CHECKOUT_SESSION_ID}',
-            cancel_url=cancel_url,
-            client_reference_id=str(request.user.id),
-            metadata={
-                'user_id': str(request.user.id),
-                'company_id': str(request.user.company.id),
-                'plan_id': str(plan.id),
-                'plan_name': plan.name,
-            },
-            subscription_data={
-                'trial_period_days': 14,  # 14-day trial
-                'metadata': {
-                    'plan_id': str(plan.id),
-                    'company_id': str(request.user.company.id),
-                }
-            }
-        )
-
-        logger.info(f"Created Stripe Checkout Session {checkout_session.id} for user {request.user.id}, plan {plan.name}")
-
-        return Response({
-            'checkout_url': checkout_session.url,
-            'session_id': checkout_session.id,
-        })
-
-    except stripe.error.StripeError as e:
-        logger.error(f"Stripe error creating checkout session: {str(e)}")
-        return Response({
-            'error': f'Stripe error: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    except Exception as e:
-        logger.error(f"Error creating checkout session: {str(e)}")
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@api_view(['POST'])
-@api_permission_classes([IsAuthenticated])
-def stripe_checkout_success(request):
-    """
-    Handle return from Stripe Checkout.
-    Verifies session and creates/updates subscription record.
-    Called by frontend after user returns from Stripe hosted page.
-    """
-    try:
-        session_id = request.data.get('session_id')
-
-        if not session_id:
-            return Response({
-                'error': 'session_id is required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-
-        # Retrieve the session from Stripe
-        session = stripe.checkout.Session.retrieve(
-            session_id,
-            expand=['subscription', 'customer']
-        )
-
-        # Verify this session belongs to this user
-        if session.client_reference_id != str(request.user.id):
-            return Response({
-                'error': 'Session does not belong to current user'
-            }, status=status.HTTP_403_FORBIDDEN)
-
-        # Check session is complete
-        if session.payment_status not in ['paid', 'no_payment_required']:
-            return Response({
-                'error': 'Payment not completed',
-                'payment_status': session.payment_status
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Get plan from metadata
-        plan_id = session.metadata.get('plan_id')
-        company_id = session.metadata.get('company_id')
-
-        try:
-            plan = SubscriptionPlan.objects.get(id=plan_id)
-        except SubscriptionPlan.DoesNotExist:
-            return Response({
-                'error': 'Plan not found'
-            }, status=status.HTTP_404_NOT_FOUND)
-
-        # Get stripe subscription details
-        stripe_subscription = session.subscription
-    
-        # Calculate dates from Stripe subscription
-        if stripe_subscription and hasattr(stripe_subscription, 'current_period_end'):
-            end_date = datetime.fromtimestamp(
-                stripe_subscription.current_period_end, 
-                tz=dt_timezone.utc
-            )
-            start_date = datetime.fromtimestamp(
-                stripe_subscription.current_period_start,
-                tz=dt_timezone.utc
-            )
-            trial_end = None
-            if stripe_subscription.trial_end:
-                trial_end = datetime.fromtimestamp(
-                    stripe_subscription.trial_end,
-                    tz=dt_timezone.utc
-                )
-        else:
-            # Fallback dates
-            start_date = timezone.now()
-            end_date = start_date + timedelta(days=30)
-            trial_end = start_date + timedelta(days=14)
-
-        # Create or update subscription
+        method = self.get_object()
         with transaction.atomic():
-            subscription, created = UserSubscription.objects.update_or_create(
-                company=request.user.company,
-                plan=plan,
-                defaults={
-                    'user': request.user,
-                    'status': 'TRIALING' if trial_end else 'ACTIVE',
-                    'payment_provider': 'STRIPE',
-                    'provider_subscription_id': stripe_subscription.id if stripe_subscription else '',
-                    'provider_customer_id': session.customer.id if session.customer else '',
-                    'start_date': start_date,
-                    'end_date': end_date,
-                    'trial_end': trial_end,
-                    'is_trial': bool(trial_end),
-                    'auto_renew': True,
-                }
-            )
+            PaymentMethod.objects.filter(company=request.user.company, is_default=True).update(is_default=False)
+            method.is_default = True
+            method.save(update_fields=['is_default'])
+        return Response({'message': 'Default payment method updated', 'is_default': True})
 
-            # Create transaction record
-            PaymentTransaction.objects.create(
-                company=request.user.company,
-                user=request.user,
-                subscription=subscription,
-                amount=0 if trial_end else float(plan.price),
-                currency='USD',
-                status='COMPLETED',
-                payment_type='SUBSCRIPTION',
-                provider='STRIPE',
-                provider_transaction_id=session_id,
-                description=f"{'Trial subscription' if trial_end else 'Subscription'} for {plan.name}",
-            )
 
-        logger.info(f"✅ Stripe checkout success - Subscription {'created' if created else 'updated'} for {request.user.company.name} - {plan.name}")
+# --- Stripe -------------------------------------------------------------------
 
-        return Response({
-            'message': 'Subscription activated successfully',
-            'subscription_id': str(subscription.id),
-            'plan_name': plan.name,
-            'status': subscription.status,
-            'is_trial': subscription.is_trial,
-            'trial_end': subscription.trial_end,
-            'end_date': subscription.end_date,
-        })
+def _frontend(path):
+    return f"{settings.FRONTEND_URL}{path}"
 
-    except stripe.error.StripeError as e:
-        logger.error(f"Stripe error on checkout success: {str(e)}")
-        return Response({
-            'error': f'Stripe error: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    except Exception as e:
-        logger.error(f"Error processing checkout success: {str(e)}")
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
+@api_view(['POST'])
+@api_permission_classes(OWNER)
+def create_stripe_setup_session(request):
+    """Save a card for later without charging it (Stripe-hosted page)."""
+    try:
+        company = request.user.company
+        customer = stripe_flow.ensure_customer(company, request.user)
+        session = billing._stripe().checkout.Session.create(
+            customer=customer, payment_method_types=['card'], mode='setup',
+            success_url=_frontend('/billing/payment-methods?setup=success&session_id={CHECKOUT_SESSION_ID}'),
+            cancel_url=_frontend('/billing/payment-methods?setup=cancelled'),
+            metadata={'user_id': str(request.user.id), 'company_id': str(company.id)},
+        )
+        return Response({'checkout_url': session.url, 'session_id': session.id})
+    except Exception as exc:
+        return provider_down(exc, 'Card setup')
+
+
+@api_view(['POST'])
+@api_permission_classes(OWNER)
+def complete_stripe_setup(request):
+    """Called when the user comes back from card setup; the webhook does the same, whichever runs first."""
+    session_id = request.data.get('session_id')
+    if not session_id:
+        return error('session_id is required')
+    try:
+        session = billing._stripe().checkout.Session.retrieve(session_id)
+    except Exception as exc:
+        return provider_down(exc, 'Stripe')
+    if (session.metadata or {}).get('company_id') != str(request.user.company.id) or session.mode != 'setup':
+        return error('This setup session isn’t yours.', status.HTTP_403_FORBIDDEN)
+    if session.status != 'complete':
+        return error('Card setup wasn’t finished.')
+    method = stripe_flow.save_card_from_setup(session, request.user)
+    return Response({'message': 'Card saved', 'payment_method': PaymentMethodSerializer(method).data})
+
+
+@api_view(['POST'])
+@api_permission_classes(OWNER)
+def create_stripe_checkout_session(request):
+    """Subscribe with a card on Stripe's hosted page. Free trial only if the company never had one."""
+    plan = SubscriptionPlan.objects.filter(id=request.data.get('plan_id'), is_active=True).first()
+    if plan is None:
+        return error('Choose an available plan.', status.HTTP_404_NOT_FOUND)
+    company = request.user.company
+    live = billing.live_subscription(company)
+    if live and live.plan_id == plan.id and live.auto_renew:
+        return error('You’re already on this plan.')
+    try:
+        stripe = billing._stripe()
+        line_item = {'price': plan.stripe_price_id, 'quantity': 1} if plan.stripe_price_id else {
+            'price_data': {
+                'currency': 'usd',
+                'product_data': {'name': f'LogiFlow {plan.name}', 'description': plan.description or None},
+                'unit_amount': int(round(float(plan.price) * 100)),
+                'recurring': {'interval': 'year' if plan.billing_cycle == 'ANNUAL' else 'month',
+                              'interval_count': 3 if plan.billing_cycle == 'QUARTERLY' else 1},
+            },
+            'quantity': 1,
+        }
+        meta = {'user_id': str(request.user.id), 'company_id': str(company.id), 'plan_id': str(plan.id)}
+        sub_data = {'metadata': meta}
+        if billing.trial_available(company):
+            sub_data['trial_period_days'] = billing.TRIAL_DAYS
+        session = stripe.checkout.Session.create(
+            mode='subscription', customer=stripe_flow.ensure_customer(company, request.user),
+            line_items=[line_item], client_reference_id=str(request.user.id), metadata=meta, subscription_data=sub_data,
+            success_url=_frontend('/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}'),
+            cancel_url=_frontend('/billing/plans?checkout=cancelled'),
+        )
+        return Response({'checkout_url': session.url, 'session_id': session.id, 'trial': 'trial_period_days' in sub_data})
+    except Exception as exc:
+        return provider_down(exc, 'Checkout')
+
+
+@api_view(['POST'])
+@api_permission_classes(OWNER)
+def stripe_checkout_success(request):
+    """Called when the user comes back from checkout. Safe to call repeatedly; the webhook does the same."""
+    session_id = request.data.get('session_id')
+    if not session_id:
+        return error('session_id is required')
+    try:
+        session = billing._stripe().checkout.Session.retrieve(session_id, expand=['subscription'])
+    except Exception as exc:
+        return provider_down(exc, 'Stripe')
+    if (session.metadata or {}).get('company_id') != str(request.user.company.id):
+        return error('This checkout session isn’t yours.', status.HTTP_403_FORBIDDEN)
+    if session.status != 'complete' or session.payment_status not in ('paid', 'no_payment_required'):
+        return error('Checkout wasn’t completed.', payment_status=session.payment_status)
+    sub = stripe_flow.complete_subscription_checkout(session, request.user)
+    return Response({
+        'message': 'Subscription started' if sub.status == 'TRIALING' else 'Subscription active',
+        'subscription': UserSubscriptionDetailSerializer(sub, context={'request': request}).data,
+        'subscription_id': str(sub.id), 'status': sub.status, 'is_trial': sub.is_trial,
+    })
+
+
+# --- M-Pesa / crypto: pay for a subscription -------------------------------------
+
+def _subscription_to_pay(request, subscription_id, provider):
+    company = request.user.company
+    qs = UserSubscription.objects.filter(company=company, payment_provider=provider).select_related('plan')
+    sub = qs.filter(id=subscription_id).first() if subscription_id else qs.filter(status__in=billing.LIVE).order_by('-created_at').first()
+    if sub is None:
+        raise BillingError(f'No {dict(UserSubscription.PAYMENT_PROVIDER_CHOICES)[provider]} subscription to pay for.')
+    if sub.status not in billing.LIVE:
+        raise BillingError('This subscription has ended. Start a new one from Plans.')
+    return sub
+
+
+@api_view(['POST'])
+@api_permission_classes(OWNER)
+def initiate_mpesa_payment(request):
+    """Send an STK push for the subscription's next period, priced from the plan (in KES)."""
+    serializer = MPesaPaymentSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    try:
+        sub = _subscription_to_pay(request, serializer.validated_data.get('subscription_id'), 'MPESA')
+    except BillingError as exc:
+        return error(str(exc))
+    phone = serializer.validated_data.get('phone_number')
+    if not phone:
+        method = PaymentMethod.objects.filter(company=request.user.company, type='MPESA').order_by('-is_default').first()
+        phone = method.phone_number if method else None
+    if not phone:
+        return error('Enter the M-Pesa number to charge.', details={'phone_number': 'Required'})
+    amount, _ = billing.provider_amount(sub.plan, 'MPESA')
+    try:
+        res = MPesaService().initiate_stk_push(
+            phone_number=phone, amount=amount, account_reference=f'SUB-{str(sub.id)[:8]}',
+            transaction_desc=f'LogiFlow {sub.plan.name}', user=request.user, company=request.user.company, subscription=sub,
+        )
+    except Exception as exc:
+        return provider_down(exc, 'M-Pesa')
+    return Response({
+        'message': 'Check your phone and enter your M-Pesa PIN to pay.',
+        'checkout_request_id': res.get('CheckoutRequestID'), 'customer_message': res.get('CustomerMessage'),
+        'phone_number': phone, 'amount': int(amount), 'currency': 'KES',
+    })
+
+
+@api_view(['POST'])
+@api_permission_classes(OWNER)
+def check_mpesa_status(request):
+    serializer = MPesaStatusCheckSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    checkout_id = serializer.validated_data['checkout_request_id']
+    tx = PaymentTransaction.objects.filter(company=request.user.company, provider='MPESA', provider_transaction_id=checkout_id).first()
+    if tx is None:
+        return error('Payment not found.', status.HTTP_404_NOT_FOUND)
+    return Response({'checkout_request_id': checkout_id, 'status': tx.status, 'transaction': PaymentTransactionSerializer(tx).data})
+
+
+@api_view(['POST'])
+@api_permission_classes(OWNER)
+def create_crypto_payment(request):
+    """Create a crypto invoice for the subscription's next period, priced from the plan (in USD)."""
+    serializer = CryptoPaymentSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    try:
+        sub = _subscription_to_pay(request, serializer.validated_data.get('subscription_id'), 'CRYPTO')
+    except BillingError as exc:
+        return error(str(exc))
+    amount, currency = billing.provider_amount(sub.plan, 'CRYPTO')
+    try:
+        payment = CryptoService().create_payment(
+            amount=amount, currency=currency, pay_currency=serializer.validated_data.get('pay_currency'),
+            order_id=f'sub-{sub.id}-{int(timezone.now().timestamp())}', order_description=f'LogiFlow {sub.plan.name}',
+            user=request.user, company=request.user.company, subscription=sub,
+        )
+    except Exception as exc:
+        return provider_down(exc, 'Crypto payments')
+    return Response({
+        'message': 'Send the exact amount to the address below.',
+        'payment_id': payment['payment_id'], 'payment_url': payment['payment_url'], 'payment_address': payment['pay_address'],
+        'pay_currency': payment['pay_currency'], 'pay_amount': payment['pay_amount'],
+        'price_amount': amount, 'price_currency': currency, 'expires_at': payment['expiration_estimate_date'],
+        'status': payment['payment_status'] or 'waiting', 'order_id': payment['order_id'],
+    })
+
+
+@api_view(['POST'])
+@api_permission_classes(OWNER)
+def check_crypto_status(request):
+    serializer = CryptoStatusCheckSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    payment_id = serializer.validated_data['payment_id']
+    tx = PaymentTransaction.objects.filter(company=request.user.company, provider='CRYPTO', provider_transaction_id=payment_id).first()
+    if tx is None:
+        return error('Payment not found.', status.HTTP_404_NOT_FOUND)
+    return Response({'payment_id': payment_id, 'status': tx.status, 'transaction': PaymentTransactionSerializer(tx).data})
+
+
+@api_view(['GET'])
+@api_permission_classes([IsAuthenticated])
+def get_supported_crypto_currencies(request):
+    try:
+        currencies = CryptoService().get_supported_currencies()
+        return Response({'currencies': currencies, 'count': len(currencies)})
+    except Exception as exc:
+        logger.error('Could not load crypto currencies: %s', exc)
+        return Response({'currencies': ['usdttrc20', 'btc', 'eth', 'ltc'], 'count': 4, 'fallback': True})
+
+
+@api_view(['GET'])
+@api_permission_classes([IsAuthenticated])
+def get_exchange_rate_view(request):
+    from .utils.currency_converter import convert_currency, get_exchange_rate
+    src = request.query_params.get('from', 'USD').upper()
+    dst = request.query_params.get('to', 'KES').upper()
+    try:
+        return Response({'from': src, 'to': dst, 'rate': get_exchange_rate(src, dst),
+                         'example': {'input': f'100 {src}', 'output': f'{convert_currency(100, src, dst)} {dst}'}})
+    except Exception as exc:
+        return provider_down(exc, 'Exchange rates')
+
+
+# --- provider callbacks (no user session) ----------------------------------------
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MPesaCallbackView(View):
+    """STK push results from Safaricom. Requires the secret token we put in the callback URL (when configured)."""
+
+    def post(self, request):
+        token = getattr(settings, 'MPESA_CALLBACK_TOKEN', '')
+        if token and request.GET.get('token') != token:
+            logger.warning('Rejected M-Pesa callback with a wrong or missing token')
+            return JsonResponse({'ResultCode': 1, 'ResultDesc': 'Rejected'}, status=403)
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'ResultCode': 1, 'ResultDesc': 'Invalid JSON'}, status=400)
+        try:
+            ok = MPesaService().handle_callback(data)
+        except Exception as exc:
+            logger.error('M-Pesa callback failed: %s', exc)
+            ok = False
+        # Safaricom only needs an acknowledgement; failures are logged for follow-up
+        return JsonResponse({'ResultCode': 0 if ok else 1, 'ResultDesc': 'Accepted' if ok else 'Not processed'})
+
+    def get(self, request):
+        return JsonResponse({'message': 'M-Pesa callback endpoint is active'})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MPesaResultView(View):
+    def post(self, request):
+        logger.info('M-Pesa result callback received')
+        return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Received'})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class MPesaTimeoutView(View):
+    def post(self, request):
+        logger.info('M-Pesa timeout callback received')
+        return JsonResponse({'ResultCode': 0, 'ResultDesc': 'Received'})
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CryptoCallbackView(View):
+    """NOWPayments IPN; rejected unless the signature verifies."""
+
+    def post(self, request):
+        ok = CryptoService().handle_webhook(request.body, request.META.get('HTTP_X_NOWPAYMENTS_SIG', ''))
+        return JsonResponse({'status': 'ok' if ok else 'rejected'}, status=200 if ok else 400)
+
+    def get(self, request):
+        return JsonResponse({'message': 'NOWPayments IPN endpoint is active'})
+
+
+# --- connection tests (platform admins) ------------------------------------------
+
 @api_view(['GET'])
 @api_permission_classes([IsAuthenticated, IsPlatformAdmin])
 def test_stripe_connection(request):
-        """Test Stripe API connection."""
-        try:
-            from .providers.stripe import StripeService
-            
-            stripe_service = StripeService()
-            
-            # Test creating a customer
-            test_customer = stripe_service.create_customer(
-                user=request.user,
-                company=request.user.company
-            )
-            
-            # Clean up test customer immediately
-            import stripe
-            stripe.Customer.delete(test_customer.id)
-            
-            return Response({
-                'message': 'Stripe connection successful!',
-                'stripe_customer_created': test_customer.id,
-                'test_passed': True
-            })
-            
-        except Exception as e:
-            return Response({
-                'error': f'Stripe connection failed: {str(e)}',
-                'test_passed': False
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)  
-        
+    try:
+        billing._stripe().Balance.retrieve()
+        return Response({'message': 'Stripe connection successful', 'test_passed': True})
+    except Exception as exc:
+        return Response({'error': f'Stripe connection failed: {exc}', 'test_passed': False}, status=status.HTTP_502_BAD_GATEWAY)
+
 
 @api_view(['GET'])
 @api_permission_classes([IsAuthenticated, IsPlatformAdmin])
 def test_mpesa_connection(request):
-    """Test M-Pesa API connection."""
     try:
-        mpesa_service = MPesaService()
-        
-        # Test getting access token
-        access_token = mpesa_service.get_access_token()
-        
-        return Response({
-            'message': 'M-Pesa connection successful!',
-            'access_token_received': bool(access_token),
-            'test_passed': True,
-            'environment': mpesa_service.environment,
-            'shortcode': mpesa_service.shortcode
-        })
-        
-    except Exception as e:
-        return Response({
-            'error': f'M-Pesa connection failed: {str(e)}',
-            'test_passed': False
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@extend_schema(
-    request=MPesaPaymentSerializer,
-    responses={
-        200: {
-            "type": "object",
-            "properties": {
-                "message": {"type": "string"},
-                "checkout_request_id": {"type": "string"},
-                "merchant_request_id": {"type": "string"},
-                "customer_message": {"type": "string"},
-                "response_description": {"type": "string"},
-                "phone_number": {"type": "string"},
-                "amount": {"type": "number"}
-            }
-        },
-        400: {
-            "type": "object", 
-            "properties": {
-                "error": {"type": "string"}
-            }
-        }
-    },
-    description="Initiate M-Pesa STK Push payment"
-)
-@api_view(['POST'])
-@api_permission_classes([IsAuthenticated])
-def initiate_mpesa_payment(request):
-    """Initiate M-Pesa STK Push payment."""
-    try:
-        # Validate request data using serializer
-        serializer = MPesaPaymentSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'error': 'Invalid request data',
-                'details': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        validated_data = serializer.validated_data
-        
-        # Get payment data from validated serializer
-        phone_number = validated_data['phone_number']
-        amount = validated_data['amount']
-        account_reference = validated_data.get('account_reference', f'LogiFlow-{request.user.id}')
-        transaction_desc = validated_data.get('description', 'LogiFlow Payment')
-        
-        # Initiate STK Push
-        mpesa_service = MPesaService()
-        response = mpesa_service.initiate_stk_push(
-            phone_number=phone_number,
-            amount=float(amount),
-            account_reference=account_reference,
-            transaction_desc=transaction_desc,
-            user=request.user,
-            company=request.user.company
-        )
-        
-        return Response({
-            'message': 'STK Push initiated successfully',
-            'checkout_request_id': response.get('CheckoutRequestID'),
-            'merchant_request_id': response.get('MerchantRequestID'),
-            'customer_message': response.get('CustomerMessage'),
-            'response_description': response.get('ResponseDescription'),
-            'phone_number': phone_number,
-            'amount': float(amount)
-        })
-        
-    except Exception as e:
-        logger.error(f"STK Push initiation failed: {str(e)}")
-        return Response({
-            'error': f'Failed to initiate payment: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@extend_schema(
-    request=MPesaStatusCheckSerializer,
-    responses={
-        200: {
-            "type": "object",
-            "properties": {
-                "transaction_status": {"type": "object"},
-                "checkout_request_id": {"type": "string"}
-            }
-        }
-    },
-    description="Check M-Pesa transaction status"
-)
-@api_view(['POST'])
-@api_permission_classes([IsAuthenticated])
-def check_mpesa_status(request):
-    """Check M-Pesa transaction status."""
-    try:
-        # Validate request data
-        serializer = MPesaStatusCheckSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'error': 'Invalid request data',
-                'details': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        checkout_request_id = serializer.validated_data['checkout_request_id']
-        
-        mpesa_service = MPesaService()
-        response = mpesa_service.check_transaction_status(checkout_request_id)
-        
-        return Response({
-            'transaction_status': response,
-            'checkout_request_id': checkout_request_id
-        })
-        
-    except Exception as e:
-        logger.error(f"Transaction status check failed: {str(e)}")
-        return Response({
-            'error': f'Failed to check transaction status: {str(e)}'
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-@method_decorator(csrf_exempt, name='dispatch')
-class MPesaCallbackView(View):
-    """Handle M-Pesa payment callbacks."""
-    
-    def post(self, request):
-        """Handle M-Pesa STK Push callback."""
-        try:
-            # Parse JSON data
-            callback_data = json.loads(request.body)
-            
-            logger.info(f"Received M-Pesa callback: {callback_data}")
-            
-            # Process the callback
-            mpesa_service = MPesaService()
-            success = mpesa_service.handle_callback(callback_data)
-            
-            if success:
-                logger.info("M-Pesa callback processed successfully")
-                return JsonResponse({
-                    'ResultCode': 0,
-                    'ResultDesc': 'Callback processed successfully'
-                })
-            else:
-                logger.warning("M-Pesa callback processing failed")
-                return JsonResponse({
-                    'ResultCode': 1,
-                    'ResultDesc': 'Callback processing failed'
-                })
-                
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON in M-Pesa callback")
-            return JsonResponse({
-                'ResultCode': 1,
-                'ResultDesc': 'Invalid JSON data'
-            }, status=400)
-        except Exception as e:
-            logger.error(f"Error processing M-Pesa callback: {str(e)}")
-            return JsonResponse({
-                'ResultCode': 1,
-                'ResultDesc': f'Error: {str(e)}'
-            }, status=500)
-    
-    def get(self, request):
-        """Handle GET request (for testing)."""
-        return JsonResponse({
-            'message': 'M-Pesa callback endpoint is active',
-            'endpoint': 'POST to this URL for callbacks'
-        })
-
-@method_decorator(csrf_exempt, name='dispatch')
-class MPesaResultView(View):
-    """Handle M-Pesa result callbacks (for account balance, etc.)."""
-    
-    def post(self, request):
-        """Handle M-Pesa result callback."""
-        try:
-            result_data = json.loads(request.body)
-            logger.info(f"Received M-Pesa result: {result_data}")
-            
-            # Process result (account balance, etc.)
-            # You can extend this based on your needs
-            
-            return JsonResponse({
-                'ResultCode': 0,
-                'ResultDesc': 'Result received successfully'
-            })
-            
-        except Exception as e:
-            logger.error(f"Error processing M-Pesa result: {str(e)}")
-            return JsonResponse({
-                'ResultCode': 1,
-                'ResultDesc': f'Error: {str(e)}'
-            }, status=500)
-
-@method_decorator(csrf_exempt, name='dispatch')
-class MPesaTimeoutView(View):
-    """Handle M-Pesa timeout callbacks."""
-    
-    def post(self, request):
-        """Handle M-Pesa timeout callback."""
-        try:
-            timeout_data = json.loads(request.body)
-            logger.info(f"Received M-Pesa timeout: {timeout_data}")
-            
-            # Handle timeout scenarios
-            # You can update transaction status to timeout/failed
-            
-            return JsonResponse({
-                'ResultCode': 0,
-                'ResultDesc': 'Timeout handled successfully'
-            })
-            
-        except Exception as e:
-            logger.error(f"Error processing M-Pesa timeout: {str(e)}")
-            return JsonResponse({
-                'ResultCode': 1,
-                'ResultDesc': f'Error: {str(e)}'
-            }, status=500)        
-        
-
-
-# 2. Update create_crypto_payment view response:
-@extend_schema(
-    request=CryptoPaymentSerializer,
-    responses={
-        200: {
-            "type": "object",
-            "properties": {
-                "message": {"type": "string"},
-                "payment_id": {"type": "string"},
-                "payment_url": {"type": "string"},
-                "payment_address": {"type": "string"},
-                "pay_currency": {"type": "string"},
-                "pay_amount": {"type": "string"},
-                "price_amount": {"type": "number"},
-                "price_currency": {"type": "string"},
-                "expires_at": {"type": "string"},
-                "status": {"type": "string"}
-            }
-        },
-        400: {
-            "type": "object",
-            "properties": {
-                "error": {"type": "string"},
-                "details": {"type": "object"}
-            }
-        }
-    },
-    description="Create crypto payment with NOWPayments"
-)
-@api_view(['POST'])
-@api_permission_classes([IsAuthenticated])
-def create_crypto_payment(request):
-    """
-    IMPROVED: Create a crypto payment using normalized responses.
-    """
-    try:
-        # Validate request data using serializer
-        serializer = CryptoPaymentSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'error': 'Invalid request data',
-                'details': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        validated_data = serializer.validated_data
-        
-        # Get payment data from validated serializer
-        amount = validated_data['amount']
-        currency = validated_data.get('currency', 'USD')
-        pay_currency = validated_data.get('pay_currency')
-        order_description = validated_data.get('order_description', 'LogiFlow crypto payment')
-        
-        # Create crypto payment with NOWPayments
-        crypto_service = CryptoService()
-        
-        # Use normalized response from improved service
-        payment = crypto_service.create_payment(
-            amount=float(amount),
-            currency=currency,
-            pay_currency=pay_currency,
-            order_id=f"LogiFlow-{request.user.id}-{int(timezone.now().timestamp())}",
-            order_description=order_description,
-            user=request.user,
-            company=request.user.company
-        )
-        
-        logger.info(f"✅ Created crypto payment: {payment['payment_id']}")
-        
-        # Return normalized response - no more field inconsistencies!
-        return Response({
-            'message': 'Crypto payment created successfully',
-            'payment_id': payment['payment_id'],
-            'payment_url': payment['payment_url'],
-            'payment_address': payment['pay_address'],
-            'pay_currency': payment['pay_currency'],
-            'pay_amount': payment['pay_amount'],
-            'price_amount': float(amount),
-            'price_currency': currency,
-            'expires_at': payment['expiration_estimate_date'],
-            'status': payment['payment_status'] or 'waiting',
-            'order_id': payment['order_id']
-        })
-        
-    except ValueError as e:
-        # Validation errors (e.g., invalid amount)
-        logger.error(f"Validation error: {str(e)}")
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_400_BAD_REQUEST)
-        
-    except Exception as e:
-        # Other errors (API errors, connection issues, etc.)
-        logger.error(f"Crypto payment creation failed: {str(e)}")
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@extend_schema(
-    request=CryptoStatusCheckSerializer,
-    responses={
-        200: {
-            "type": "object",
-            "properties": {
-                "payment_id": {"type": "string"},
-                "status": {"type": "string"},
-                "payment_address": {"type": "string"},
-                "pay_currency": {"type": "string"},
-                "pay_amount": {"type": "string"},
-                "price_amount": {"type": "string"},
-                "price_currency": {"type": "string"},
-                "created_at": {"type": "string"},
-                "updated_at": {"type": "string"}
-            }
-        },
-        400: {
-            "type": "object",
-            "properties": {
-                "error": {"type": "string"}
-            }
-        },
-        404: {
-            "type": "object",
-            "properties": {
-                "error": {"type": "string"}
-            }
-        }
-    },
-    description="Check crypto payment status"
-)
-@api_view(['POST'])
-@api_permission_classes([IsAuthenticated])
-def check_crypto_status(request):
-    """
-    IMPROVED: Check crypto payment status using normalized responses.
-    """
-    try:
-        # Validate request data using serializer
-        serializer = CryptoStatusCheckSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'error': 'Invalid request data',
-                'details': serializer.errors
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        payment_id = serializer.validated_data['payment_id']
-        
-        crypto_service = CryptoService()
-        
-        # Use normalized response
-        payment = crypto_service.get_payment_status(payment_id)
-        
-        logger.info(f"✅ Retrieved payment status: {payment_id} - {payment['payment_status']}")
-        
-        # Return normalized, consistent response
-        return Response({
-            'payment_id': payment['payment_id'],
-            'status': payment['payment_status'],
-            'payment_address': payment['pay_address'],
-            'pay_currency': payment['pay_currency'],
-            'pay_amount': payment['pay_amount'],
-            'price_amount': payment['price_amount'],
-            'price_currency': payment['price_currency'],
-            'created_at': payment['created_at'],
-            'updated_at': payment['updated_at'],
-            'order_id': payment['order_id']
-        })
-        
-    except Exception as e:
-        error_message = str(e)
-        logger.error(f"Crypto status check failed: {error_message}")
-        
-        # Return appropriate status code
-        if 'not found' in error_message.lower():
-            return Response({
-                'error': error_message
-            }, status=status.HTTP_404_NOT_FOUND)
-        else:
-            return Response({
-                'error': error_message
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        service = MPesaService()
+        token = service.get_access_token()
+        return Response({'message': 'M-Pesa connection successful', 'access_token_received': bool(token),
+                         'test_passed': True, 'environment': service.environment, 'shortcode': service.shortcode})
+    except Exception as exc:
+        return Response({'error': f'M-Pesa connection failed: {exc}', 'test_passed': False}, status=status.HTTP_502_BAD_GATEWAY)
 
 
 @api_view(['GET'])
 @api_permission_classes([IsAuthenticated, IsPlatformAdmin])
 def test_crypto_connection(request):
-    """
-    IMPROVED: Test Crypto API connection with better feedback.
-    """
+    service = CryptoService()
+    if not service.test_connection():
+        return Response({'error': 'Failed to connect to NOWPayments', 'test_passed': False}, status=status.HTTP_502_BAD_GATEWAY)
     try:
-        crypto_service = CryptoService()
-        
-        # Test connection
-        connection_test = crypto_service.test_connection()
-        
-        if not connection_test:
-            return Response({
-                'error': 'Failed to connect to NOWPayments API',
-                'test_passed': False,
-                'suggestion': 'Please check your API credentials in settings'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        # Get supported currencies
-        try:
-            supported_currencies = crypto_service.get_supported_currencies()
-            currencies_count = len(supported_currencies)
-        except:
-            supported_currencies = []
-            currencies_count = 0
-        
-        return Response({
-            'message': 'Crypto connection successful!',
-            'test_passed': True,
-            'provider': 'NOWPayments',
-            'environment': settings.NOWPAYMENTS_ENVIRONMENT,
-            'supported_currencies_count': currencies_count,
-            'sample_currencies': supported_currencies[:10] if supported_currencies else []
-        })
-        
-    except Exception as e:
-        logger.error(f"Crypto connection test failed: {str(e)}")
-        return Response({
-            'error': f'Crypto connection failed: {str(e)}',
-            'test_passed': False
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class CryptoCallbackView(View):
-    """
-     IMPROVED: Handle Crypto payment callbacks with better logging.
-    """
-    
-    def post(self, request):
-        """Handle NOWPayments IPN webhook."""
-        try:
-            # Get signature from headers
-            signature = request.META.get('HTTP_X_NOWPAYMENTS_SIG', '')
-            
-            # Get raw payload
-            payload = request.body
-            
-            logger.info(f"📥 Received NOWPayments webhook")
-            logger.debug(f"Signature present: {bool(signature)}")
-            
-            # Process the callback using improved service
-            crypto_service = CryptoService()
-            success = crypto_service.handle_webhook(payload, signature)
-            
-            if success:
-                logger.info("✅ NOWPayments webhook processed successfully")
-                return JsonResponse({
-                    'status': 'success',
-                    'message': 'IPN processed successfully'
-                })
-            else:
-                logger.warning("⚠️ NOWPayments webhook processing failed")
-                return JsonResponse({
-                    'status': 'error',
-                    'message': 'IPN processing failed'
-                }, status=400)
-                
-        except Exception as e:
-            logger.error(f"❌ Error processing NOWPayments webhook: {str(e)}")
-            return JsonResponse({
-                'status': 'error',
-                'message': f'Error: {str(e)}'
-            }, status=500)
-    
-    def get(self, request):
-        """Handle GET request (for testing)."""
-        return JsonResponse({
-            'message': 'NOWPayments webhook endpoint is active',
-            'endpoint': 'POST to this URL for IPN callbacks',
-            'provider': 'NOWPayments',
-            'note': 'Webhook signature verification is enabled'
-        })
-
-
-# Additional utility endpoint for getting supported currencies
-@api_view(['GET'])
-@api_permission_classes([IsAuthenticated])
-def get_supported_crypto_currencies(request):
-    """
-    Get list of supported cryptocurrencies from NOWPayments.
-    """
-    try:
-        crypto_service = CryptoService()
-        currencies = crypto_service.get_supported_currencies()
-        
-        return Response({
-            'currencies': currencies,
-            'count': len(currencies)
-        })
-        
-    except Exception as e:
-        logger.error(f"Failed to get supported currencies: {str(e)}")
-        return Response({
-            'error': 'Failed to retrieve supported currencies',
-            'fallback_currencies': ['btc', 'eth', 'usdt', 'ltc', 'bch']
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-@api_view(['GET'])
-@api_permission_classes([IsAuthenticated])
-def get_exchange_rate_view(request):
-    """Get live exchange rate between two currencies."""
-    from_currency = request.query_params.get('from', 'USD').upper()
-    to_currency = request.query_params.get('to', 'KES').upper()
-
-    try:
-        from .utils.currency_converter import get_exchange_rate, convert_currency
-        rate = get_exchange_rate(from_currency, to_currency)
-        return Response({
-            'from': from_currency,
-            'to': to_currency,
-            'rate': rate,
-            'example': {
-                'input': f'100 {from_currency}',
-                'output': f'{convert_currency(100, from_currency, to_currency)} {to_currency}'
-            }
-        })
-    except Exception as e:
-        return Response({
-            'error': str(e)
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)        
+        currencies = service.get_supported_currencies()
+    except Exception:
+        currencies = []
+    return Response({'message': 'Crypto connection successful', 'test_passed': True, 'provider': 'NOWPayments',
+                     'environment': settings.NOWPAYMENTS_ENVIRONMENT, 'supported_currencies_count': len(currencies),
+                     'sample_currencies': currencies[:10]})
