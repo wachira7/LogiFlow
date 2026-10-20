@@ -10,19 +10,32 @@ from django.utils import timezone
 from .models import WarehouseTransfer, TransferItem
 from .serializers import (
     WarehouseTransferListSerializer, WarehouseTransferDetailSerializer,
-    CreateWarehouseTransferSerializer, TransferItemSerializer
+    CreateWarehouseTransferSerializer, TransferItemSerializer, UpdateWarehouseTransferSerializer,
 )
-from apps.inventory.models import InventoryItem, InventoryTransaction
+from . import services
+from .services import TransferError
 from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
+
+
+def error(message, status_code=status.HTTP_400_BAD_REQUEST, **extra):
+    return Response({'error': message, 'message': message, **extra}, status=status_code)
+
+
+class ValueOrderingFilter(filters.OrderingFilter):
+    """`total_value` is a model property; order by the annotated value_amount instead."""
+
+    def remove_invalid_fields(self, queryset, fields, view, request):
+        fields = [f.replace('total_value', 'value_amount') for f in fields]
+        return super().remove_invalid_fields(queryset, fields, view, request)
 
 class WarehouseTransferViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
     """ViewSet for WarehouseTransfer management."""
     permission_classes = [IsCompanyMember, IsSameCompany]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, ValueOrderingFilter]
     filterset_fields = ['status', 'source_warehouse', 'destination_warehouse', 'initiated_by']
     search_fields = ['transfer_number', 'notes']
-    ordering_fields = ['transfer_number', 'initiated_at', 'completed_at', 'total_value']
+    ordering_fields = ['transfer_number', 'initiated_at', 'completed_at', 'value_amount']
     ordering = ['-initiated_at']
 
     def get_queryset(self):
@@ -30,190 +43,75 @@ class WarehouseTransferViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.Mod
             company=self.request.user.company
         ).select_related(
             'source_warehouse', 'destination_warehouse', 'initiated_by', 'approved_by'
-        ).prefetch_related('transfer_items__product')
+        ).prefetch_related('transfer_items__product').annotate(
+            value_amount=Sum(F('transfer_items__quantity') * F('transfer_items__product__cost_price')),
+        )
 
     def get_serializer_class(self):
         if self.action == 'create':
             return CreateWarehouseTransferSerializer
-        elif self.action == 'retrieve':
+        if self.action in ('update', 'partial_update'):
+            return UpdateWarehouseTransferSerializer
+        if self.action == 'retrieve':
             return WarehouseTransferDetailSerializer
         return WarehouseTransferListSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(company=self.request.user.company)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        transfer = serializer.save(company=request.user.company)
+        data = WarehouseTransferDetailSerializer(transfer, context={'request': request}).data
+        return Response(data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        super().update(request, *args, **kwargs)
+        transfer = self.get_queryset().get(pk=kwargs['pk'])
+        return Response(WarehouseTransferDetailSerializer(transfer, context={'request': request}).data)
+
+    def destroy(self, request, *args, **kwargs):
+        transfer = self.get_object()
+        if transfer.status not in ('PENDING', 'CANCELLED'):
+            return error('Only pending or cancelled transfers can be deleted; '
+                         'this one has moved stock and is kept for the record.')
+        return super().destroy(request, *args, **kwargs)
+
+    def _run(self, request, step, message, **kwargs):
+        try:
+            transfer = step(self.get_object(), request.user, **kwargs)
+        except TransferError as exc:
+            return error(str(exc), **exc.details)
+        return Response({
+            'message': message,
+            'status': transfer.status,
+            'stock_dispatched': transfer.stock_dispatched,
+            'approved_by': transfer.approved_by.get_full_name() if transfer.approved_by else None,
+            'completed_at': transfer.completed_at,
+            'duration_days': transfer.transfer_duration_days,
+        })
         
     @action(detail=True, methods=['post'])
     def approve_transfer(self, request, pk=None):
-        """Approve a warehouse transfer."""
-        transfer = self.get_object()
-        
-        if transfer.status != 'PENDING':
-            return Response({
-                'error': 'Transfer must be in PENDING status to approve'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Check if all items have sufficient stock
-        insufficient_items = []
-        for item in transfer.transfer_items.all():
-            if not item.sufficient_source_stock:
-                insufficient_items.append({
-                    'product': item.product.name,
-                    'required': item.quantity,
-                    'available': item.source_stock_available
-                })
-        
-        if insufficient_items:
-            return Response({
-                'error': 'Insufficient stock for some items',
-                'insufficient_items': insufficient_items
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        transfer.status = 'IN_TRANSIT'
-        transfer.approved_by = request.user
-        transfer.save()
-        
-        return Response({
-            'message': 'Transfer approved and moved to IN_TRANSIT',
-            'status': transfer.status,
-            'approved_by': transfer.approved_by.get_full_name()
-        })
+        """Approve: check stock and take it out of the source warehouse (now in transit)."""
+        return self._run(request, services.dispatch, 'Transfer approved; stock has left the source warehouse')
 
     @action(detail=True, methods=['post'])
     def start_transfer(self, request, pk=None):
-        """Start the physical transfer process."""
-        transfer = self.get_object()
-        
-        if transfer.status != 'IN_TRANSIT':
-            return Response({
-                'error': 'Transfer must be approved (IN_TRANSIT) to start'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        with transaction.atomic():
-            # Deduct stock from source warehouse
-            for item in transfer.transfer_items.all():
-                try:
-                    source_inventory = InventoryItem.objects.get(
-                        product=item.product,
-                        warehouse=transfer.source_warehouse
-                    )
-                    
-                    if source_inventory.quantity < item.quantity:
-                        raise Exception(f"Insufficient stock for {item.product.name}")
-                    
-                    # Update source inventory
-                    source_inventory.quantity -= item.quantity
-                    source_inventory.save()
-                    
-                    # Create outbound transaction
-                    InventoryTransaction.objects.create(
-                        inventory_item=source_inventory,
-                        transaction_type='TRANSFER',
-                        quantity=-item.quantity,
-                        reference=transfer.transfer_number,
-                        notes=f"Transfer to {transfer.destination_warehouse.name}",
-                        performed_by=request.user
-                    )
-                    
-                except InventoryItem.DoesNotExist:
-                    raise Exception(f"Inventory item not found for {item.product.name}")
-        
-        return Response({
-            'message': 'Transfer started - stock deducted from source warehouse',
-            'status': transfer.status
-        })
+        """Only for transfers approved under the old flow, whose stock never left the source."""
+        return self._run(request, services.dispatch, 'Transfer started; stock has left the source warehouse',
+                         approve=False)
 
     @action(detail=True, methods=['post'])
     def complete_transfer(self, request, pk=None):
-        """Complete the warehouse transfer."""
-        transfer = self.get_object()
-        
-        if transfer.status != 'IN_TRANSIT':
-            return Response({
-                'error': 'Transfer must be IN_TRANSIT to complete'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        with transaction.atomic():
-            # Add stock to destination warehouse
-            for item in transfer.transfer_items.all():
-                # Get or create destination inventory item
-                dest_inventory, created = InventoryItem.objects.get_or_create(
-                    product=item.product,
-                    warehouse=transfer.destination_warehouse,
-                    defaults={
-                        'quantity': 0,
-                        'location': item.destination_location or ''
-                    }
-                )
-                
-                # Update destination inventory
-                dest_inventory.quantity += item.quantity
-                if item.destination_location:
-                    dest_inventory.location = item.destination_location
-                dest_inventory.save()
-                
-                # Create inbound transaction
-                InventoryTransaction.objects.create(
-                    inventory_item=dest_inventory,
-                    transaction_type='TRANSFER',
-                    quantity=item.quantity,
-                    reference=transfer.transfer_number,
-                    notes=f"Transfer from {transfer.source_warehouse.name}",
-                    performed_by=request.user
-                )
-            
-            # Update transfer status
-            transfer.status = 'COMPLETED'
-            transfer.completed_at = timezone.now()
-            transfer.save()
-        
-        return Response({
-            'message': 'Transfer completed successfully',
-            'status': transfer.status,
-            'completed_at': transfer.completed_at,
-            'duration_days': transfer.transfer_duration_days
-        })
+        """Receive the stock at the destination warehouse."""
+        return self._run(request, services.receive, 'Transfer completed; stock received at the destination')
 
     @action(detail=True, methods=['post'])
     def cancel_transfer(self, request, pk=None):
-        """Cancel a warehouse transfer."""
-        transfer = self.get_object()
-        
-        if transfer.status == 'COMPLETED':
-            return Response({
-                'error': 'Cannot cancel completed transfer'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # If transfer was in transit, need to restore stock to source warehouse
-        if transfer.status == 'IN_TRANSIT':
-            with transaction.atomic():
-                for item in transfer.transfer_items.all():
-                    try:
-                        source_inventory = InventoryItem.objects.get(
-                            product=item.product,
-                            warehouse=transfer.source_warehouse
-                        )
-                        
-                        # Restore stock
-                        source_inventory.quantity += item.quantity
-                        source_inventory.save()
-                        
-                        # Create adjustment transaction
-                        InventoryTransaction.objects.create(
-                            inventory_item=source_inventory,
-                            transaction_type='ADJUSTMENT',
-                            quantity=item.quantity,
-                            reference=transfer.transfer_number,
-                            notes=f"Transfer cancelled - stock restored",
-                            performed_by=request.user
-                        )
-                        
-                    except InventoryItem.DoesNotExist:
-                        pass  # Continue with other items
-        
-        transfer.status = 'CANCELLED'
-        transfer.save()
-        
-        return Response({
-            'message': 'Transfer cancelled successfully',
-            'status': transfer.status
-        })
+        """Cancel; stock that already left the source is returned."""
+        return self._run(request, services.cancel, 'Transfer cancelled')
 
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
@@ -234,24 +132,17 @@ class WarehouseTransferViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.Mod
             completed_at__gte=this_month
         ).count()
         
-        # Average transfer time
-        completed = queryset.filter(
-            status='COMPLETED',
-            completed_at__isnull=False
-        )
-        
-        avg_transfer_days = 0
-        if completed.exists():
-            total_days = sum(
-                (t.completed_at.date() - t.initiated_at.date()).days
-                for t in completed
-            )
-            avg_transfer_days = total_days / completed.count()
-        
-        # Total value in transit
-        in_transit_value = sum(
-            transfer.total_value for transfer in queryset.filter(status='IN_TRANSIT')
-        )
+        # Average transfer time (whole days, initiated → completed)
+        completed = WarehouseTransfer.objects.filter(
+            company=request.user.company, status='COMPLETED', completed_at__isnull=False,
+        ).values_list('initiated_at', 'completed_at')
+        durations = [(done.date() - started.date()).days for started, done in completed]
+        avg_transfer_days = sum(durations) / len(durations) if durations else 0
+
+        # Value of stock currently on the road (only transfers whose stock has left the source)
+        in_transit_value = WarehouseTransfer.objects.filter(
+            company=request.user.company, status='IN_TRANSIT',
+        ).aggregate(v=Sum(F('transfer_items__quantity') * F('transfer_items__product__cost_price')))['v'] or 0
         
         return Response({
             'total_transfers': total_transfers,
@@ -280,15 +171,21 @@ class WarehouseTransferViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.Mod
                     'destination_warehouse': transfer.destination_warehouse.name,
                     'transfer_count': 0,
                     'total_items': 0,
-                    'total_value': 0
+                    'total_quantity': 0,
+                    'total_value': 0,
+                    'last_transfer_at': None,
                 }
             
-            movement_data[key]['transfer_count'] += 1
-            movement_data[key]['total_items'] += transfer.total_items
-            movement_data[key]['total_value'] += transfer.total_value
+            pair = movement_data[key]
+            pair['transfer_count'] += 1
+            pair['total_items'] += transfer.total_items
+            pair['total_quantity'] += transfer.total_quantity
+            pair['total_value'] += transfer.total_value
+            if transfer.completed_at and (pair['last_transfer_at'] is None or transfer.completed_at > pair['last_transfer_at']):
+                pair['last_transfer_at'] = transfer.completed_at
         
         return Response({
-            'stock_movements': list(movement_data.values()),
+            'stock_movements': sorted(movement_data.values(), key=lambda p: -p['transfer_count']),
             'total_movement_pairs': len(movement_data)
         })
 
@@ -307,15 +204,32 @@ class TransferItemViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
             transfer__company=self.request.user.company
         ).select_related('transfer', 'product')
 
+    def perform_create(self, serializer):
+        if not serializer.validated_data.get('transfer_id'):
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'transfer_id': 'Choose the transfer this item belongs to.'})
+        serializer.save()
+
+    def update(self, request, *args, **kwargs):
+        if self.get_object().transfer.status != 'PENDING':
+            return error('Items can only be changed while the transfer is pending.')
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if self.get_object().transfer.status != 'PENDING':
+            return error('Items can only be removed while the transfer is pending.')
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=False, methods=['get'])
     def insufficient_stock_report(self, request):
         """Get report of transfer items with insufficient stock."""
-        items = self.get_queryset().filter(transfer__status='PENDING')
+        items = self.get_queryset().filter(transfer__status='PENDING').select_related('transfer__source_warehouse')
         insufficient_items = []
         
         for item in items:
             if not item.sufficient_source_stock:
                 insufficient_items.append({
+                    'transfer_id': str(item.transfer_id),
                     'transfer_number': item.transfer.transfer_number,
                     'product_name': item.product.name,
                     'product_sku': item.product.sku,

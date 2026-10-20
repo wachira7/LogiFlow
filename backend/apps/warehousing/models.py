@@ -27,6 +27,8 @@ class WarehouseTransfer(TimeStampedModel):
     
     initiated_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    # True once the stock has been taken out of the source warehouse
+    stock_dispatched = models.BooleanField(default=False)
     
     notes = models.TextField(blank=True)
     
@@ -51,7 +53,7 @@ class WarehouseTransfer(TimeStampedModel):
     @property
     def total_items(self):
         """Get total number of different items in this transfer"""
-        return self.transfer_items.count()
+        return len(self.transfer_items.all())  # uses the prefetch when the view has one
     
     @property
     def total_quantity(self):
@@ -61,15 +63,12 @@ class WarehouseTransfer(TimeStampedModel):
     @property
     def total_value(self):
         """Calculate total value of transferred items"""
-        total = 0
-        for item in self.transfer_items.select_related('product'):
-            total += item.quantity * item.product.cost_price
-        return total
+        return sum((item.quantity * item.product.cost_price for item in self.transfer_items.all()), 0)
     
     @property
     def can_be_completed(self):
-        """Check if transfer can be marked as completed"""
-        return self.status == 'IN_TRANSIT' and self.transfer_items.exists()
+        """Stock has left the source and can be received at the destination"""
+        return self.status == 'IN_TRANSIT' and self.stock_dispatched and bool(self.transfer_items.all())
     
     def clean(self):
         """Validate that source and destination warehouses are different"""
@@ -105,12 +104,9 @@ class TransferItem(TimeStampedModel):
     
     @property
     def source_stock_available(self):
-        """Check available stock in source warehouse"""
-        try:
-            inventory_item = self.product.inventory_items.get(warehouse=self.transfer.source_warehouse)
-            return inventory_item.quantity
-        except:
-            return 0
+        """Stock of this product in the source warehouse"""
+        item = self.product.inventory_items.filter(warehouse=self.transfer.source_warehouse).first()
+        return item.quantity if item else 0
     
     @property
     def sufficient_source_stock(self):
@@ -119,9 +115,6 @@ class TransferItem(TimeStampedModel):
     
     @property
     def destination_current_stock(self):
-        """Get current stock in destination warehouse"""
-        try:
-            inventory_item = self.product.inventory_items.get(warehouse=self.transfer.destination_warehouse)
-            return inventory_item.quantity
-        except:
-            return 0
+        """Stock of this product in the destination warehouse"""
+        item = self.product.inventory_items.filter(warehouse=self.transfer.destination_warehouse).first()
+        return item.quantity if item else 0

@@ -242,6 +242,10 @@
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: none; }
 }
+@keyframes grow-x {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
 @keyframes shell-load {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(200%); }
