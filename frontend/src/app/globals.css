@@ -242,6 +242,10 @@
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: none; }
 }
+@keyframes shell-load {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
 @keyframes float-slow {
   0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
   50% { transform: translate3d(3%, -4%, 0) scale(1.06); }

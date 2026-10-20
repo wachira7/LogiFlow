@@ -1,18 +1,23 @@
 // src/components/layout/Sidebar.tsx
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useAuth, useAuthUtils } from '@/hooks/useAuth'
-import { LayoutDashboard, Package, Truck, Factory, Warehouse, BarChart3, CreditCard, Settings, Users, Building, ChevronDown, ChevronRight, X, Menu, ChevronLeft, Shield, TrendingUp, Building2, User } from 'lucide-react'
+import {
+  LayoutDashboard, Package, Truck, Factory, Warehouse, BarChart3, CreditCard, Settings, Users, Building,
+  ChevronDown, X, ChevronLeft, ChevronRight, Shield, TrendingUp, Building2, User, Boxes, Tags, History,
+  ArrowRightLeft, Route, MapPin, ClipboardList, Layers, ListChecks, Wallet, Receipt, Bell, Plug, Lock, Home,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Logo } from '@/components/landing/Logo'
 
 interface SidebarProps {
   open: boolean
@@ -30,393 +35,322 @@ interface NavItem {
   roles?: string[]
 }
 
-export function Sidebar({ open, onClose, collapsed, onToggleCollapse }: SidebarProps) {
+const navigation: NavItem[] = [
+  { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  {
+    title: 'Inventory', href: '/inventory', icon: Package,
+    children: [
+      { title: 'Overview', href: '/inventory', icon: Home },
+      { title: 'Products', href: '/inventory/products', icon: Package },
+      { title: 'Stock', href: '/inventory/inventory-items', icon: Boxes },
+      { title: 'Categories', href: '/inventory/categories', icon: Tags },
+      { title: 'Warehouses', href: '/inventory/warehouses', icon: Warehouse },
+      { title: 'Transactions', href: '/inventory/transactions', icon: History },
+      { title: 'Reports', href: '/inventory/reports', icon: BarChart3 },
+    ],
+  },
+  {
+    title: 'Distribution', href: '/distribution', icon: Truck,
+    children: [
+      { title: 'Overview', href: '/distribution', icon: Home },
+      { title: 'Orders', href: '/distribution/orders', icon: ClipboardList },
+      { title: 'Shipments', href: '/distribution/shipments', icon: Truck },
+      { title: 'Routes', href: '/distribution/routes', icon: Route },
+      { title: 'Tracking', href: '/distribution/tracking', icon: MapPin },
+    ],
+  },
+  {
+    title: 'Production', href: '/production', icon: Factory,
+    roles: ['company_owner', 'production_manager'],
+    children: [
+      { title: 'Overview', href: '/production', icon: Home },
+      { title: 'Orders', href: '/production/orders', icon: ClipboardList },
+      { title: 'Materials', href: '/production/materials', icon: Layers },
+      { title: 'Steps', href: '/production/steps', icon: ListChecks },
+    ],
+  },
+  {
+    title: 'Warehousing', href: '/warehousing', icon: Warehouse,
+    roles: ['company_owner', 'warehouse_manager'],
+    children: [
+      { title: 'Overview', href: '/warehousing', icon: Home },
+      { title: 'Transfers', href: '/warehousing/transfers', icon: ArrowRightLeft },
+      { title: 'Movements', href: '/warehousing/movements', icon: Route },
+      { title: 'Reports', href: '/warehousing/reports', icon: BarChart3 },
+    ],
+  },
+  {
+    title: 'Analytics', href: '/analytics', icon: BarChart3,
+    children: [
+      { title: 'Overview', href: '/analytics', icon: Home },
+      { title: 'Inventory', href: '/analytics/inventory', icon: Package },
+      { title: 'Distribution', href: '/analytics/distribution', icon: Truck },
+      { title: 'Production', href: '/analytics/production', icon: Factory },
+      { title: 'Warehousing', href: '/analytics/warehousing', icon: Warehouse },
+    ],
+  },
+  {
+    title: 'Billing', href: '/billing', icon: CreditCard,
+    roles: ['company_owner'],
+    children: [
+      { title: 'Overview', href: '/billing', icon: Home },
+      { title: 'Plans', href: '/billing/plans', icon: Layers },
+      { title: 'Subscriptions', href: '/billing/subscriptions', icon: CreditCard },
+      { title: 'Payment Methods', href: '/billing/payment-methods', icon: Wallet },
+      { title: 'Transactions', href: '/billing/transactions', icon: Receipt },
+    ],
+  },
+  {
+    title: 'Company', href: '/company', icon: Building,
+    roles: ['company_owner'],
+    children: [
+      { title: 'Profile', href: '/company/profile', icon: Building },
+      { title: 'Users', href: '/company/users', icon: Users },
+      { title: 'Settings', href: '/company/settings', icon: Settings },
+    ],
+  },
+  {
+    title: 'Platform Admin', href: '/platform-admin', icon: Shield,
+    roles: ['platform_admin'],
+    children: [
+      { title: 'Dashboard', href: '/platform-admin', icon: LayoutDashboard },
+      { title: 'Analytics', href: '/platform-admin/analytics', icon: TrendingUp },
+      { title: 'Companies', href: '/platform-admin/companies', icon: Building2 },
+      { title: 'Subscriptions', href: '/platform-admin/subscriptions', icon: CreditCard },
+      { title: 'Settings', href: '/platform-admin/settings', icon: Settings },
+    ],
+  },
+  {
+    title: 'Settings', href: '/settings', icon: Settings,
+    children: [
+      { title: 'Profile', href: '/profile', icon: User },
+      { title: 'General', href: '/settings/general', icon: Settings },
+      { title: 'Security', href: '/settings/security', icon: Lock },
+      { title: 'Notifications', href: '/settings/notifications', icon: Bell },
+      { title: 'Integrations', href: '/settings/integrations', icon: Plug },
+    ],
+  },
+]
+
+const within = (pathname: string, href: string) => pathname === href || pathname.startsWith(href + '/')
+
+/** A section owns the current page if any of its links (or its own href) contains it. */
+const sectionOwns = (item: NavItem, pathname: string) =>
+  within(pathname, item.href) || !!item.children?.some((c) => within(pathname, c.href))
+
+/** The single most specific link that matches the current page. */
+function activeHref(pathname: string, items: NavItem[]) {
+  let best = ''
+  for (const item of items) {
+    for (const link of [item, ...(item.children ?? [])]) {
+      if (within(pathname, link.href) && link.href.length > best.length) best = link.href
+    }
+  }
+  return best
+}
+
+const desktopQuery = '(min-width: 1024px)'
+const subscribeDesktop = (cb: () => void) => {
+  const mq = window.matchMedia(desktopQuery)
+  mq.addEventListener('change', cb)
+  return () => mq.removeEventListener('change', cb)
+}
+
+export function Sidebar({ open, onClose, collapsed: collapsedPref, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
-  const { hasAnyRole, isCompanyOwner, getUserDisplayName } = useAuthUtils()
+  // The icon-only rail is a desktop preference; the phone drawer always shows labels
+  const isDesktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(desktopQuery).matches, () => true)
+  const collapsed = collapsedPref && isDesktop
+  const reduce = useReducedMotion()
+  const { hasAnyRole, getUserDisplayName } = useAuthUtils()
   const { user } = useAuth()
-  const [expandedItems, setExpandedItems] = useState<string[]>(['dashboard'])
 
-  const toggleExpanded = (item: string) => {
-    if (collapsed) return // Don't expand items when sidebar is collapsed
-    setExpandedItems(prev =>
-      prev.includes(item)
-        ? prev.filter(i => i !== item)
-        : [...prev, item]
-    )
-  }
+  const items = navigation.filter((item) => !item.roles || hasAnyRole(item.roles))
+  const current = activeHref(pathname, items)
+  const [expanded, setExpanded] = useState<string[]>([])
 
-  const navigation: NavItem[] = [
-    {
-      title: 'Dashboard',
-      href: '/dashboard',
-      icon: LayoutDashboard,
-    },
-    {
-      title: 'Inventory',
-      href: '/inventory',
-      icon: Package,
-      children: [
-        { title: 'Products', href: '/inventory/products', icon: Package },
-        { title: 'Categories', href: '/inventory/categories', icon: Package },
-        { title: 'Warehouses', href: '/inventory/warehouses', icon: Warehouse },
-        { title: 'Transactions', href: '/inventory/transactions', icon: Package },
-        { title: 'Reports', href: '/inventory/reports', icon: BarChart3 },
-      ],
-    },
-    {
-      title: 'Distribution',
-      href: '/distribution',
-      icon: Truck,
-      children: [
-        { title: 'Orders', href: '/distribution/orders', icon: Package },
-        { title: 'Shipments', href: '/distribution/shipments', icon: Truck },
-        { title: 'Routes', href: '/distribution/routes', icon: Truck },
-        { title: 'Tracking', href: '/distribution/tracking', icon: BarChart3 },
-      ],
-    },
-    {
-      title: 'Production',
-      href: '/production',
-      icon: Factory,
-      roles: ['company_owner', 'production_manager'],
-      children: [
-        { title: 'Orders', href: '/production/orders', icon: Factory },
-        { title: 'Materials', href: '/production/materials', icon: Package },
-        { title: 'Steps', href: '/production/steps', icon: Factory },
-      ],
-    },
-    {
-      title: 'Warehousing',
-      href: '/warehousing',
-      icon: Warehouse,
-      roles: ['company_owner', 'warehouse_manager'],
-      children: [
-        { title: 'Movements', href: '/warehousing/movements', icon: Warehouse },
-        { title: 'Transfers', href: '/warehousing/transfers', icon: Truck },
-        { title: 'Reports', href: '/warehousing/reports', icon: BarChart3 },
-      ],
-    },
-    {
-      title: 'Analytics',
-      href: '/analytics',
-      icon: BarChart3,
-      children: [
-        { title: 'Inventory', href: '/analytics/inventory', icon: Package },
-        { title: 'Distribution', href: '/analytics/distribution', icon: Truck },
-        { title: 'Production', href: '/analytics/production', icon: Factory },
-        { title: 'Financial', href: '/analytics/financial', icon: CreditCard },
-      ],
-    },
-    {
-      title: 'Billing',
-      href: '/billing',
-      icon: CreditCard,
-      roles: ['company_owner'],
-      children: [
-        { title: 'Plans', href: '/billing/plans', icon: CreditCard },
-        { title: 'Subscriptions', href: '/billing/subscriptions', icon: CreditCard },
-        { title: 'Payment Methods', href: '/billing/payment-methods', icon: CreditCard },
-        { title: 'Transactions', href: '/billing/transactions', icon: BarChart3 },
-      ],
-    },
-    {
-      title: 'Company',
-      href: '/company',
-      icon: Building,
-      roles: ['company_owner'],
-      children: [
-        { title: 'Profile', href: '/company/profile', icon: Building },
-        { title: 'Users', href: '/company/users', icon: Users },
-        { title: 'Settings', href: '/company/settings', icon: Settings },
-      ],
-    },
+  // Open the section that holds the current page
+  useEffect(() => {
+    const owner = navigation.find((item) => item.children && sectionOwns(item, pathname))
+    if (owner) setExpanded((prev) => (prev.includes(owner.title) ? prev : [...prev, owner.title]))
+  }, [pathname])
 
-    {
-      title: 'Platform Admin',
-      href: '/platform-admin',
-      icon: Shield,
-      roles: ['platform_admin'],  // Only platform admins can see this
-      children: [
-        { title: 'Dashboard', href: '/platform-admin', icon: LayoutDashboard },
-        { title: 'Analytics', href: '/platform-admin/analytics', icon: TrendingUp },
-        { title: 'Companies', href: '/platform-admin/companies', icon: Building2 },
-        { title: 'Subscriptions', href: '/platform-admin/subscriptions', icon: CreditCard }, 
-        { title: 'Settings', href: '/platform-admin/settings', icon: Settings },
-      ],
-    },
+  const toggle = (title: string) =>
+    setExpanded((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]))
 
-    {
-      title: 'Settings',
-      href: '/settings',
-      icon: Settings,
-      children: [
-        { title: 'Profile', href: '/profile', icon: User },
-        { title: 'General', href: '/settings/general', icon: Settings },
-        { title: 'Security', href: '/settings/security', icon: Settings },
-        { title: 'Notifications', href: '/settings/notifications', icon: Settings },
-        { title: 'Integrations', href: '/settings/integrations', icon: Settings },
-      ],
-    },
-  ]
+  const initials = getUserDisplayName().split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
 
-  // Filter navigation based on user roles
-  const filteredNavigation = navigation.filter(item => {
-    if (!item.roles) return true
-    return hasAnyRole(item.roles)
-  })
-
-  const renderNavItem = (item: NavItem, level = 0) => {
-    const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-    const hasChildren = item.children && item.children.length > 0
-    const isExpanded = expandedItems.includes(item.title.toLowerCase())
-
-    const NavContent = () => (
-      <div
-        className={cn(
-          'flex items-center w-full text-left rounded-lg transition-all duration-200',
-          level === 0 ? (collapsed ? 'px-2 py-2' : 'px-3 py-2') : 'px-6 py-1.5',
-          isActive
-            ? 'bg-primary text-primary-foreground'
-            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-        )}
-      >
-        {hasChildren ? (
-          <button
-            onClick={() => toggleExpanded(item.title.toLowerCase())}
-            className="flex items-center w-full"
-          >
-            <item.icon className={cn('h-4 w-4 shrink-0', !collapsed && (level === 0 ? 'mr-3' : 'mr-2'))} />
-            {!collapsed && (
-              <>
-                <span className="flex-1 text-sm font-medium truncate">{item.title}</span>
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 shrink-0" />
-                ) : (
-                  <ChevronRight className="h-4 w-4 shrink-0" />
-                )}
-                {item.badge && (
-                  <Badge variant="secondary" className="ml-2 shrink-0">
-                    {item.badge}
-                  </Badge>
-                )}
-              </>
-            )}
-          </button>
-        ) : (
-          <Link 
-            href={item.href} 
-            className="flex items-center w-full" 
-            onClick={onClose}
-          >
-            <item.icon className={cn('h-4 w-4 shrink-0', !collapsed && (level === 0 ? 'mr-3' : 'mr-2'))} />
-            {!collapsed && (
-              <>
-                <span className="text-sm font-medium truncate">{item.title}</span>
-                {item.badge && (
-                  <Badge variant="secondary" className="ml-auto shrink-0">
-                    {item.badge}
-                  </Badge>
-                )}
-              </>
-            )}
-          </Link>
-        )}
-      </div>
+  const leafClass = (active: boolean) =>
+    cn(
+      'relative flex items-center gap-3 rounded-lg text-sm font-medium transition-colors duration-200',
+      active ? 'text-brand' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
     )
 
+  const activePill = (
+    <motion.span
+      layoutId="sidebar-active"
+      className="absolute inset-0 -z-10 rounded-lg bg-brand-soft ring-1 ring-brand/15"
+      transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34 }}
+    />
+  )
+
+  const withTooltip = (title: string, node: React.ReactNode) =>
+    collapsed ? (
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>{node}</TooltipTrigger>
+        <TooltipContent side="right" className="font-medium">{title}</TooltipContent>
+      </Tooltip>
+    ) : (
+      node
+    )
+
+  const renderItem = (item: NavItem) => {
+    const Icon = item.icon
+    const owns = sectionOwns(item, pathname)
+
+    // Plain link, or any section while the rail is collapsed (goes to the section's first page)
+    if (!item.children || collapsed) {
+      const href = item.children ? item.children[0].href : item.href
+      const active = item.children ? owns : current === item.href
+      return (
+        <div key={item.title}>
+          {withTooltip(
+            item.title,
+            <Link
+              href={href}
+              onClick={onClose}
+              aria-current={active ? 'page' : undefined}
+              className={cn(leafClass(active), 'isolate', collapsed ? 'justify-center px-2 py-2.5' : 'px-3 py-2')}
+            >
+              {active && activePill}
+              <Icon className="h-4 w-4 shrink-0" />
+              {!collapsed && <span className="truncate">{item.title}</span>}
+              {!collapsed && item.badge && <Badge variant="secondary" className="ml-auto">{item.badge}</Badge>}
+            </Link>,
+          )}
+        </div>
+      )
+    }
+
+    const isOpen = expanded.includes(item.title)
     return (
-      <div key={item.href}>
-        {collapsed && level === 0 ? (
-          <TooltipProvider>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <div className="w-full">
-                  <NavContent />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="font-medium">
-                {item.title}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ) : (
-          <NavContent />
-        )}
-
-        {/* Render children if expanded and not collapsed */}
-        {hasChildren && isExpanded && !collapsed && (
-          <div className="mt-1 space-y-1">
-            {item.children?.map(child => renderNavItem(child, level + 1))}
-          </div>
-        )}
+      <div key={item.title}>
+        <button
+          type="button"
+          onClick={() => toggle(item.title)}
+          aria-expanded={isOpen}
+          className={cn(
+            'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 hover:bg-muted',
+            owns ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          <Icon className={cn('h-4 w-4 shrink-0 transition-colors', owns && 'text-brand')} />
+          <span className="flex-1 truncate text-left">{item.title}</span>
+          <ChevronDown className={cn('h-4 w-4 shrink-0 transition-transform duration-300', isOpen ? 'rotate-0' : '-rotate-90')} />
+        </button>
+        <AnimatePresence initial={false}>
+          {isOpen && (
+            <motion.div
+              initial={reduce ? false : { height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={reduce ? undefined : { height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="ml-5 mt-1 space-y-0.5 border-l pl-2.5">
+                {item.children.map((child) => {
+                  const ChildIcon = child.icon
+                  const active = current === child.href
+                  return (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      onClick={onClose}
+                      aria-current={active ? 'page' : undefined}
+                      className={cn(leafClass(active), 'isolate px-2.5 py-1.5')}
+                    >
+                      {active && activePill}
+                      <ChildIcon className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{child.title}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     )
   }
-
-  const sidebarWidth = collapsed ? 'w-16' : 'w-64'
 
   return (
-    <>
+    <TooltipProvider>
       {/* Mobile overlay */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden"
-          onClick={onClose}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div
-        className={cn(
-          'fixed inset-y-0 left-0 z-50 bg-card border-r transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0',
-          sidebarWidth,
-          open ? 'translate-x-0' : '-translate-x-full'
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
         )}
+      </AnimatePresence>
+
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r bg-card transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:relative lg:translate-x-0',
+          collapsed ? 'lg:w-[4.5rem]' : 'lg:w-64',
+          open ? 'translate-x-0 shadow-2xl lg:shadow-none' : '-translate-x-full',
+        )}
+        aria-label="Main navigation"
       >
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className={cn(
-            'flex items-center border-b transition-all duration-300',
-            collapsed ? 'justify-center p-2' : 'justify-between p-4'
-          )}>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
-                <Package className="w-5 h-5 text-primary-foreground" />
-              </div>
-              {!collapsed && (
-                <span className="text-lg font-bold whitespace-nowrap">LogiFlow</span>
-              )}
-            </div>
-            
-            {/* Desktop collapse toggle */}
-            <div className="hidden lg:flex">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onToggleCollapse}
-                className="h-8 w-8"
-              >
-                {collapsed ? (
-                  <ChevronRight className="h-4 w-4" />
-                ) : (
-                  <ChevronLeft className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-
-            {/* Mobile close button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="lg:hidden h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* User info */}
-          {!collapsed && (
-            <div className="p-4 border-b">
-              <div className="flex items-center space-x-3">
-                 <Avatar className="w-10 h-10 shrink-0">
-                  <AvatarImage src={user?.profile_picture || user?.avatar || undefined} />
-                  <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-                    {getUserDisplayName().split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{getUserDisplayName()}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {user?.email}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Collapsed user avatar */}
-          {collapsed && (
-            <div className="p-2 border-b flex justify-center">
-              <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={user?.profile_picture || user?.avatar || undefined} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-                        {getUserDisplayName().split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p className="font-medium">{getUserDisplayName()}</p>
-                    <p className="text-xs text-muted-foreground">{user?.email}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          )}
-
-          {/* Navigation */}
-          <div className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full">
-              <nav className={cn('space-y-1 pb-4', collapsed ? 'px-2 py-2' : 'px-3 py-2')}>
-                {filteredNavigation.map(item => renderNavItem(item))}
-              </nav>
-            </ScrollArea>
-          </div>
-
-          {/* Add separator before footer if company owner */}
-          {isCompanyOwner() && <Separator className="mx-4" />}
-
-          {/* Footer */}
-          <div className={cn(
-            'border-t transition-all duration-300',
-            collapsed ? 'p-2' : 'p-4'
-          )}>
-            {/* Company owner admin button */}
-            {isCompanyOwner() && !collapsed && (
-              <div className="mb-3">
-                <Separator className="mb-3" />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start"
-                >
-                  <Menu className="h-4 w-4 mr-2" />
-                  Admin Menu
-                </Button>
-              </div>
-            )}
-
-            {/* Collapsed admin button */}
-            {isCompanyOwner() && collapsed && (
-              <div className="mb-3 flex justify-center">
-                <TooltipProvider>
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" className="h-8 w-8">
-                        <Menu className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">
-                      Admin Menu
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            )}
-
-            {/* Version info */}
-            {!collapsed && (
-              <div className="text-xs text-muted-foreground text-center">
-                <p>LogiFlow v1.0</p>
-                <p>© 2025 WaruTech</p>
-              </div>
-            )}
-          </div>
+        {/* Header */}
+        <div className={cn('flex h-16 items-center border-b', collapsed ? 'justify-center px-2' : 'justify-between px-4')}>
+          <Link href="/dashboard" onClick={onClose} className="rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand">
+            <Logo showWordmark={!collapsed} />
+          </Link>
+          <Button variant="ghost" size="icon" onClick={onToggleCollapse} className={cn('hidden h-8 w-8 lg:inline-flex', collapsed && 'absolute -right-4 top-4 z-10 h-7 w-7 rounded-full border bg-card shadow-sm')} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 lg:hidden" aria-label="Close menu">
+            <X className="h-4 w-4" />
+          </Button>
         </div>
-      </div>
-    </>
+
+        {/* Navigation */}
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            <nav className={cn('space-y-1 py-3', collapsed ? 'px-2' : 'px-3')}>
+              {items.map(renderItem)}
+            </nav>
+          </ScrollArea>
+        </div>
+
+        {/* Signed-in user */}
+        <div className={cn('border-t', collapsed ? 'p-2' : 'p-3')}>
+          {withTooltip(
+            `${getUserDisplayName()} · ${user?.email ?? ''}`,
+            <Link
+              href="/profile"
+              onClick={onClose}
+              className={cn('flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted', collapsed && 'justify-center')}
+            >
+              <Avatar className="h-9 w-9 shrink-0 ring-2 ring-brand/20">
+                <AvatarImage src={user?.profile_picture || user?.avatar || undefined} />
+                <AvatarFallback className="bg-brand text-sm font-medium text-brand-foreground">{initials}</AvatarFallback>
+              </Avatar>
+              {!collapsed && (
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{getUserDisplayName()}</p>
+                  <p className="truncate text-xs text-muted-foreground">{user?.company_name || user?.email}</p>
+                </div>
+              )}
+            </Link>,
+          )}
+        </div>
+      </aside>
+    </TooltipProvider>
   )
 }

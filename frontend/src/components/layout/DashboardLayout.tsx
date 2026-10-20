@@ -1,11 +1,14 @@
 // src/components/layout/DashboardLayout.tsx
+// The signed-in app shell (sidebar + top bar) shared by every module.
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useAuth } from '@/context/AuthContext'
 import { Sidebar } from './Sidebar'
 import { Navbar } from './Navbar'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { Logo } from '@/components/landing/Logo'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -13,63 +16,79 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { isAuthenticated, isLoading } = useAuth()
+  const pathname = usePathname()
+  const reduce = useReducedMotion()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  // Load collapsed state from localStorage on mount
+  // Remember the collapsed rail between visits
   useEffect(() => {
-    const savedCollapsedState = localStorage.getItem('sidebar-collapsed')
-    if (savedCollapsedState) {
-      setSidebarCollapsed(JSON.parse(savedCollapsedState))
+    try {
+      const saved = localStorage.getItem('sidebar-collapsed')
+      if (saved) setSidebarCollapsed(JSON.parse(saved))
+    } catch {
+      /* storage unavailable */
     }
   }, [])
 
-  // Save collapsed state to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('sidebar-collapsed', JSON.stringify(sidebarCollapsed))
-  }, [sidebarCollapsed])
-
   const toggleSidebarCollapse = () => {
-    setSidebarCollapsed(!sidebarCollapsed)
+    setSidebarCollapsed((prev) => {
+      try {
+        localStorage.setItem('sidebar-collapsed', JSON.stringify(!prev))
+      } catch {
+        /* storage unavailable */
+      }
+      return !prev
+    })
   }
 
-  // Show loading while checking authentication
+  // Close the phone drawer after navigating
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [pathname])
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" />
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
+        <span className="animate-pulse"><Logo /></span>
+        <span className="h-1 w-32 overflow-hidden rounded-full bg-muted">
+          <span className="block h-full w-1/2 animate-[shell-load_1.1s_ease-in-out_infinite] rounded-full bg-brand" />
+        </span>
       </div>
     )
   }
 
-  // If not authenticated, don't render the layout (middleware should redirect)
+  // Not signed in: render nothing (middleware redirects to sign in)
   if (!isAuthenticated) {
     return null
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-background">
-      {/* Sidebar */}
-      <Sidebar 
-        open={sidebarOpen} 
+    <div className="flex h-screen overflow-hidden bg-muted/30">
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-brand focus:px-3 focus:py-2 focus:text-brand-foreground">
+        Skip to content
+      </a>
+      <Sidebar
+        open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         collapsed={sidebarCollapsed}
         onToggleCollapse={toggleSidebarCollapse}
       />
-      
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top navbar */}
-        <Navbar 
-          onMenuClick={() => setSidebarOpen(true)}
-          sidebarCollapsed={sidebarCollapsed}
-        />
-        
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="container mx-auto px-4 py-6">
+
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <Navbar onMenuClick={() => setSidebarOpen(true)} sidebarCollapsed={sidebarCollapsed} />
+
+        <main id="main" className="flex-1 overflow-y-auto">
+          {/* Each page fades in as you move between them */}
+          <motion.div
+            key={pathname}
+            initial={reduce ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-8"
+          >
             {children}
-          </div>
+          </motion.div>
         </main>
       </div>
     </div>

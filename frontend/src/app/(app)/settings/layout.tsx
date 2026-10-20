@@ -4,7 +4,7 @@
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { DashboardLayout } from '@/components/layout/DashboardLayout'
+import { PageHeader } from '@/components/app/kit'
 import { Card } from '@/components/ui/card'
 import { Settings, User, Shield, Bell, Plug } from 'lucide-react'
 
@@ -43,18 +43,9 @@ export default function SettingsLayout({
   const pathname = usePathname()
 
   return (
-    <DashboardLayout>
-      <div className="container mx-auto py-6">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center space-x-2 mb-2">
-            <Settings className="w-6 h-6" />
-            <h1 className="text-3xl font-bold">Settings</h1>
-          </div>
-          <p className="text-muted-foreground">
-            Manage your account settings and preferences
-          </p>
-        </div>
+    <>
+      <div className="space-y-6">
+        <PageHeader icon={Settings} title="Settings" description="Manage your account settings and preferences" />
 
         {/* Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -72,10 +63,9 @@ export default function SettingsLayout({
                       href={item.href}
                       className={cn(
                         'flex items-start space-x-3 rounded-lg px-3 py-2 transition-colors',
-                        'hover:bg-accent hover:text-accent-foreground',
                         isActive
-                          ? 'bg-accent text-accent-foreground'
-                          : 'text-muted-foreground'
+                          ? 'bg-brand-soft text-brand'
+                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                       )}
                     >
                       <Icon className="w-5 h-5 mt-0.5 shrink-0" />
@@ -98,6 +88,6 @@ export default function SettingsLayout({
           </main>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   )
 }
