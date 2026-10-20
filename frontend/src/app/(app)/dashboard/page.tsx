@@ -1,4 +1,5 @@
 // src/app/(app)/dashboard/page.tsx
+// The overview: the whole business at a glance, updating live.
 'use client'
 
 import { useEffect } from 'react'
@@ -17,6 +18,8 @@ import { Greeting } from '@/components/dashboard/Greeting'
 import { ActivityChart } from '@/components/dashboard/ActivityChart'
 import { ActivityFeed, AlertsList, MetricsStrip, SetupChecklist } from '@/components/dashboard/Feeds'
 import { formatCount, formatMoney } from '@/lib/format'
+import { useLiveRefresh } from '@/lib/realtime'
+import { OpsToday } from '@/components/dashboard/OpsToday'
 import type { DashboardOverview } from '@/types/dashboard.types'
 
 /** One sentence that sums up the day, from real numbers. */
@@ -49,6 +52,9 @@ function DashboardContent() {
   const { user } = useAuth()
   const router = useRouter()
   const { data, isLoading, isRefreshing, error, reload } = useDashboard()
+  // Live: anything moving in the business refreshes the overview (batched so a busy day doesn't hammer it)
+  useLiveRefresh(['shipment.event', 'exception.updated', 'route.updated', 'inventory.movement'], reload, { ms: 2000 })
+  useLiveRefresh('fleet.position', reload, { ms: 10000 })
   const isPlatformAdmin = !!(user?.is_platform_admin || user?.role === 'platform_admin')
 
   useEffect(() => {
@@ -87,6 +93,8 @@ function DashboardContent() {
         <StatCard label="Shipments out" value={s.active_shipments} icon={Truck} tone="info" hint="Not yet delivered" href="/distribution/shipments" />
         <StatCard label="In production" value={s.production_in_progress} icon={Factory} tone="success" hint={`${s.production_planned} planned next`} href="/production" />
       </StatGrid>
+
+      {data.ops && <OpsToday ops={data.ops} />}
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

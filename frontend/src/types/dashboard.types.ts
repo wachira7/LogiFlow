@@ -101,5 +101,20 @@ export interface DashboardOverview {
   performance_metrics: PerformanceMetric[]
   alerts: Alert[]
   trend: TrendPoint[]
+  ops: OpsToday
   generated_at: string
+}
+
+export interface OpsToday {
+  in_flight: number
+  out_for_delivery: number
+  late: number
+  delivered_today: number
+  on_time_today: number | null
+  open_exceptions: number
+  urgent_exceptions: number
+  unassigned_exceptions: number
+  routes_running: number
+  routes: { id: string; name: string; driver: string | null; vehicle: string | null; done: number; total: number; started_at: string | null }[]
+  live_units: { id: string; label: string; latitude: number; longitude: number; heading: number | null; recorded_at: string }[]
 }

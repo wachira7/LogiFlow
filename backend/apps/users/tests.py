@@ -48,6 +48,33 @@ class DashboardOverviewTests(AuthenticatedAPITestCase):
         self.assertEqual(r.status_code, 200, r.content)
         return r.json()
 
+    def test_ops_today_and_exception_alerts(self):
+        from apps.distribution.models import DeliveryRoute, LocationPing, RouteStop
+        from apps.ops.services import raise_exception
+        now = timezone.now()
+        wh = make_warehouse(self.company)
+        late = make_shipment(self.company, warehouse=wh, status='SHIPPED', estimated_delivery=now - timedelta(hours=2))
+        make_shipment(self.company, warehouse=wh, status='DELIVERED', estimated_delivery=now + timedelta(hours=1), actual_delivery=now)
+        driver = make_user(company=self.company, is_driver=True)
+        route = DeliveryRoute.objects.create(company=self.company, route_name='CBD', driver=driver, status='IN_PROGRESS', start_time=now)
+        RouteStop.objects.create(route=route, shipment=late, stop_number=1, address='x', status='COMPLETED')
+        RouteStop.objects.create(route=route, shipment=make_shipment(self.company, warehouse=wh, status='SHIPPED'), stop_number=2, address='y')
+        LocationPing.objects.create(company=self.company, driver=driver, route=route, latitude=-1.28, longitude=36.82, recorded_at=now)
+        LocationPing.objects.create(company=self.company, driver=driver, route=route, latitude=-1.29, longitude=36.83, recorded_at=now - timedelta(minutes=1))
+        raise_exception(self.company, exception_type='DAMAGED', title='Crushed', shipment=late, severity='CRITICAL')
+        other = make_company()
+        raise_exception(other, exception_type='LOST', title='Not ours', severity='CRITICAL')
+
+        data = self.get()
+        ops = data['ops']
+        self.assertEqual((ops['late'], ops['delivered_today'], ops['on_time_today']), (1, 1, 100))
+        self.assertEqual((ops['open_exceptions'], ops['urgent_exceptions'], ops['routes_running']), (1, 1, 1))
+        self.assertEqual((ops['routes'][0]['done'], ops['routes'][0]['total']), (1, 2))
+        self.assertEqual(len(ops['live_units']), 1)  # one driver, latest position only
+        self.assertEqual(ops['live_units'][0]['latitude'], -1.28)
+        alert = next(a for a in data['alerts'] if a['title'] == 'Urgent Exceptions')
+        self.assertEqual((alert['type'], alert['href']), ('critical', '/ops/exceptions'))
+
     def test_response_shape_matches_frontend_contract(self):
         data = self.get()
         for key in ('company', 'user', 'stats', 'recent_activity', 'quick_actions',
