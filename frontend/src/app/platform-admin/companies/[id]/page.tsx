@@ -1,219 +1,100 @@
-// frontend/src/app/platform-admin/companies/[id]/page.tsx
+// src/app/platform-admin/companies/[id]/page.tsx
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
-import Link from 'next/link'
-//import { PrivateRoute } from '@/components/auth/AuthGuard'
-import { usePlatformAdmin } from '@/hooks/usePlatformAdmin'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { ArrowLeft, Building2, Users, DollarSign, Calendar, Activity, AlertCircle, CheckCircle, Ban } from 'lucide-react'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import type { CompanyOverview } from '@/types/platform.types'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { use, useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Boxes, Building2, ClipboardList, Factory, Layers, Package, Receipt, ScrollText, Truck, Users, Warehouse } from 'lucide-react'
+import { adminService, type CompanyDetail } from '@/services/adminService'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorBanner, PageHeader, Panel, StatusPill } from '@/components/app/kit'
+import { AppStagger, AppStaggerItem } from '@/components/app/motion'
+import { CompanyActions } from '@/components/admin/CompanyActions'
+import { formatTotals } from '@/components/billing/shared'
+import { formatDay, formatMoney, timeAgo } from '@/lib/format'
 
-function CompanyDetailContent() {
-  const params = useParams()
-  const companyId = params.id as string
-  
-  const {
-    companies,
-    isLoadingCompanies,
-    companiesError,
-    fetchCompanies,
-  } = usePlatformAdmin()
+const USAGE: [string, string, typeof Package][] = [
+  ['products', 'Products', Package], ['warehouses', 'Warehouses', Warehouse], ['orders', 'Orders', ClipboardList],
+  ['shipments', 'Shipments', Truck], ['production_orders', 'Production runs', Factory], ['transfers', 'Transfers', Boxes],
+]
 
-  const [company, setCompany] = useState<CompanyOverview | null>(null)
-
+export default function AdminCompanyPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const router = useRouter()
+  const [c, setC] = useState<CompanyDetail | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const load = useCallback(() => adminService.company(id).then(setC).catch((err) => setError(err instanceof Error ? err.message : 'Not found')), [id])
   useEffect(() => {
-    if (companies.length === 0) {
-      fetchCompanies()
-    }
-  }, [companies.length, fetchCompanies])
+    load()
+  }, [load])
 
-  useEffect(() => {
-    const foundCompany = companies.find(c => c.company_id === companyId)
-    setCompany(foundCompany || null)
-  }, [companies, companyId])
+  if (error) return <div className="space-y-6"><PageHeader title="Company" back={{ href: '/platform-admin/companies', label: 'Companies' }} /><ErrorBanner title="Couldn’t load this company" message={error} /></div>
+  if (!c) return <div className="space-y-6"><Skeleton className="h-16 w-80" /><Skeleton className="h-32 rounded-xl" /><Skeleton className="h-72 rounded-xl" /></div>
 
-  if (companiesError) {
-    return (
-      <div className="container mx-auto py-6">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{companiesError}</AlertDescription>
-        </Alert>
-      </div>
-    )
-  }
-
-  if (isLoadingCompanies || !company) {
-    return (
-      <div className="container mx-auto py-6">
-        <Card>
-          <CardContent className="p-12">
-            <LoadingSpinner size="lg" text="Loading company details..." />
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
+  const live = c.subscriptions.find((s) => ['ACTIVE', 'TRIALING', 'PAST_DUE'].includes(s.status))
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/platform-admin/companies">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Companies
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold flex items-center space-x-3">
-              <Building2 className="w-8 h-8" />
-              <span>{company.company_name}</span>
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Company ID: {company.company_id}
-            </p>
-          </div>
-        </div>
-        <Badge variant={company.is_active ? 'default' : 'destructive'} className="text-lg px-4 py-2">
-          {company.is_active ? (
-            <><CheckCircle className="w-4 h-4 mr-2" /> Active</>
-          ) : (
-            <><Ban className="w-4 h-4 mr-2" /> Inactive</>
+    <div className="space-y-6">
+      <PageHeader icon={Building2} back={{ href: '/platform-admin/companies', label: 'Companies' }} title={c.name}
+        description={<span className="flex flex-wrap items-center gap-2"><StatusPill tone={c.is_active ? 'success' : 'danger'}>{c.is_active ? 'Active' : 'Suspended'}</StatusPill><span>{[c.industry, c.email, `joined ${formatDay(c.created_at)}`].filter(Boolean).join(' · ')}</span></span>}
+        actions={<CompanyActions variant="buttons" company={{ company_id: c.id, company_name: c.name, is_active: c.is_active }} onDone={(a) => (a === 'DELETE' ? router.push('/platform-admin/companies') : load())} />} />
+
+      <AppStagger className="grid grid-cols-3 gap-3 lg:grid-cols-6">
+        {USAGE.map(([k, label, Icon]) => (
+          <AppStaggerItem key={k}>
+            <div className="rounded-xl border bg-card p-3 text-center"><Icon className="mx-auto h-4 w-4 text-brand" /><p className="mt-1 text-xl font-semibold tabular-nums">{c.usage[k] ?? 0}</p><p className="text-xs text-muted-foreground">{label}</p></div>
+          </AppStaggerItem>
+        ))}
+      </AppStagger>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Panel icon={Layers} title="Subscription" description={live ? `${live.plan} · ${live.provider.toLowerCase()} · ${live.status.toLowerCase()}` : 'No live plan'} delay={0.1} bodyClassName="p-0">
+          {c.subscriptions.length === 0 ? <p className="px-5 py-6 text-sm text-muted-foreground">Never subscribed.</p> : (
+            <ul className="divide-y">
+              {c.subscriptions.map((s) => (
+                <li key={s.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                  <span><span className="font-medium">{s.plan}</span> <span className="text-muted-foreground">({s.cycle.toLowerCase()}, {s.provider === 'STRIPE' ? 'card' : s.provider.toLowerCase()})</span><span className="block text-xs text-muted-foreground">{formatDay(s.start_date)} – {formatDay(s.end_date)}{s.is_trial ? ' · trial' : ''}{!s.auto_renew ? ' · won’t renew' : ''}</span></span>
+                  <StatusPill tone={s.status === 'ACTIVE' ? 'success' : s.status === 'TRIALING' ? 'info' : s.status === 'PAST_DUE' ? 'warning' : 'neutral'}>{s.status.toLowerCase().replace('_', ' ')}</StatusPill>
+                </li>
+              ))}
+            </ul>
           )}
-        </Badge>
+        </Panel>
+        <Panel icon={Receipt} title="Payments" description={`Paid in total: ${formatTotals(c.paid_total)}`} delay={0.12} bodyClassName="p-0">
+          {c.payments.length === 0 ? <p className="px-5 py-6 text-sm text-muted-foreground">No payments.</p> : (
+            <ul className="divide-y">
+              {c.payments.slice(0, 8).map((p) => (
+                <li key={p.id} className="flex items-center justify-between gap-3 px-5 py-2.5 text-sm">
+                  <span className="min-w-0"><span className="block truncate">{p.description || p.provider}</span><span className="text-xs text-muted-foreground">{formatDay(p.created_at)}</span></span>
+                  <span className="flex items-center gap-2"><StatusPill tone={p.status === 'COMPLETED' ? 'success' : p.status === 'PENDING' ? 'warning' : 'danger'}>{p.status.toLowerCase()}</StatusPill><span className="w-24 text-right font-medium tabular-nums">{formatMoney(p.amount, p.currency)}</span></span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
       </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <Users className="w-8 h-8 text-purple-600" />
-              <div>
-                <p className="text-sm text-muted-foreground">Users</p>
-                <p className="text-2xl font-bold">{company.user_count}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <Panel icon={Users} title={`People (${c.users.length})`} bodyClassName="p-0" delay={0.15}>
+        <div className="relative overflow-x-auto">
+          <table className="w-full min-w-[560px] text-sm">
+            <tbody className="divide-y">
+              {c.users.map((u) => (
+                <tr key={u.id} className={u.is_active ? '' : 'opacity-60'}>
+                  <td className="px-5 py-3"><p className="font-medium">{u.name}</p><p className="text-xs text-muted-foreground">{u.email}</p></td>
+                  <td className="px-3 py-3 capitalize text-muted-foreground">{u.role.replace(/_/g, ' ')}</td>
+                  <td className="px-3 py-3 text-muted-foreground">{u.last_login ? `Signed in ${timeAgo(u.last_login)}` : 'Never signed in'}</td>
+                  <td className="px-5 py-3 text-right"><StatusPill tone={u.is_active ? 'success' : 'neutral'}>{u.is_active ? 'Active' : 'Deactivated'}</StatusPill></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <DollarSign className="w-8 h-8 text-green-600" />
-              <div>
-                <p className="text-sm text-muted-foreground">Revenue</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {formatCurrency(company.total_revenue)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <Activity className="w-8 h-8 text-blue-600" />
-              <div>
-                <p className="text-sm text-muted-foreground">Last Activity</p>
-                <p className="text-sm font-medium">
-                  {formatDate(company.last_activity)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-8 h-8 text-orange-600" />
-              <div>
-                <p className="text-sm text-muted-foreground">Member Since</p>
-                <p className="text-sm font-medium">
-                  {formatDate(company.created_at)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Detailed Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Company Information</CardTitle>
-            <CardDescription>Basic company details</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-muted-foreground">Company Name</span>
-                <span className="font-medium">{company.company_name}</span>
-              </div>
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-muted-foreground">Company ID</span>
-                <span className="font-mono text-sm">{company.company_id}</span>
-              </div>
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-muted-foreground">Status</span>
-                <Badge variant={company.is_active ? 'default' : 'destructive'}>
-                  {company.is_active ? 'Active' : 'Inactive'}
-                </Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Subscription</span>
-                <Badge>{company.subscription_status}</Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Usage Statistics</CardTitle>
-            <CardDescription>Platform usage metrics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-muted-foreground">Total Users</span>
-                <span className="text-xl font-bold">{company.user_count}</span>
-              </div>
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-muted-foreground">Total Revenue</span>
-                <span className="text-xl font-bold text-green-600">
-                  {formatCurrency(company.total_revenue)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center pb-3 border-b">
-                <span className="text-muted-foreground">Last Activity</span>
-                <span className="text-sm">{formatDate(company.last_activity)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Created</span>
-                <span className="text-sm">{formatDate(company.created_at)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Panel icon={ScrollText} title="Admin history" bodyClassName="p-0" delay={0.2}>
+        {c.admin_history.length === 0 ? <p className="px-5 py-6 text-sm text-muted-foreground">No admin actions on this company.</p> : (
+          <ul className="divide-y">{c.admin_history.map((a, i) => <li key={i} className="px-5 py-3 text-sm"><p>{a.description}</p><p className="text-xs text-muted-foreground">{a.admin} · {timeAgo(a.timestamp)}</p></li>)}</ul>
+        )}
+      </Panel>
+      <p className="text-xs text-muted-foreground">Region: {c.currency} · {c.timezone}{c.phone ? ` · ${c.phone}` : ''}</p>
     </div>
   )
-}
-
-export default function CompanyDetailPage() {
-  return <CompanyDetailContent />
 }

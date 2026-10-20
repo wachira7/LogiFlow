@@ -6,16 +6,20 @@ import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useAuth } from '@/context/AuthContext'
-import { Sidebar } from './Sidebar'
+import { Sidebar, type NavItem } from './Sidebar'
 import { Navbar } from './Navbar'
 import { Logo } from '@/components/landing/Logo'
 import { setCompanyCurrency } from '@/lib/format'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
+  /** Custom sidebar menu (e.g. platform admin) */
+  nav?: NavItem[]
+  /** Strip shown above the top bar */
+  banner?: React.ReactNode
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children, nav, banner }: DashboardLayoutProps) {
   const { isAuthenticated, isLoading, user } = useAuth()
   // Set during render (not in an effect) so pages format money in the company currency on first paint
   setCompanyCurrency(user?.company_currency)
@@ -72,6 +76,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         Skip to content
       </a>
       <Sidebar
+        items={nav}
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         collapsed={sidebarCollapsed}
@@ -79,6 +84,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        {banner}
         <Navbar onMenuClick={() => setSidebarOpen(true)} sidebarCollapsed={sidebarCollapsed} />
 
         <main id="main" className="flex-1 overflow-y-auto">
