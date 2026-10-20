@@ -16,6 +16,7 @@ const publicRoutes = [
   '/about',
   '/auth/accept-invitation',
   '/track',
+  '/demo',
 ]
 
 // PROTECTED ROUTES - Auth required (regular users)

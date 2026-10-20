@@ -32,6 +32,8 @@ interface AuthContextType extends AuthState {
   updateProfile: (updates: UpdateProfileRequest) => Promise<boolean>
   uploadAvatar: (file: File) => Promise<boolean>
   refreshAuth: () => Promise<void>
+  /** Sign in with tokens issued by another flow (the live demo) */
+  startSession: (user: User, tokens: { access: string; refresh: string }) => void
   clearError: () => void
 }
 
@@ -417,6 +419,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
 
+  const startSession = (user: User, tokens: { access: string; refresh: string }): void => {
+    TokenManager.setTokens({ access: tokens.access, refresh: tokens.refresh, expires_in: 3600 })
+    TokenManager.setUser(user)
+    setState(prev => ({ ...prev, user, company: undefined, isAuthenticated: true, isLoading: false, error: null }))
+  }
+
   const clearError = (): void => {
     setState(prev => ({ ...prev, error: null }))
   }
@@ -432,6 +440,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     updateProfile,
     uploadAvatar,
     refreshAuth,
+    startSession,
     clearError,
   }
 

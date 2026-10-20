@@ -88,6 +88,12 @@ export function LoginForm() {
           Start your 14-day free trial
         </Link>
       </p>
+      <p className="mt-2 text-center text-sm text-muted-foreground">
+        Just looking?{' '}
+        <Link href="/demo" className="font-medium text-brand hover:underline">
+          Try the live demo, no sign-up
+        </Link>
+      </p>
     </div>
   )
 }

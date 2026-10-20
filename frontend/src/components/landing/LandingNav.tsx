@@ -66,6 +66,9 @@ export function LandingNav() {
               <Button asChild variant="ghost">
                 <Link href="/auth/login">Log in</Link>
               </Button>
+              <Button asChild variant="outline">
+                <Link href="/demo">Live demo</Link>
+              </Button>
               <Button asChild className="bg-brand text-brand-foreground hover:bg-brand/90">
                 <Link href="/auth/register">Start free trial</Link>
               </Button>
@@ -109,6 +112,9 @@ export function LandingNav() {
               <>
                 <Button asChild className="bg-brand text-brand-foreground hover:bg-brand/90">
                   <Link href="/auth/register">Start free trial</Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/demo">Try the live demo</Link>
                 </Button>
                 <Button asChild variant="outline">
                   <Link href="/auth/login">Log in</Link>

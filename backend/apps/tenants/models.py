@@ -23,6 +23,10 @@ class Company(TimeStampedModel):
     is_active = models.BooleanField(default=True)
     trial_ends_at = models.DateTimeField(null=True, blank=True)
     onboarding_completed = models.BooleanField(default=False)
+
+    # Throwaway sandbox from "Try the live demo": seeded data, deleted after demo_expires_at
+    is_demo = models.BooleanField(default=False, db_index=True)
+    demo_expires_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         db_table = 'companies'

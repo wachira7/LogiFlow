@@ -25,6 +25,16 @@ app.autodiscover_tasks()
 # ============================================================================
 
 app.conf.beat_schedule = {
+    # Live demo: delete expired sandboxes hourly; keep demo vans moving every minute
+    'cleanup-expired-demos': {
+        'task': 'apps.demo.tasks.cleanup_expired_demos',
+        'schedule': crontab(minute=7),
+    },
+    'simulate-demo-fleets': {
+        'task': 'apps.demo.tasks.simulate_demo_fleets',
+        'schedule': crontab(),
+    },
+
     # Open DELAY exceptions for shipments past their ETA
     'raise-delay-exceptions': {
         'task': 'apps.ops.tasks.raise_delay_exceptions',

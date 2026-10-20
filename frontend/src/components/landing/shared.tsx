@@ -52,7 +52,7 @@ export function CtaButtons({ dark = false, className }: { dark?: boolean; classN
         variant="outline"
         className={dark ? "border-white/25 bg-transparent text-white hover:bg-white/10 hover:text-white" : "bg-background"}
       >
-        <a href="#contact">Book a demo</a>
+        <Link href="/demo">Try the live demo</Link>
       </Button>
     </div>
   );
