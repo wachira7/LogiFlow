@@ -37,8 +37,8 @@ export interface NavItem {
   roles?: string[]
 }
 
-const navigation: NavItem[] = [
-  { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+export const navigation: NavItem[] = [
+  { title: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   {
     title: 'Operations', href: '/ops', icon: Radar,
     children: [

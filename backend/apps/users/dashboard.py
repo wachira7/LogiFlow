@@ -10,7 +10,7 @@ from datetime import timedelta
 from django.db.models import Count, F, Sum
 from django.db.models.functions import TruncDate
 
-from apps.distribution.models import CustomerOrder, Shipment
+from apps.distribution.models import CustomerOrder, DeliveryException, DeliveryRoute, LocationPing, Shipment
 from apps.inventory.models import InventoryItem, InventoryTransaction, Product, Warehouse
 from apps.payments.models import PaymentMethod
 from apps.production.models import ProductionMaterial, ProductionOrder
@@ -223,6 +223,50 @@ def _plural(n, word):
     return f'{n} {word}' if n == 1 else f'{n} {word}s'
 
 
+LIVE_MINUTES = 15
+
+
+def build_ops_today(company, now):
+    """Operations at a glance: today's deliveries, exceptions, routes on the road and who's live on the map."""
+    start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    shipments = Shipment.objects.filter(company=company)
+    delivered = shipments.filter(status='DELIVERED', actual_delivery__gte=start)
+    with_eta = delivered.filter(estimated_delivery__isnull=False)
+    exceptions = DeliveryException.objects.filter(company=company, status__in=DeliveryException.OPEN_STATUSES)
+    routes = list(DeliveryRoute.objects.filter(company=company, status='IN_PROGRESS').select_related('driver', 'fleet_vehicle')
+                  .annotate(total=Count('route_stops', distinct=True)).order_by('start_time')[:6])
+    done = dict(DeliveryRoute.objects.filter(pk__in=[r.pk for r in routes], route_stops__status__in=('COMPLETED', 'FAILED'))
+                .values_list('pk').annotate(n=Count('route_stops')))
+
+    # Latest position per driver who reported in the last few minutes
+    units, seen = [], set()
+    for p in (LocationPing.objects.filter(company=company, recorded_at__gte=now - timedelta(minutes=LIVE_MINUTES))
+              .select_related('driver', 'vehicle').order_by('-recorded_at')[:500]):
+        key = p.driver_id or f'v{p.vehicle_id}'
+        if key in seen:
+            continue
+        seen.add(key)
+        units.append({'id': str(key), 'label': p.vehicle.registration if p.vehicle_id else (p.driver.get_full_name() if p.driver_id else 'Unit'),
+                      'latitude': float(p.latitude), 'longitude': float(p.longitude), 'heading': p.heading, 'recorded_at': p.recorded_at.isoformat()})
+    return {
+        'in_flight': shipments.filter(status__in=('PENDING', 'PICKED', 'PACKED', 'SHIPPED')).count(),
+        'out_for_delivery': shipments.filter(status='SHIPPED').count(),
+        'late': shipments.filter(status='SHIPPED', estimated_delivery__lt=now).count(),
+        'delivered_today': delivered.count(),
+        'on_time_today': round(with_eta.filter(actual_delivery__lte=F('estimated_delivery')).count() / with_eta.count() * 100)
+        if with_eta.exists() else None,
+        'open_exceptions': exceptions.count(),
+        'urgent_exceptions': exceptions.filter(severity__in=('HIGH', 'CRITICAL')).count(),
+        'unassigned_exceptions': exceptions.filter(owner__isnull=True).count(),
+        'routes_running': len(routes),
+        'routes': [{'id': str(r.id), 'name': r.route_name, 'driver': r.driver.get_full_name() if r.driver_id else None,
+                    'vehicle': r.fleet_vehicle.registration if r.fleet_vehicle_id else (r.vehicle_id or None),
+                    'done': done.get(r.pk, 0), 'total': r.total, 'started_at': r.start_time.isoformat() if r.start_time else None}
+                   for r in routes],
+        'live_units': units,
+    }
+
+
 def build_alerts(company, now, setup_progress):
     """Alerts that need attention, most severe first. Empty when nothing needs attention."""
     alerts = []
@@ -236,8 +280,28 @@ def build_alerts(company, now, setup_progress):
             'title': 'Delayed Shipments',
             'message': f'{_plural(overdue_count, "shipment")} past the estimated delivery time'
                        + (f', {very_late} by more than 24 hours' if very_late else ''),
-            'action': 'View Shipments',
-            'href': '/distribution/shipments',
+            'action': 'Open Ops Board',
+            'href': '/ops',
+        })
+
+    open_exceptions = DeliveryException.objects.filter(company=company, status__in=DeliveryException.OPEN_STATUSES)
+    urgent = open_exceptions.filter(severity__in=('HIGH', 'CRITICAL')).count()
+    unassigned = open_exceptions.filter(owner__isnull=True).count()
+    if urgent:
+        alerts.append({
+            'type': 'critical',
+            'title': 'Urgent Exceptions',
+            'message': f'{_plural(urgent, "high or critical exception")} open',
+            'action': 'Handle Exceptions',
+            'href': '/ops/exceptions',
+        })
+    elif unassigned:
+        alerts.append({
+            'type': 'warning',
+            'title': 'Exceptions Without an Owner',
+            'message': f'{_plural(unassigned, "exception")} nobody has picked up yet',
+            'action': 'Assign Owners',
+            'href': '/ops/exceptions',
         })
 
     low_stock = _low_stock_items(company).count()

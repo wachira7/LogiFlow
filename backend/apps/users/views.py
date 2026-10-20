@@ -22,7 +22,7 @@ from .serializers import (
 from .models import User, UserNotificationPreferences
 from .dashboard import (
     build_alerts, build_operations_activity, build_performance_metrics, build_recent_order_activity,
-    build_setup_progress, build_stats, build_trend,
+    build_ops_today, build_setup_progress, build_stats, build_trend,
 )
 from utils.permissions import IsCompanyOwnerOrAdmin, IsCompanyMember
 from django.db import models
@@ -510,6 +510,7 @@ def dashboard_overview(request):
         'performance_metrics': build_performance_metrics(company, now),
         'alerts': build_alerts(company, now, setup_progress),
         'trend': build_trend(company, now),
+        'ops': build_ops_today(company, now),
         # When these figures were computed, for "Updated Xs ago" in the UI
         'generated_at': now.isoformat(),
     }

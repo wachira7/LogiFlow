@@ -166,13 +166,13 @@ export function useRealtimeStatus(): RealtimeStatus {
   return useSyncExternalStore(realtime.onStatus, realtime.getStatus, () => 'idle')
 }
 
-/** Re-run `refresh` (debounced) when any of these events arrive, optionally filtered. */
+/** Re-run `refresh` when any of these events arrive (optionally filtered). Events within `ms` of the first are batched into one refresh. */
 export function useLiveRefresh(types: string | string[], refresh: () => void, { ms = 600, when }: { ms?: number; when?: (m: RealtimeMessage) => boolean } = {}) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
   useRealtime(types, (m) => {
     if (when && !when(m)) return
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(refresh, ms)
+    if (timer.current) return  // a refresh is already on its way and will include this change
+    timer.current = setTimeout(() => { timer.current = null; refresh() }, ms)
   })
 }

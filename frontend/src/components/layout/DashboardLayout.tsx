@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext'
 import { Sidebar, type NavItem } from './Sidebar'
 import { Navbar } from './Navbar'
 import { RealtimeBridge } from '@/components/app/RealtimeBridge'
+import { CommandPaletteProvider } from '@/components/app/CommandPalette'
 import { Logo } from '@/components/landing/Logo'
 import { setCompanyCurrency } from '@/lib/format'
 
@@ -71,7 +72,7 @@ export function DashboardLayout({ children, nav, banner }: DashboardLayoutProps)
     return null
   }
 
-  return (
+  const shell = (
     <div className="flex h-screen overflow-hidden bg-muted/30">
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-brand focus:px-3 focus:py-2 focus:text-brand-foreground">
         Skip to content
@@ -105,4 +106,6 @@ export function DashboardLayout({ children, nav, banner }: DashboardLayoutProps)
       </div>
     </div>
   )
+  // The command palette searches company data, so it's for the company app only
+  return nav ? shell : <CommandPaletteProvider>{shell}</CommandPaletteProvider>
 }

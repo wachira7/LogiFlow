@@ -97,7 +97,7 @@ function ExceptionsContent() {
   const [summary, setSummary] = useState<Awaited<ReturnType<typeof opsService.exceptionSummary>> | null>(null)
   const [members, setMembers] = useState<Member[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [raise, setRaise] = useState(false)
+  const [raise, setRaise] = useState(params.get('raise') === '1')
   const openId = params.get('open')
 
   const load = useCallback(() => {

@@ -126,7 +126,15 @@ ASGI_APPLICATION = 'logistics_project.asgi.application'
 # ── Realtime (Django Channels) ─────────────────────────────────────────────
 # Redis carries messages between processes (web, Celery) in production. Without a URL we fall
 # back to an in-memory layer, which only works inside one process (local development, tests).
-CHANNEL_REDIS_URL = os.getenv('CHANNEL_REDIS_URL') or os.getenv('REDIS_URL', '')
+# Use whichever Redis setting the deployment already has: an explicit one, REDIS_URL, Celery's broker
+# (when it's Redis), or REDIS_HOST/REDIS_PORT.
+_celery_broker = os.getenv('CELERY_BROKER_URL', '')
+CHANNEL_REDIS_URL = (
+    os.getenv('CHANNEL_REDIS_URL')
+    or os.getenv('REDIS_URL')
+    or (_celery_broker if _celery_broker.startswith(('redis://', 'rediss://')) else '')
+    or (f"redis://{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT', '6379')}/2" if os.getenv('REDIS_HOST') else '')
+)
 CHANNEL_LAYERS = {
     'default': {'BACKEND': 'channels_redis.core.RedisChannelLayer', 'CONFIG': {'hosts': [CHANNEL_REDIS_URL], 'capacity': 500, 'expiry': 30}}
     if CHANNEL_REDIS_URL else {'BACKEND': 'channels.layers.InMemoryChannelLayer'}
