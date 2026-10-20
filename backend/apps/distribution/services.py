@@ -26,7 +26,8 @@ class ShipmentError(Exception):
 
 
 def _lock(shipment):
-    return Shipment.objects.select_for_update().select_related('warehouse', 'order').get(pk=shipment.pk)
+    # lock only the shipment row: PostgreSQL can't lock the optional (outer-joined) order
+    return Shipment.objects.select_for_update(of=('self',)).select_related('warehouse', 'order').get(pk=shipment.pk)
 
 
 def _move(product, warehouse, qty, kind, shipment, note, user):
