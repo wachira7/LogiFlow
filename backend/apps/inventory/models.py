@@ -170,6 +170,7 @@ class InventoryTransaction(TimeStampedModel):
         ('ADJUSTMENT', 'Adjustment'),    # Manual stock correction
         ('TRANSFER', 'Transfer'),        # Transfer between warehouses
         ('RETURN', 'Return'),           # Customer/supplier return
+        ('PRODUCTION', 'Production'),   # Raw materials used by (or returned from) a production order
     ]
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES)
     quantity = models.IntegerField()  # Can be negative for outbound transactions

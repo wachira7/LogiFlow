@@ -1,5 +1,4 @@
 # backend/apps/production/models.py
-import uuid
 from django.db import models
 from utils.mixins import TimeStampedModel
 
@@ -29,6 +28,9 @@ class ProductionOrder(TimeStampedModel):
         related_name='created_production_orders'
     )
 
+    # Raw materials have been taken out of stock for this order (on start)
+    materials_consumed = models.BooleanField(default=False)
+
     # Where to stock the finished goods once production is complete
     output_warehouse = models.ForeignKey(
         'inventory.Warehouse', on_delete=models.SET_NULL,
@@ -55,25 +57,27 @@ class ProductionOrder(TimeStampedModel):
 
     @property
     def progress_percentage(self):
-        """Calculate completion percentage based on completed steps"""
-        total_steps = self.production_steps.count()
-        if total_steps == 0:
-            return 0
-        completed_steps = self.production_steps.filter(status='COMPLETED').count()
-        return (completed_steps / total_steps) * 100
+        """Share of steps that are done (completed or skipped); uses the prefetch when present"""
+        steps = list(self.production_steps.all())
+        if not steps:
+            return 100 if self.status == 'COMPLETED' else 0
+        done = sum(1 for s in steps if s.status in ('COMPLETED', 'SKIPPED'))
+        return round(done / len(steps) * 100, 1)
 
     @property
     def estimated_completion(self):
-        """Calculate estimated completion date based on remaining steps"""
-        remaining_steps = self.production_steps.filter(status__in=['PENDING', 'IN_PROGRESS'])
-        if not remaining_steps.exists():
+        """Now plus the estimated hours of the steps still to do (only while in progress)"""
+        if self.status == 'COMPLETED':
             return self.end_date
-
-        total_remaining_hours = sum(float(step.duration_hours or 0) for step in remaining_steps)
-        if total_remaining_hours > 0 and self.start_date:
-            from datetime import timedelta
-            return self.start_date + timedelta(hours=total_remaining_hours)
-        return None
+        if self.status != 'IN_PROGRESS':
+            return None
+        remaining = [s for s in self.production_steps.all() if s.status in ('PENDING', 'IN_PROGRESS')]
+        hours = sum(float(s.duration_hours or 0) for s in remaining)
+        if not hours:
+            return None
+        from datetime import timedelta
+        from django.utils import timezone
+        return timezone.now() + timedelta(hours=hours)
 
 
 class ProductionStep(TimeStampedModel):
@@ -152,11 +156,8 @@ class ProductionMaterial(TimeStampedModel):
 
     @property
     def available_stock(self):
-        try:
-            inventory_item = self.product.inventory_items.get(warehouse=self.warehouse)
-            return inventory_item.quantity
-        except Exception:
-            return 0
+        line = self.product.inventory_items.filter(warehouse=self.warehouse).first()
+        return line.quantity if line else 0
 
     @property
     def sufficient_stock(self):

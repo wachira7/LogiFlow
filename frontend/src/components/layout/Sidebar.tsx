@@ -66,7 +66,7 @@ const navigation: NavItem[] = [
       { title: 'Overview', href: '/production', icon: Home },
       { title: 'Orders', href: '/production/orders', icon: ClipboardList },
       { title: 'Materials', href: '/production/materials', icon: Layers },
-      { title: 'Steps', href: '/production/steps', icon: ListChecks },
+      { title: 'Work queue', href: '/production/steps', icon: ListChecks },
     ],
   },
   {

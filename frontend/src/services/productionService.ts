@@ -22,6 +22,12 @@ import type {
 
 const BASE_URL = '/api/v1/production';
 
+/** Return the payload, or throw the server's message so the UI can show it. */
+function unwrap<T>(response: { success: boolean; data?: T; error?: string }): T {
+  if (!response.success) throw new Error(response.error || 'Something went wrong. Please try again.');
+  return response.data as T;
+}
+
 // Type for paginated backend responses
 interface BackendPaginatedResponse<T> {
   count?: number;
@@ -45,11 +51,13 @@ export const productionOrderService = {
     if (filters?.created_by) params.append('created_by', filters.created_by);
     if (filters?.search) params.append('search', filters.search);
     if (filters?.ordering) params.append('ordering', filters.ordering);
+    params.append('page_size', '100');
 
     const response = await api.get<BackendPaginatedResponse<ProductionOrder>>(
       `${BASE_URL}/orders/?${params.toString()}`
     );
     
+    unwrap(response);
     // Handle pagination: extract results array or return empty array
     if (response.data) {
       return response.data.results || (Array.isArray(response.data) ? response.data : []);
@@ -62,7 +70,7 @@ export const productionOrderService = {
    */
   getById: async (id: string) => {
     const response = await api.get<ProductionOrderDetail>(`${BASE_URL}/orders/${id}/`);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -70,7 +78,7 @@ export const productionOrderService = {
    */
   create: async (data: CreateProductionOrderData) => {
     const response = await api.post<ProductionOrderDetail>(`${BASE_URL}/orders/`, data);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -81,26 +89,24 @@ export const productionOrderService = {
       `${BASE_URL}/orders/${id}/`,
       data
     );
-    return response.data;
+    return unwrap(response);
   },
 
   /**
    * Delete a production order
    */
   delete: async (id: string) => {
-    await api.delete(`${BASE_URL}/orders/${id}/`);
+    unwrap(await api.delete(`${BASE_URL}/orders/${id}/`));
   },
 
   /**
    * Start a production order
    */
   startProduction: async (id: string) => {
-    const response = await api.post<{
-      message: string;
-      status: string;
-      start_date: string;
-    }>(`${BASE_URL}/orders/${id}/start_production/`);
-    return response.data;
+    const response = await api.post<{ message: string; status: string; order: ProductionOrderDetail }>(
+      `${BASE_URL}/orders/${id}/start_production/`
+    );
+    return unwrap(response);
   },
 
   /**
@@ -110,9 +116,10 @@ export const productionOrderService = {
     const response = await api.post<{
       message: string;
       status: string;
-      end_date: string;
+      order: ProductionOrderDetail;
+      inventory_updated: { product: string; warehouse: string; quantity_added: number; new_total: number };
     }>(`${BASE_URL}/orders/${id}/complete_production/`);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -123,7 +130,7 @@ export const productionOrderService = {
       message: string;
       status: string;
     }>(`${BASE_URL}/orders/${id}/cancel_production/`);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -131,7 +138,7 @@ export const productionOrderService = {
    */
   getDashboard: async () => {
     const response = await api.get<ProductionDashboard>(`${BASE_URL}/orders/dashboard/`);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -141,7 +148,7 @@ export const productionOrderService = {
     const response = await api.get<MaterialRequirementsReport>(
       `${BASE_URL}/orders/material_requirements/`
     );
-    return response.data;
+    return unwrap(response);
   },
 };
 
@@ -160,11 +167,13 @@ export const productionStepService = {
     if (filters?.assigned_to) params.append('assigned_to', filters.assigned_to);
     if (filters?.search) params.append('search', filters.search);
     if (filters?.ordering) params.append('ordering', filters.ordering);
+    params.append('page_size', '100');
 
     const response = await api.get<BackendPaginatedResponse<ProductionStep>>(
       `${BASE_URL}/steps/?${params.toString()}`
     );
     
+    unwrap(response);
     // Handle pagination: extract results array or return empty array
     if (response.data) {
       return response.data.results || (Array.isArray(response.data) ? response.data : []);
@@ -177,7 +186,7 @@ export const productionStepService = {
    */
   getById: async (id: string) => {
     const response = await api.get<ProductionStep>(`${BASE_URL}/steps/${id}/`);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -185,7 +194,7 @@ export const productionStepService = {
    */
   create: async (data: CreateProductionStepData) => {
     const response = await api.post<ProductionStep>(`${BASE_URL}/steps/`, data);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -193,14 +202,14 @@ export const productionStepService = {
    */
   update: async (id: string, data: UpdateProductionStepData) => {
     const response = await api.patch<ProductionStep>(`${BASE_URL}/steps/${id}/`, data);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
    * Delete a production step
    */
   delete: async (id: string) => {
-    await api.delete(`${BASE_URL}/steps/${id}/`);
+    unwrap(await api.delete(`${BASE_URL}/steps/${id}/`));
   },
 
   /**
@@ -212,7 +221,7 @@ export const productionStepService = {
       status: string;
       start_time: string;
     }>(`${BASE_URL}/steps/${id}/start_step/`);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -225,7 +234,7 @@ export const productionStepService = {
       end_time: string;
       next_step_started: string | null;
     }>(`${BASE_URL}/steps/${id}/complete_step/`);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -236,7 +245,7 @@ export const productionStepService = {
       message: string;
       status: string;
     }>(`${BASE_URL}/steps/${id}/skip_step/`);
-    return response.data;
+    return unwrap(response);
   },
 };
 
@@ -255,11 +264,13 @@ export const productionMaterialService = {
     if (filters?.warehouse) params.append('warehouse', filters.warehouse);
     if (filters?.search) params.append('search', filters.search);
     if (filters?.ordering) params.append('ordering', filters.ordering);
+    params.append('page_size', '100');
 
     const response = await api.get<BackendPaginatedResponse<ProductionMaterial>>(
       `${BASE_URL}/materials/?${params.toString()}`
     );
     
+    unwrap(response);
     // Handle pagination: extract results array or return empty array
     if (response.data) {
       return response.data.results || (Array.isArray(response.data) ? response.data : []);
@@ -272,7 +283,7 @@ export const productionMaterialService = {
    */
   getById: async (id: string) => {
     const response = await api.get<ProductionMaterial>(`${BASE_URL}/materials/${id}/`);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -280,7 +291,7 @@ export const productionMaterialService = {
    */
   create: async (data: CreateProductionMaterialData) => {
     const response = await api.post<ProductionMaterial>(`${BASE_URL}/materials/`, data);
-    return response.data;
+    return unwrap(response);
   },
 
   /**
@@ -291,14 +302,14 @@ export const productionMaterialService = {
       `${BASE_URL}/materials/${id}/`,
       data
     );
-    return response.data;
+    return unwrap(response);
   },
 
   /**
    * Delete a production material
    */
   delete: async (id: string) => {
-    await api.delete(`${BASE_URL}/materials/${id}/`);
+    unwrap(await api.delete(`${BASE_URL}/materials/${id}/`));
   },
 
   /**
@@ -308,7 +319,7 @@ export const productionMaterialService = {
     const response = await api.get<InsufficientStockReport>(
       `${BASE_URL}/materials/insufficient_stock/`
     );
-    return response.data;
+    return unwrap(response);
   },
 };
 

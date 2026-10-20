@@ -1,241 +1,123 @@
 // src/components/production/MaterialsList.tsx
+// What upcoming production runs need from stock, and where it falls short.
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { useProductionMaterials } from '@/hooks/useProduction'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Search, Package, AlertTriangle, CheckCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { AlertTriangle, CheckCircle2, Layers, PackageCheck, PackageX } from 'lucide-react'
+import { useProductionMaterials, useProductionOrders } from '@/hooks/useProduction'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ExportButton, type CsvColumn } from '@/components/shared/ExportButton'
+import { ErrorBanner, PageHeader, Panel, StatCard, StatGrid, StatGridSkeleton, TableSkeleton } from '@/components/app/kit'
+import { MotionRow } from '@/components/app/motion'
+import { formatCount } from '@/lib/format'
+import { cn } from '@/lib/utils'
+import type { MaterialRequirement } from '@/types/production.types'
+
+const columns: CsvColumn<MaterialRequirement>[] = [
+  { header: 'Material', value: (r) => r.product_name },
+  { header: 'SKU', value: (r) => r.product_sku },
+  { header: 'Warehouse', value: (r) => r.warehouse_name },
+  { header: 'Orders', value: (r) => r.order_count },
+  { header: 'Needed', value: (r) => r.required_quantity },
+  { header: 'In stock', value: (r) => r.available_stock },
+  { header: 'Short by', value: (r) => r.shortage },
+]
 
 export function MaterialsList() {
-  const router = useRouter()
-  const {
-    materials = [],
-    insufficientStock,
-    loading,
-    fetchMaterials,
-    fetchInsufficientStock
-  } = useProductionMaterials()
+  const { materialRequirements, error, fetchMaterialRequirements } = useProductionOrders()
+  const { insufficientStock, fetchInsufficientStock } = useProductionMaterials()
+  const [ready, setReady] = useState(false)
 
-  const [searchQuery, setSearchQuery] = useState('')
-
-  const loadMaterials = useCallback(async () => {
-    await Promise.all([
-      fetchMaterials(),
-      fetchInsufficientStock()
-    ])
-  }, [fetchMaterials, fetchInsufficientStock])
-
+  const load = () => Promise.allSettled([fetchMaterialRequirements(), fetchInsufficientStock()]).finally(() => setReady(true))
   useEffect(() => {
-    loadMaterials()
-  }, [loadMaterials])
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const handleSearch = async () => {
-    const filters = searchQuery ? { search: searchQuery } : undefined
-    await fetchMaterials(filters)
-  }
-
-  const filteredMaterials = materials.filter(material =>
-    material.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    material.product_sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    material.warehouse_name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const rows = materialRequirements?.material_requirements ?? []
+  const blocked = insufficientStock?.materials_with_insufficient_stock ?? []
+  const blockedOrders = new Map(blocked.map((b) => [b.production_order_id, b.production_order]))
+  const today = new Date().toISOString().slice(0, 10)
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Production Materials</h2>
-          <p className="text-muted-foreground">
-            Monitor material requirements and stock availability
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        icon={Layers}
+        title="Materials"
+        description="Raw materials needed by orders that haven’t started yet. Started orders already took theirs from stock."
+        actions={<ExportButton filename={`material-requirements-${today}`} rows={rows} columns={columns} />}
+      />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Materials</p>
-                <p className="text-3xl font-bold">{materials.length}</p>
-              </div>
-              <Package className="h-8 w-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+      {error && ready && <ErrorBanner title="Couldn’t load material requirements" message={error} onRetry={load} />}
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Sufficient Stock</p>
-                <p className="text-3xl font-bold text-green-600">
-                  {materials.filter(m => m.sufficient_stock).length}
-                </p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Insufficient Stock</p>
-                <p className="text-3xl font-bold text-red-600">
-                  {insufficientStock?.total_count || 0}
-                </p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Insufficient Stock Alert */}
-      {insufficientStock && insufficientStock.total_count > 0 && (
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-red-800">
-              <AlertTriangle className="h-5 w-5" />
-              <span>Stock Shortage Alert</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-red-700 mb-4">
-              {insufficientStock.total_count} material(s) have insufficient stock to meet production requirements.
-              Production orders may be delayed until stock is replenished.
-            </p>
-            <div className="space-y-2">
-              {insufficientStock.materials_with_insufficient_stock?.slice(0, 3).map((material) => (
-                <div key={material.id} className="flex items-center justify-between text-sm">
-                  <span className="font-medium">{material.product_name} ({material.product_sku})</span>
-                  <Badge variant="destructive">
-                    Short by {material.shortage}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      {!ready ? (
+        <StatGridSkeleton count={3} className="lg:grid-cols-3" />
+      ) : (
+        <StatGrid className="lg:grid-cols-3">
+          <StatCard label="Materials needed" value={materialRequirements?.total_materials ?? 0} icon={Layers} tone="brand" hint="Product and warehouse pairs" />
+          <StatCard label="Short" value={materialRequirements?.materials_with_shortage ?? 0} icon={PackageX} tone={(materialRequirements?.materials_with_shortage ?? 0) > 0 ? 'danger' : 'success'} hint="Need restocking" />
+          <StatCard label="Orders blocked" value={blockedOrders.size} icon={AlertTriangle} tone={blockedOrders.size ? 'warning' : 'success'} hint="Can’t start until restocked" />
+        </StatGrid>
       )}
 
-      {/* Search */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by product, SKU, or warehouse..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <Button onClick={handleSearch}>
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {ready && blockedOrders.size > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-warning/40 bg-warning-soft px-4 py-3 text-sm text-warning">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          <span className="font-medium">Blocked:</span>
+          {[...blockedOrders.entries()].map(([id, number]) => (
+            <Link key={id} href={`/production/orders/${id}`} className="rounded-full bg-card px-2.5 py-0.5 text-xs font-medium text-foreground shadow-sm hover:text-brand">{number}</Link>
+          ))}
+        </div>
+      )}
 
-      {/* Materials Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Production Materials ({filteredMaterials.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <LoadingSpinner />
-            </div>
-          ) : filteredMaterials.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">No materials found</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchQuery
-                  ? 'Try adjusting your search'
-                  : 'Materials will appear here when production orders are created'
-                }
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Production Order</TableHead>
-                    <TableHead>Warehouse</TableHead>
-                    <TableHead>Required Qty</TableHead>
-                    <TableHead>Available</TableHead>
-                    <TableHead>Unit Cost</TableHead>
-                    <TableHead>Total Cost</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredMaterials.map((material) => (
-                    <TableRow key={material.id}>
-                      <TableCell className="font-medium">{material.product_name}</TableCell>
-                      <TableCell>{material.product_sku}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="link"
-                          className="p-0 h-auto font-normal"
-                          onClick={() => router.push(`/production/orders/${material.production_order_id}`)}
-                        >
-                          View Order
-                        </Button>
-                      </TableCell>
-                      <TableCell>{material.warehouse_name}</TableCell>
-                      <TableCell>{material.quantity}</TableCell>
-                      <TableCell>
-                        <span className={material.sufficient_stock ? '' : 'text-red-600 font-semibold'}>
-                          {material.available_stock}
-                        </span>
-                      </TableCell>
-                      <TableCell>${(material.unit_cost ?? 0).toFixed(2)}</TableCell>
-                      <TableCell>${(material.material_cost ?? 0).toFixed(2)}</TableCell>
-                      <TableCell>
-                        {material.sufficient_stock ? (
-                          <Badge variant="outline" className="bg-green-50">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Sufficient
-                          </Badge>
-                        ) : (
-                          <Badge variant="destructive">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                            Insufficient
-                          </Badge>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {!ready ? (
+        <TableSkeleton rows={5} cols={5} />
+      ) : rows.length === 0 ? (
+        <EmptyState icon={<PackageCheck />} title="Nothing needed right now" description="Planned production orders with raw materials will show their requirements here." />
+      ) : (
+        <Panel bodyClassName="p-0" delay={0.1}>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[620px] text-sm">
+              <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th className="px-5 py-3 font-medium">Material</th>
+                  <th className="px-3 py-3 font-medium">Warehouse</th>
+                  <th className="px-3 py-3 text-right font-medium">Orders</th>
+                  <th className="px-3 py-3 font-medium">Coverage</th>
+                  <th className="px-5 py-3 text-right font-medium">Short by</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {rows.map((r, i) => {
+                  const coverage = r.required_quantity ? Math.min(100, (r.available_stock / r.required_quantity) * 100) : 100
+                  return (
+                    <MotionRow key={`${r.product_id}-${r.warehouse_id}`} index={i} className="transition-colors hover:bg-muted/40">
+                      <td className="px-5 py-3">
+                        <p className="font-medium">{r.product_name}</p>
+                        <p className="text-xs text-muted-foreground">{r.product_sku}</p>
+                      </td>
+                      <td className="px-3 py-3 text-muted-foreground">{r.warehouse_name}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{r.order_count}</td>
+                      <td className="w-64 px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className="block h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                            <span className={cn('block h-full origin-left animate-[grow-x_0.9s_cubic-bezier(0.22,1,0.36,1)_both] rounded-full', r.shortage ? 'bg-danger' : 'bg-success')} style={{ width: `${coverage}%` }} />
+                          </span>
+                          <span className="w-24 shrink-0 text-right text-xs tabular-nums text-muted-foreground">{formatCount(r.available_stock)} / {formatCount(r.required_quantity)}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        {r.shortage ? <span className="font-semibold tabular-nums text-danger">{formatCount(r.shortage)}</span> : <CheckCircle2 className="ml-auto h-4 w-4 text-success" />}
+                      </td>
+                    </MotionRow>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
+      )}
     </div>
   )
 }

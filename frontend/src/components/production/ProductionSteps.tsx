@@ -1,313 +1,149 @@
 // src/components/production/ProductionSteps.tsx
+// The floor's work queue: steps being worked on, up next, and recently finished.
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { CheckCircle2, Clock, ListChecks, Loader2, Play, Search, SkipForward, User, X } from 'lucide-react'
 import { useProductionSteps } from '@/hooks/useProduction'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Search, MoreVertical, Play, CheckCircle, SkipForward, ListChecks, AlertCircle } from 'lucide-react'
-import type { ProductionStepStatus } from '@/types/production.types'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ErrorBanner, PageHeader, StatCard, StatGrid, StatGridSkeleton, TableSkeleton } from '@/components/app/kit'
+import { AppStagger, AppStaggerItem, FadeIn } from '@/components/app/motion'
+import { timeAgo } from '@/lib/format'
+import { cn } from '@/lib/utils'
+import { StepStatusPill } from './status'
+import type { ProductionStep } from '@/types/production.types'
+
+type Lane = { key: string; title: string; hint: string; steps: ProductionStep[] }
 
 export function ProductionSteps() {
-  const router = useRouter()
-  const {
-    steps = [],
-    loading,
-    fetchSteps,
-    startStep,
-    completeStep,
-    skipStep
-  } = useProductionSteps()
+  const { steps, error, fetchSteps, startStep, completeStep, skipStep } = useProductionSteps()
+  const [ready, setReady] = useState(false)
+  const [query, setQuery] = useState('')
+  const [busy, setBusy] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<ProductionStepStatus | 'ALL'>('ALL')
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
-
-  const loadSteps = useCallback(async () => {
-    const filters = statusFilter !== 'ALL' ? { status: statusFilter } : undefined
-    await fetchSteps(filters)
-  }, [statusFilter, fetchSteps])
-
+  const load = useCallback(() => fetchSteps({ ordering: 'created_at' }).catch(() => {}).finally(() => setReady(true)), [fetchSteps])
   useEffect(() => {
-    loadSteps()
-  }, [loadSteps])
+    load()
+  }, [load])
 
-  const handleSearch = async () => {
-    const filters = {
-      ...(statusFilter !== 'ALL' && { status: statusFilter }),
-      ...(searchQuery && { search: searchQuery }),
-    }
-    await fetchSteps(filters)
-  }
-
-  const handleStartStep = async (id: string) => {
-    setActionLoading(id)
+  const act = async (step: ProductionStep, action: 'start' | 'complete' | 'skip') => {
+    setBusy(step.id)
+    setActionError(null)
     try {
-      await startStep(id)
-      await loadSteps()
-    } catch (error) {
-      console.error('Failed to start step:', error)
+      await { start: startStep, complete: completeStep, skip: skipStep }[action](step.id)
+      await load()
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'That didn’t work.')
     } finally {
-      setActionLoading(null)
+      setBusy(null)
     }
   }
 
-  const handleCompleteStep = async (id: string) => {
-    setActionLoading(id)
-    try {
-      await completeStep(id)
-      await loadSteps()
-    } catch (error) {
-      console.error('Failed to complete step:', error)
-    } finally {
-      setActionLoading(null)
-    }
-  }
+  const lanes: Lane[] = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    const match = (s: ProductionStep) =>
+      !q || [s.name, s.order_number, s.product_name, s.assigned_to_name].some((v) => v?.toLowerCase().includes(q))
+    const all = (Array.isArray(steps) ? steps : []).filter(match)
+    const live = all.filter((s) => s.order_status === 'IN_PROGRESS')
+    return [
+      { key: 'working', title: 'Working now', hint: 'Started and not finished', steps: live.filter((s) => s.status === 'IN_PROGRESS') },
+      { key: 'next', title: 'Up next', hint: 'On orders in production', steps: live.filter((s) => s.status === 'PENDING') },
+      {
+        key: 'done', title: 'Recently finished', hint: 'Completed or skipped',
+        steps: all.filter((s) => s.status === 'COMPLETED' || s.status === 'SKIPPED')
+          .sort((a, b) => (b.end_time ?? '').localeCompare(a.end_time ?? '')).slice(0, 12),
+      },
+    ]
+  }, [steps, query])
 
-  const handleSkipStep = async (id: string) => {
-    if (confirm('Are you sure you want to skip this step?')) {
-      setActionLoading(id)
-      try {
-        await skipStep(id)
-        await loadSteps()
-      } catch (error) {
-        console.error('Failed to skip step:', error)
-      } finally {
-        setActionLoading(null)
-      }
-    }
-  }
-
-  const getStatusBadge = (status: ProductionStepStatus) => {
-    const variants: Record<ProductionStepStatus, { variant: 'default' | 'secondary' | 'destructive' | 'outline', label: string }> = {
-      PENDING: { variant: 'secondary', label: 'Pending' },
-      IN_PROGRESS: { variant: 'default', label: 'In Progress' },
-      COMPLETED: { variant: 'outline', label: 'Completed' },
-      SKIPPED: { variant: 'destructive', label: 'Skipped' },
-    }
-
-    const config = variants[status]
-    return <Badge variant={config.variant}>{config.label}</Badge>
-  }
-
-  const filteredSteps = steps.filter(step =>
-    step.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (step.description && step.description.toLowerCase().includes(searchQuery.toLowerCase()))
-  )
+  const overdue = lanes[0].steps.filter((s) => s.is_overdue).length
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">Production Steps</h2>
-          <p className="text-muted-foreground">
-            Track and manage production steps across all orders
-          </p>
-        </div>
-      </div>
+      <PageHeader icon={ListChecks} title="Work queue" description="Every step on orders in production. Finishing a step starts the next one on that order." />
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by step name or description..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  className="pl-10"
-                />
+      {error && ready && <ErrorBanner title="Couldn’t load steps" message={error} onRetry={load} />}
+      {actionError && <ErrorBanner title="Action failed" message={actionError} />}
+
+      {!ready ? (
+        <StatGridSkeleton count={3} className="lg:grid-cols-3" />
+      ) : (
+        <StatGrid className="lg:grid-cols-3">
+          <StatCard label="Working now" value={lanes[0].steps.length} icon={Play} tone="info" hint={overdue ? `${overdue} over estimate` : 'All within estimate'} />
+          <StatCard label="Up next" value={lanes[1].steps.length} icon={Clock} tone="warning" />
+          <StatCard label="Recently finished" value={lanes[2].steps.length} icon={CheckCircle2} tone="success" />
+        </StatGrid>
+      )}
+
+      <FadeIn delay={0.05} className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search step, order, product, person…" className="bg-card pl-9 pr-9" aria-label="Search steps" />
+        {query && <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground" aria-label="Clear search"><X className="h-3.5 w-3.5" /></button>}
+      </FadeIn>
+
+      {!ready ? (
+        <TableSkeleton rows={5} cols={3} />
+      ) : lanes.every((l) => l.steps.length === 0) ? (
+        <EmptyState icon={<ListChecks />} title={query ? 'No matching steps' : 'Nothing on the floor'} description={query ? 'Try another search.' : 'Steps show up here once a production order with steps is started.'}
+          action={!query ? <Button asChild variant="outline"><Link href="/production/orders">Go to production orders</Link></Button> : undefined} />
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {lanes.map((lane, li) => (
+            <FadeIn key={lane.key} delay={0.08 + li * 0.06} className="flex flex-col rounded-xl border bg-muted/30">
+              <div className="flex items-center justify-between px-4 py-3">
+                <div>
+                  <p className="text-sm font-semibold">{lane.title}</p>
+                  <p className="text-xs text-muted-foreground">{lane.hint}</p>
+                </div>
+                <span className="rounded-full bg-card px-2 py-0.5 text-xs font-medium tabular-nums shadow-sm">{lane.steps.length}</span>
               </div>
-            </div>
-
-            <div className="w-full md:w-48">
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => setStatusFilter(value as ProductionStepStatus | 'ALL')}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All Statuses</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="SKIPPED">Skipped</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button onClick={handleSearch}>
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Steps Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            Production Steps ({filteredSteps.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <LoadingSpinner />
-            </div>
-          ) : filteredSteps.length === 0 ? (
-            <div className="text-center py-12">
-              <ListChecks className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <h3 className="text-lg font-semibold mb-2">No production steps found</h3>
-              <p className="text-muted-foreground mb-4">
-                {searchQuery || statusFilter !== 'ALL'
-                  ? 'Try adjusting your filters'
-                  : 'Production steps will appear here when orders are created'
-                }
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Step Name</TableHead>
-                    <TableHead>Production Order</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Duration (hrs)</TableHead>
-                    <TableHead>Assigned To</TableHead>
-                    <TableHead>Start Time</TableHead>
-                    <TableHead>End Time</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredSteps.map((step) => (
-                    <TableRow key={step.id}>
-                      <TableCell className="font-medium">
-                        <div>
-                          <p>{step.name}</p>
-                          {step.description && (
-                            <p className="text-sm text-muted-foreground max-w-xs truncate">
-                              {step.description}
-                            </p>
+              <AppStagger className="flex-1 space-y-2 px-3 pb-3">
+                {lane.steps.length === 0 && <p className="rounded-lg border border-dashed px-3 py-6 text-center text-xs text-muted-foreground">Nothing here</p>}
+                {lane.steps.map((s) => (
+                  <AppStaggerItem key={s.id}>
+                    <motion.div layout className={cn('space-y-2 rounded-lg border bg-card p-3 shadow-sm transition-shadow hover:shadow-md', s.is_overdue && 'border-danger/40')}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate font-medium">{s.name}</p>
+                          <Link href={`/production/orders/${s.production_order_id}`} className="truncate text-xs text-brand hover:underline">
+                            {s.order_number} · {s.product_name}
+                          </Link>
+                        </div>
+                        <StepStatusPill status={s.status} />
+                      </div>
+                      <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
+                        {s.assigned_to_name && <span className="inline-flex items-center gap-1"><User className="h-3 w-3" />{s.assigned_to_name}</span>}
+                        {s.duration_hours !== null && <span>Est. {Number(s.duration_hours)} h</span>}
+                        {s.status === 'IN_PROGRESS' && s.start_time && <span className={cn(s.is_overdue && 'font-medium text-danger')}>Started {timeAgo(s.start_time)}</span>}
+                        {lane.key === 'done' && s.end_time && <span>{timeAgo(s.end_time)}</span>}
+                      </p>
+                      {lane.key !== 'done' && (
+                        <div className="flex justify-end gap-1.5 border-t pt-2">
+                          {busy === s.id ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : (
+                            <>
+                              <Button size="sm" variant="ghost" className="h-7 px-2 text-xs text-muted-foreground" onClick={() => act(s, 'skip')}><SkipForward className="mr-1 h-3 w-3" />Skip</Button>
+                              {s.status === 'PENDING' ? (
+                                <Button size="sm" variant="outline" className="h-7 px-2 text-xs" onClick={() => act(s, 'start')}><Play className="mr-1 h-3 w-3" />Start</Button>
+                              ) : (
+                                <Button size="sm" className="h-7 bg-brand px-2 text-xs text-brand-foreground hover:bg-brand/90" onClick={() => act(s, 'complete')}><CheckCircle2 className="mr-1 h-3 w-3" />Done</Button>
+                              )}
+                            </>
                           )}
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="link"
-                          className="p-0 h-auto font-normal"
-                          onClick={() => router.push(`/production/orders/${step.production_order_id}`)}
-                        >
-                          View Order
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          {getStatusBadge(step.status)}
-                          {step.is_overdue && (
-                            <AlertCircle className="h-4 w-4 text-red-600" />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {step.duration_hours ? (
-                          <span>
-                            {step.duration_hours}
-                            {step.actual_duration_hours && (
-                              <span className="text-xs text-muted-foreground ml-1 block">
-                                (actual: {step.actual_duration_hours.toFixed(1)})
-                              </span>
-                            )}
-                          </span>
-                        ) : '-'}
-                      </TableCell>
-                      <TableCell>{step.assigned_to_name || 'Unassigned'}</TableCell>
-                      <TableCell>
-                        {step.start_time
-                          ? new Date(step.start_time).toLocaleString()
-                          : '-'
-                        }
-                      </TableCell>
-                      <TableCell>
-                        {step.end_time
-                          ? new Date(step.end_time).toLocaleString()
-                          : '-'
-                        }
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {step.status === 'PENDING' && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={() => handleStartStep(step.id)}
-                                  disabled={actionLoading === step.id}
-                                >
-                                  <Play className="h-4 w-4 mr-2" />
-                                  Start Step
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleSkipStep(step.id)}
-                                  disabled={actionLoading === step.id}
-                                  className="text-orange-600"
-                                >
-                                  <SkipForward className="h-4 w-4 mr-2" />
-                                  Skip Step
-                                </DropdownMenuItem>
-                              </>
-                            )}
-
-                            {step.status === 'IN_PROGRESS' && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={() => handleCompleteStep(step.id)}
-                                  disabled={actionLoading === step.id}
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Complete
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handleSkipStep(step.id)}
-                                  disabled={actionLoading === step.id}
-                                  className="text-orange-600"
-                                >
-                                  <SkipForward className="h-4 w-4 mr-2" />
-                                  Skip Step
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                      )}
+                    </motion.div>
+                  </AppStaggerItem>
+                ))}
+              </AppStagger>
+            </FadeIn>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

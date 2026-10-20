@@ -1,309 +1,226 @@
 # apps/production/views.py
-from rest_framework import viewsets, status, permissions
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django.db import transaction
-from django.db.models import Q, Sum, F, Count
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters
+from django.db.models import Prefetch
 from django.utils import timezone
-from .models import ProductionOrder, ProductionStep, ProductionMaterial
-from .serializers import (
-    ProductionOrderListSerializer, ProductionOrderDetailSerializer,
-    CreateProductionOrderSerializer, ProductionStepSerializer,
-    ProductionMaterialSerializer
-)
-from apps.inventory.models import InventoryItem, InventoryTransaction
-from utils.mixins import TenantViewSetMixin, BulkActionMixin
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+from apps.inventory.models import InventoryItem
+from utils.mixins import BulkActionMixin, TenantViewSetMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
+
+from . import services
+from .models import ProductionMaterial, ProductionOrder, ProductionStep
+from .serializers import (
+    CreateProductionOrderSerializer, ProductionMaterialSerializer, ProductionOrderDetailSerializer,
+    ProductionOrderListSerializer, ProductionStepSerializer, UpdateProductionOrderSerializer,
+)
+from .services import ProductionError
+
+
+def error(message, status_code=status.HTTP_400_BAD_REQUEST, **extra):
+    return Response({'error': message, 'message': message, **extra}, status=status_code)
 
 
 class ProductionOrderViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
-    """ViewSet for ProductionOrder management."""
+    """Production orders. Status changes only through start / complete / cancel."""
     permission_classes = [IsAuthenticated, IsCompanyMember, IsSameCompany]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'product', 'created_by']
+    filterset_fields = ['status', 'product', 'created_by', 'output_warehouse']
     search_fields = ['order_number', 'product__name', 'product__sku', 'notes']
     ordering_fields = ['order_number', 'start_date', 'end_date', 'created_at', 'quantity']
     ordering = ['-created_at']
 
     def get_queryset(self):
-        return ProductionOrder.objects.filter(
-            company=self.request.user.company
-        ).select_related('product', 'created_by', 'output_warehouse').prefetch_related(
-            'production_steps', 'production_materials'
+        return ProductionOrder.objects.filter(company=self.request.user.company).select_related(
+            'product', 'created_by', 'output_warehouse',
+        ).prefetch_related(
+            Prefetch('production_steps', queryset=ProductionStep.objects.select_related('assigned_to').order_by('created_at')),
+            Prefetch('production_materials', queryset=ProductionMaterial.objects.select_related('product', 'warehouse')),
         )
 
     def get_serializer_class(self):
         if self.action == 'create':
             return CreateProductionOrderSerializer
-        elif self.action == 'retrieve':
+        if self.action in ('update', 'partial_update'):
+            return UpdateProductionOrderSerializer
+        if self.action == 'retrieve':
             return ProductionOrderDetailSerializer
         return ProductionOrderListSerializer
 
+    def _detail(self, pk):
+        return Response(ProductionOrderDetailSerializer(self.get_queryset().get(pk=pk), context={'request': self.request}).data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        response = self._detail(order.pk)
+        response.status_code = status.HTTP_201_CREATED
+        return response
+
+    def update(self, request, *args, **kwargs):
+        super().update(request, *args, **kwargs)
+        return self._detail(kwargs['pk'])
+
+    def destroy(self, request, *args, **kwargs):
+        order = self.get_object()
+        if order.status not in ('PLANNED', 'CANCELLED'):
+            return error('Only planned or cancelled orders can be deleted; this one has moved stock and is kept for the record.')
+        return super().destroy(request, *args, **kwargs)
+
+    def _run(self, step, message, **extra):
+        try:
+            result = step(self.get_object(), self.request.user)
+        except ProductionError as exc:
+            return error(str(exc), **exc.details)
+        order = result[0] if isinstance(result, tuple) else result
+        data = self._detail(order.pk).data
+        return Response({'message': message, **extra, 'order': data, 'status': order.status})
+
     @action(detail=True, methods=['post'])
     def start_production(self, request, pk=None):
-        """Start a production order."""
-        production_order = self.get_object()
-
-        if production_order.status != 'PLANNED':
-            return Response({
-                'error': 'Production order must be in PLANNED status to start'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        with transaction.atomic():
-            production_order.status = 'IN_PROGRESS'
-            production_order.start_date = timezone.now()
-            production_order.save()
-
-            first_step = production_order.production_steps.filter(status='PENDING').first()
-            if first_step:
-                first_step.status = 'IN_PROGRESS'
-                first_step.start_time = timezone.now()
-                first_step.save()
-
-        return Response({
-            'message': 'Production started successfully',
-            'status': production_order.status,
-            'start_date': production_order.start_date
-        })
+        """Start: check and take the raw materials out of stock, begin the first step."""
+        return self._run(services.start, 'Production started; materials have been taken from stock')
 
     @action(detail=True, methods=['post'])
     def complete_production(self, request, pk=None):
-        """
-        Complete a production order.
-        Adds finished goods to the output warehouse inventory via a RECEIPT transaction.
-        """
-        production_order = self.get_object()
-
-        if production_order.status != 'IN_PROGRESS':
-            return Response({
-                'error': 'Production order must be in progress to complete'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # All steps must be completed or skipped
-        incomplete_steps = production_order.production_steps.exclude(
-            status__in=['COMPLETED', 'SKIPPED']
-        )
-        if incomplete_steps.exists():
-            return Response({
-                'error': f'Cannot complete production. {incomplete_steps.count()} step(s) are still pending.',
-                'pending_steps': list(incomplete_steps.values_list('name', flat=True))
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        if not production_order.output_warehouse:
-            return Response({
-                'error': 'Production order has no output warehouse set. '
-                         'Please edit the order and select an output warehouse before completing.'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        with transaction.atomic():
-            production_order.status = 'COMPLETED'
-            production_order.end_date = timezone.now()
-            production_order.save()
-
-            # Add finished goods to output warehouse inventory
-            inventory_item, created = InventoryItem.objects.get_or_create(
-                product=production_order.product,
-                warehouse=production_order.output_warehouse,
-                defaults={'quantity': 0}
-            )
-            inventory_item.quantity += production_order.quantity
-            inventory_item.save()
-
-            # Record the inventory transaction
-            InventoryTransaction.objects.create(
-                inventory_item=inventory_item,
-                transaction_type='RECEIPT',
-                quantity=production_order.quantity,
-                reference=production_order.order_number,
-                notes=f'Finished goods from production order {production_order.order_number}',
-                performed_by=request.user
-            )
-
+        """Complete: all steps done; finished goods go into the output warehouse."""
+        try:
+            order, line = services.complete(self.get_object(), request.user)
+        except ProductionError as exc:
+            return error(str(exc), **exc.details)
         return Response({
-            'message': 'Production completed successfully',
-            'status': production_order.status,
-            'end_date': production_order.end_date,
+            'message': f'Production completed; {order.quantity} added to {order.output_warehouse.name}',
+            'status': order.status,
             'inventory_updated': {
-                'product': production_order.product.name,
-                'warehouse': production_order.output_warehouse.name,
-                'quantity_added': production_order.quantity,
-                'new_total': inventory_item.quantity
-            }
+                'product': order.product.name, 'warehouse': order.output_warehouse.name,
+                'quantity_added': order.quantity, 'new_total': line.quantity,
+            },
+            'order': self._detail(order.pk).data,
         })
 
     @action(detail=True, methods=['post'])
     def cancel_production(self, request, pk=None):
-        """Cancel a production order."""
-        production_order = self.get_object()
-
-        if production_order.status == 'COMPLETED':
-            return Response({
-                'error': 'Cannot cancel completed production order'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        production_order.status = 'CANCELLED'
-        production_order.save()
-
-        return Response({
-            'message': 'Production order cancelled successfully',
-            'status': production_order.status
-        })
+        """Cancel; materials already taken from stock are returned."""
+        return self._run(services.cancel, 'Production order cancelled')
 
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
-        """Get production dashboard data."""
-        queryset = self.get_queryset()
-
-        total_orders = queryset.count()
-        planned_orders = queryset.filter(status='PLANNED').count()
-        in_progress_orders = queryset.filter(status='IN_PROGRESS').count()
-        completed_orders = queryset.filter(status='COMPLETED').count()
-        cancelled_orders = queryset.filter(status='CANCELLED').count()
-
-        overdue_orders = queryset.filter(
-            status='IN_PROGRESS',
-            end_date__lt=timezone.now()
-        ).count()
-
-        this_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        monthly_completed = queryset.filter(
-            status='COMPLETED',
-            end_date__gte=this_month
-        ).count()
-
+        qs = ProductionOrder.objects.filter(company=request.user.company)
+        now = timezone.now()
+        month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        counts = {s: qs.filter(status=s).count() for s in ('PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')}
+        completed = list(qs.filter(status='COMPLETED', start_date__isnull=False, end_date__isnull=False)
+                         .values_list('start_date', 'end_date', 'quantity'))
+        hours = [(end - start).total_seconds() / 3600 for start, end, _ in completed]
         return Response({
-            'total_orders': total_orders,
-            'planned_orders': planned_orders,
-            'in_progress_orders': in_progress_orders,
-            'completed_orders': completed_orders,
-            'cancelled_orders': cancelled_orders,
-            'overdue_orders': overdue_orders,
-            'monthly_completed': monthly_completed
+            'total_orders': qs.count(),
+            'planned_orders': counts['PLANNED'],
+            'in_progress_orders': counts['IN_PROGRESS'],
+            'completed_orders': counts['COMPLETED'],
+            'cancelled_orders': counts['CANCELLED'],
+            # In progress past their target end date
+            'overdue_orders': qs.filter(status='IN_PROGRESS', end_date__lt=now).count(),
+            'monthly_completed': qs.filter(status='COMPLETED', end_date__gte=month).count(),
+            'monthly_units': sum(q for _, end, q in completed if end >= month),
+            'average_cycle_hours': round(sum(hours) / len(hours), 1) if hours else 0,
+            'steps_in_progress': ProductionStep.objects.filter(production_order__company=request.user.company,
+                                                               production_order__status='IN_PROGRESS',
+                                                               status='IN_PROGRESS').count(),
         })
 
     @action(detail=False, methods=['get'])
     def material_requirements(self, request):
-        """Get material requirements for all active production orders."""
-        active_orders = self.get_queryset().filter(status__in=['PLANNED', 'IN_PROGRESS'])
+        """Materials still needed by orders that haven't taken them from stock yet, per warehouse."""
+        materials = ProductionMaterial.objects.filter(
+            production_order__company=request.user.company,
+            production_order__status__in=['PLANNED', 'IN_PROGRESS'],
+            production_order__materials_consumed=False,
+        ).select_related('product', 'warehouse')
 
-        material_summary = {}
-        for order in active_orders:
-            for material in order.production_materials.all():
-                key = f"{material.product.name} ({material.product.sku})"
-                if key not in material_summary:
-                    material_summary[key] = {
-                        'product_id': str(material.product.id),
-                        'product_name': material.product.name,
-                        'product_sku': material.product.sku,
-                        'required_quantity': 0,
-                        'available_stock': material.available_stock,
-                        'shortage': 0
-                    }
-                material_summary[key]['required_quantity'] += material.quantity
-                shortage = max(0, material_summary[key]['required_quantity'] - material_summary[key]['available_stock'])
-                material_summary[key]['shortage'] = shortage
-
+        summary = {}
+        for m in materials:
+            row = summary.setdefault((m.product_id, m.warehouse_id), {
+                'product_id': str(m.product_id), 'product_name': m.product.name, 'product_sku': m.product.sku,
+                'warehouse_id': str(m.warehouse_id), 'warehouse_name': m.warehouse.name,
+                'required_quantity': 0, 'order_count': 0,
+            })
+            row['required_quantity'] += m.quantity
+            row['order_count'] += 1
+        stock = {
+            (i.product_id, i.warehouse_id): i.quantity
+            for i in InventoryItem.objects.filter(product__company=request.user.company)
+        }
+        rows = []
+        for key, row in summary.items():
+            row['available_stock'] = stock.get(key, 0)
+            row['shortage'] = max(0, row['required_quantity'] - row['available_stock'])
+            rows.append(row)
+        rows.sort(key=lambda r: (-r['shortage'], r['product_name']))
         return Response({
-            'material_requirements': list(material_summary.values()),
-            'total_materials': len(material_summary),
-            'materials_with_shortage': sum(1 for m in material_summary.values() if m['shortage'] > 0)
+            'material_requirements': rows,
+            'total_materials': len(rows),
+            'materials_with_shortage': sum(1 for r in rows if r['shortage'] > 0),
         })
 
 
 class ProductionStepViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
-    """ViewSet for ProductionStep management."""
+    """Steps of production orders. Status moves only through start / complete / skip."""
     serializer_class = ProductionStepSerializer
-    permission_classes = [IsCompanyMember, IsSameCompany]
+    permission_classes = [IsAuthenticated, IsCompanyMember, IsSameCompany]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'production_order', 'assigned_to']
-    search_fields = ['name', 'description']
+    search_fields = ['name', 'description', 'production_order__order_number']
     ordering_fields = ['created_at', 'start_time', 'end_time', 'duration_hours']
     ordering = ['production_order', 'created_at']
 
     def get_queryset(self):
         return ProductionStep.objects.filter(
             production_order__company=self.request.user.company
-        ).select_related('production_order', 'assigned_to')
+        ).select_related('production_order', 'production_order__product', 'assigned_to')
+
+    def destroy(self, request, *args, **kwargs):
+        step = self.get_object()
+        if step.production_order.status not in ('PLANNED', 'IN_PROGRESS') or step.status != 'PENDING':
+            return error('Only pending steps on an open order can be removed.')
+        return super().destroy(request, *args, **kwargs)
+
+    def _run(self, step_fn, message):
+        try:
+            step, next_step = step_fn(self.get_object())
+        except ProductionError as exc:
+            return error(str(exc), **exc.details)
+        return Response({
+            'message': message,
+            'status': step.status,
+            'start_time': step.start_time,
+            'end_time': step.end_time,
+            'next_step_started': next_step.name if next_step else None,
+        })
 
     @action(detail=True, methods=['post'])
     def start_step(self, request, pk=None):
-        """Start a production step."""
-        step = self.get_object()
-
-        if step.status != 'PENDING':
-            return Response({
-                'error': 'Step must be in PENDING status to start'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        step.status = 'IN_PROGRESS'
-        step.start_time = timezone.now()
-        step.save()
-
-        return Response({
-            'message': 'Step started successfully',
-            'status': step.status,
-            'start_time': step.start_time
-        })
+        return self._run(services.start_step, 'Step started')
 
     @action(detail=True, methods=['post'])
     def complete_step(self, request, pk=None):
-        """Complete a production step."""
-        step = self.get_object()
-
-        if step.status != 'IN_PROGRESS':
-            return Response({
-                'error': 'Step must be in progress to complete'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        step.status = 'COMPLETED'
-        step.end_time = timezone.now()
-        step.save()
-
-        next_step = step.production_order.production_steps.filter(
-            status='PENDING'
-        ).first()
-
-        if next_step:
-            next_step.status = 'IN_PROGRESS'
-            next_step.start_time = timezone.now()
-            next_step.save()
-
-        return Response({
-            'message': 'Step completed successfully',
-            'status': step.status,
-            'end_time': step.end_time,
-            'next_step_started': next_step.name if next_step else None
-        })
+        return self._run(services.complete_step, 'Step completed')
 
     @action(detail=True, methods=['post'])
     def skip_step(self, request, pk=None):
-        """Skip a production step."""
-        step = self.get_object()
-
-        if step.status == 'COMPLETED':
-            return Response({
-                'error': 'Cannot skip completed step'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        step.status = 'SKIPPED'
-        step.save()
-
-        return Response({
-            'message': 'Step skipped successfully',
-            'status': step.status
-        })
+        return self._run(services.skip_step, 'Step skipped')
 
 
 class ProductionMaterialViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
-    """ViewSet for ProductionMaterial management."""
+    """Raw materials of production orders; editable only while the order is planned."""
     serializer_class = ProductionMaterialSerializer
-    permission_classes = [IsCompanyMember, IsSameCompany]
+    permission_classes = [IsAuthenticated, IsCompanyMember, IsSameCompany]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['production_order', 'product', 'warehouse']
-    search_fields = ['product__name', 'product__sku']
+    search_fields = ['product__name', 'product__sku', 'production_order__order_number']
     ordering_fields = ['quantity', 'created_at']
     ordering = ['product__name']
 
@@ -312,28 +229,34 @@ class ProductionMaterialViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
             production_order__company=self.request.user.company
         ).select_related('production_order', 'product', 'warehouse')
 
+    def destroy(self, request, *args, **kwargs):
+        if self.get_object().production_order.status != 'PLANNED':
+            return error('Materials can only be removed while the order is planned.')
+        return super().destroy(request, *args, **kwargs)
+
     @action(detail=False, methods=['get'])
     def insufficient_stock(self, request):
-        """Get materials with insufficient stock."""
-        materials = self.get_queryset()
-
-        insufficient = []
-        for material in materials:
-            # Use the Python property, not F() — available_stock is not a DB column
-            available = material.available_stock
-            if material.quantity > available:
-                insufficient.append({
-                    'id': str(material.id),
-                    'production_order': material.production_order.order_number,
-                    'product_name': material.product.name,
-                    'product_sku': material.product.sku,
-                    'warehouse': material.warehouse.name,
-                    'required_quantity': material.quantity,
+        """Materials on orders that haven't started yet whose warehouse doesn't hold enough."""
+        materials = self.get_queryset().filter(
+            production_order__status__in=['PLANNED', 'IN_PROGRESS'], production_order__materials_consumed=False,
+        )
+        stock = {
+            (i.product_id, i.warehouse_id): i.quantity
+            for i in InventoryItem.objects.filter(product__company=request.user.company)
+        }
+        rows = []
+        for m in materials:
+            available = stock.get((m.product_id, m.warehouse_id), 0)
+            if m.quantity > available:
+                rows.append({
+                    'id': str(m.id),
+                    'production_order_id': str(m.production_order_id),
+                    'production_order': m.production_order.order_number,
+                    'product_name': m.product.name,
+                    'product_sku': m.product.sku,
+                    'warehouse': m.warehouse.name,
+                    'required_quantity': m.quantity,
                     'available_stock': available,
-                    'shortage': material.quantity - available
+                    'shortage': m.quantity - available,
                 })
-
-        return Response({
-            'materials_with_insufficient_stock': insufficient,
-            'total_count': len(insufficient)
-        })
+        return Response({'materials_with_insufficient_stock': rows, 'total_count': len(rows)})

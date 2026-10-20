@@ -1,330 +1,146 @@
 // src/components/production/ProductionDashboard.tsx
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { AlertTriangle, ArrowRight, CheckCircle2, ClipboardList, Clock, Factory, Layers, ListChecks, Plus, Timer } from 'lucide-react'
 import { useProductionOrders } from '@/hooks/useProduction'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Factory, Plus, TrendingUp, Clock, CheckCircle, XCircle, AlertTriangle, Package, Calendar } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ActionTile, ErrorBanner, PageHeader, Panel, StatCard, StatGrid, StatGridSkeleton } from '@/components/app/kit'
+import { AppStagger, MotionRow } from '@/components/app/motion'
+import { formatCount, timeAgo } from '@/lib/format'
+import { OrderStatusPill, ProgressRing } from './status'
 
 export function ProductionDashboard() {
   const router = useRouter()
-  const { 
-    orders = [],
-    dashboard, 
-    materialRequirements,
-    loading, 
-    fetchOrders,
-    fetchDashboard,
-    fetchMaterialRequirements
-  } = useProductionOrders()
+  const { orders, dashboard, materialRequirements, error, fetchOrders, fetchDashboard, fetchMaterialRequirements } = useProductionOrders()
+  const [ready, setReady] = useState(false)
 
-  // DECLARE the function FIRST with useCallback
-  const loadDashboardData = useCallback(async () => {
-    await Promise.all([
-      fetchDashboard(),
-      fetchMaterialRequirements(),
-      fetchOrders({ ordering: '-created_at' })
-    ])
-  }, [fetchDashboard, fetchMaterialRequirements, fetchOrders]) // Add dependencies
+  const load = () =>
+    Promise.allSettled([fetchDashboard(), fetchMaterialRequirements(), fetchOrders({ ordering: '-created_at' })]).finally(() => setReady(true))
 
-  // THEN use it in useEffect
   useEffect(() => {
-    loadDashboardData()
-  }, [loadDashboardData])
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // Get recent orders (last 5)
-  const recentOrders = orders.slice(0, 5)
-
-  if (loading && !dashboard) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
-    )
-  }
+  const d = dashboard
+  const active = orders.filter((o) => o.status === 'IN_PROGRESS' || o.status === 'PLANNED').slice(0, 6)
+  const shortages = (materialRequirements?.material_requirements ?? []).filter((m) => m.shortage > 0)
+  const cycle = d?.average_cycle_hours ?? 0
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Production</h2>
-          <p className="text-muted-foreground">
-            Monitor and manage your production operations
-          </p>
-        </div>
-        <Button onClick={() => router.push('/production/orders/new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          New Production Order
-        </Button>
-      </div>
+      <PageHeader
+        icon={Factory}
+        title="Production"
+        description="Plan runs, track each step on the floor, and stock the finished goods."
+        actions={
+          <Button onClick={() => router.push('/production/orders/new')} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90">
+            <Plus className="mr-2 h-4 w-4" />New production order
+          </Button>
+        }
+      />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Orders</p>
-                <p className="text-3xl font-bold">{dashboard?.total_orders || 0}</p>
-              </div>
-              <Factory className="h-8 w-8 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+      {error && ready && <ErrorBanner title="Couldn’t load production data" message={error} onRetry={load} />}
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">In Progress</p>
-                <p className="text-3xl font-bold text-blue-600">{dashboard?.in_progress_orders || 0}</p>
-              </div>
-              <Clock className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                <p className="text-3xl font-bold text-green-600">{dashboard?.completed_orders || 0}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Overdue</p>
-                <p className="text-3xl font-bold text-red-600">{dashboard?.overdue_orders || 0}</p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Planned Orders</p>
-                <p className="text-2xl font-bold">{dashboard?.planned_orders || 0}</p>
-              </div>
-              <Calendar className="h-6 w-6 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Cancelled Orders</p>
-                <p className="text-2xl font-bold">{dashboard?.cancelled_orders || 0}</p>
-              </div>
-              <XCircle className="h-6 w-6 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Monthly Completed</p>
-                <p className="text-2xl font-bold">{dashboard?.monthly_completed || 0}</p>
-              </div>
-              <TrendingUp className="h-6 w-6 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Material Requirements Alert */}
-      {materialRequirements && materialRequirements.materials_with_shortage > 0 && (
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2 text-red-800">
-              <AlertTriangle className="h-5 w-5" />
-              <span>Material Shortage Alert</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-red-700 mb-4">
-              {materialRequirements.materials_with_shortage} material(s) have insufficient stock for active production orders.
-            </p>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => router.push('/production/materials')}
-              className="border-red-300 text-red-700 hover:bg-red-100"
-            >
-              View Material Requirements
-            </Button>
-          </CardContent>
-        </Card>
+      {!ready ? (
+        <StatGridSkeleton />
+      ) : (
+        <StatGrid>
+          <StatCard label="In production" value={d?.in_progress_orders ?? 0} icon={Factory} tone="info" hint={`${d?.steps_in_progress ?? 0} steps being worked on`} href="/production/orders?status=IN_PROGRESS" />
+          <StatCard label="Planned" value={d?.planned_orders ?? 0} icon={Clock} tone="warning" hint="Waiting to start" href="/production/orders?status=PLANNED" />
+          <StatCard label="Completed this month" value={d?.monthly_completed ?? 0} icon={CheckCircle2} tone="success" hint={`${formatCount(d?.monthly_units ?? 0)} units made`} href="/production/orders?status=COMPLETED" />
+          <StatCard
+            label="Avg. cycle time" value={cycle} icon={Timer} tone="brand" hint="Start to finish"
+            format={(n) => (!d?.completed_orders ? '—' : cycle < 0.1 ? '< 0.1 h' : cycle >= 48 ? `${(n / 24).toFixed(1)} days` : `${n.toFixed(1)} h`)}
+          />
+        </StatGrid>
       )}
 
-      {/* Material Requirements Summary */}
-      {materialRequirements && materialRequirements.material_requirements && materialRequirements.material_requirements.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center space-x-2">
-                <Package className="h-5 w-5" />
-                <span>Material Requirements</span>
-              </CardTitle>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => router.push('/production/materials')}
-              >
-                View All
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Required Qty</TableHead>
-                  <TableHead>Available</TableHead>
-                  <TableHead>Shortage</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {materialRequirements.material_requirements.slice(0, 5).map((material, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">{material.product_name}</TableCell>
-                    <TableCell>{material.product_sku}</TableCell>
-                    <TableCell>{material.required_quantity}</TableCell>
-                    <TableCell>{material.available_stock}</TableCell>
-                    <TableCell>
-                      {material.shortage > 0 ? (
-                        <span className="text-red-600 font-semibold">{material.shortage}</span>
-                      ) : (
-                        <span className="text-green-600">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {material.shortage > 0 ? (
-                        <Badge variant="destructive">Short</Badge>
-                      ) : (
-                        <Badge variant="outline">OK</Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+      {ready && (d?.overdue_orders ?? 0) > 0 && (
+        <Link href="/production/orders?status=IN_PROGRESS" className="flex items-center gap-3 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger transition-colors hover:bg-danger/10">
+          <AlertTriangle className="h-5 w-5 shrink-0" />
+          <span className="flex-1"><span className="font-medium">{d?.overdue_orders} {d?.overdue_orders === 1 ? 'order is' : 'orders are'} past the target end date.</span> Review them to keep deliveries on time.</span>
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       )}
 
-      {/* Recent Production Orders */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Recent Production Orders</CardTitle>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => router.push('/production/orders')}
-            >
-              View All
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {recentOrders.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Factory className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="mb-2">No production orders yet</p>
-              <p className="text-sm mb-4">Create your first production order to get started</p>
-              <Button onClick={() => router.push('/production/orders/new')}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Production Order
-              </Button>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Panel
+          className="lg:col-span-2"
+          icon={ClipboardList}
+          title="On the floor"
+          description="Orders in production or planned next"
+          bodyClassName="p-0"
+          action={<Link href="/production/orders" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">All orders <ArrowRight className="h-3.5 w-3.5" /></Link>}
+        >
+          {!ready ? (
+            <div className="space-y-3 p-5">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>
+          ) : active.length === 0 ? (
+            <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft text-brand"><Factory className="h-6 w-6" /></span>
+              <p className="font-medium">Nothing scheduled</p>
+              <p className="max-w-sm text-sm text-muted-foreground">Create a production order with its steps and raw materials. Starting it takes the materials from stock; completing it stocks the finished goods.</p>
+              <Button size="sm" variant="outline" onClick={() => router.push('/production/orders/new')}><Plus className="mr-2 h-4 w-4" />New production order</Button>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Order Number</TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Created</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentOrders.map((order) => (
-                  <TableRow 
-                    key={order.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => router.push(`/production/orders/${order.id}`)}
-                  >
-                    <TableCell className="font-medium">{order.order_number}</TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium">{order.product_name}</p>
-                        <p className="text-sm text-muted-foreground">{order.product_sku}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{order.quantity}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={
-                          order.status === 'COMPLETED' ? 'outline' :
-                          order.status === 'IN_PROGRESS' ? 'default' :
-                          order.status === 'CANCELLED' ? 'destructive' :
-                          'secondary'
-                        }
-                      >
-                        {order.status.replace('_', ' ')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-20 bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-primary h-2 rounded-full"
-                            style={{ width: `${order.progress_percentage}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-muted-foreground">
-                          {Math.round(order.progress_percentage)}%
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
+            <table className="w-full text-sm">
+              <tbody className="divide-y">
+                {active.map((o, i) => (
+                  <MotionRow key={o.id} index={i} onClick={() => router.push(`/production/orders/${o.id}`)} className="cursor-pointer transition-colors hover:bg-muted/50">
+                    <td className="w-16 py-3 pl-4 sm:pl-5"><ProgressRing value={o.progress_percentage} size={42} stroke={4} /></td>
+                    <td className="px-3 py-3">
+                      <p className="font-medium">{o.product_name} <span className="font-normal text-muted-foreground">× {formatCount(o.quantity)}</span></p>
+                      <p className="text-xs text-muted-foreground">{o.order_number} · {o.steps_done}/{o.steps_total} steps</p>
+                    </td>
+                    <td className="px-3 py-3 text-right"><OrderStatusPill status={o.status} /></td>
+                    <td className="hidden px-4 py-3 text-right text-xs text-muted-foreground md:table-cell sm:px-5">{timeAgo(o.start_date ?? o.created_at)}</td>
+                  </MotionRow>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           )}
-        </CardContent>
-      </Card>
+        </Panel>
+
+        <Panel
+          icon={Layers}
+          title="Material shortages"
+          description="For orders not started yet"
+          delay={0.15}
+          bodyClassName="p-0"
+          action={<Link href="/production/materials" className="text-sm font-medium text-brand hover:underline">Details</Link>}
+        >
+          {!ready ? (
+            <div className="space-y-3 p-5">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}</div>
+          ) : shortages.length === 0 ? (
+            <div className="flex items-center gap-3 px-5 py-6 text-sm">
+              <CheckCircle2 className="h-5 w-5 text-success" />
+              <span className="text-muted-foreground">Every planned order has the materials it needs.</span>
+            </div>
+          ) : (
+            <ul className="divide-y">
+              {shortages.slice(0, 5).map((m) => (
+                <li key={`${m.product_id}-${m.warehouse_id}`} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{m.product_name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{m.warehouse_name} · have {formatCount(m.available_stock)}</p>
+                  </div>
+                  <span className="shrink-0 font-semibold tabular-nums text-danger">−{formatCount(m.shortage)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+      </div>
+
+      <AppStagger className="grid gap-3 sm:grid-cols-3">
+        <ActionTile href="/production/orders" icon={ClipboardList} title="Production orders" description="Plan, start and complete runs" />
+        <ActionTile href="/production/steps" icon={ListChecks} title="Work queue" description="Every step being worked on or up next" />
+        <ActionTile href="/production/materials" icon={Layers} title="Materials" description="What upcoming runs need from stock" />
+      </AppStagger>
     </div>
   )
 }
