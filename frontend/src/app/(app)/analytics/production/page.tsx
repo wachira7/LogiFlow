@@ -1,136 +1,49 @@
-// src/app/analytics/production/page.tsx
-'use client';
+// src/app/(app)/analytics/production/page.tsx
+'use client'
 
-import { useProductionAnalytics } from '@/hooks/useAnalytics';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ProductionOrdersChart, MaterialShortageChart } from '@/components/analytics/ProductionChart';
-import { Factory, CheckCircle2, Clock, AlertTriangle, RefreshCw, TrendingUp } from 'lucide-react';
-import { KPICard, KPICardsGrid } from '@/components/analytics/KPICards';
+import Link from 'next/link'
+import { AlertTriangle, CheckCircle2, Clock, Factory, Layers, Timer } from 'lucide-react'
+import { Panel } from '@/components/app/kit'
+import { AppStagger } from '@/components/app/motion'
+import { BarList, KpiCard, TrendChart, rateChange } from '@/components/analytics/Charts'
+import { ReportShell } from '@/components/analytics/ReportShell'
+import { formatCount } from '@/lib/format'
 
 export default function ProductionAnalyticsPage() {
-  const { dashboard, materialRequirements, loading, error, refetch } = useProductionAnalytics();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-        <AlertTriangle className="h-12 w-12 text-destructive" />
-        <p className="text-lg text-muted-foreground">{error}</p>
-        <Button onClick={refetch} variant="outline">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Try Again
-        </Button>
-      </div>
-    );
-  }
-
-  const completionRate = dashboard.total_orders > 0
-    ? Math.round((dashboard.completed_orders / dashboard.total_orders) * 100)
-    : 0;
-
-  const hasOverdue   = dashboard.overdue_orders > 0;
-  const hasShortages = materialRequirements.materials_with_shortage > 0;
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Production Analytics</h2>
-          <p className="text-muted-foreground">
-            Production orders, efficiency, and material availability
-          </p>
-        </div>
-        <Button onClick={refetch} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
+    <ReportShell>
+      {({ production: p, series }, days) => (
+        <>
+          <AppStagger className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            <KpiCard label="Units produced" icon={Factory} metric={p.units_produced} days={days} />
+            <KpiCard label="Runs completed" icon={CheckCircle2} tone="success" metric={p.runs_completed} days={days} />
+            <KpiCard label="Avg cycle time" icon={Timer} tone="info" days={days} lowerIsBetter
+              metric={p.avg_cycle_hours.value === null ? undefined : { value: p.avg_cycle_hours.value, previous: p.avg_cycle_hours.previous ?? 0, change: rateChange(p.avg_cycle_hours) }}
+              value={p.avg_cycle_hours.value} format={(n) => (n < 0.1 ? '< 0.1 h' : `${n.toFixed(1)} h`)} hint="No completed runs yet" />
+            <KpiCard label="On the floor" icon={Clock} tone="warning" value={p.in_progress} days={days} hint={`${p.planned} planned next`} />
+          </AppStagger>
 
-      {/* Alerts */}
-      {hasOverdue && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>{dashboard.overdue_orders} production order{dashboard.overdue_orders > 1 ? 's are' : ' is'} overdue.</strong>{' '}
-            Review your production schedule and reassign resources where needed.
-          </AlertDescription>
-        </Alert>
+          {p.overdue > 0 && (
+            <Link href="/production/orders?status=IN_PROGRESS" className="flex items-center gap-3 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger">
+              <AlertTriangle className="h-4 w-4" />{p.overdue} {p.overdue === 1 ? 'run is' : 'runs are'} past the target end date.
+            </Link>
+          )}
+
+          <Panel title="Units produced" description="Each day, counted when a run completes" delay={0.1}>
+            <TrendChart dates={series.dates} series={[{ key: 'units_produced', label: 'Units produced', color: 'var(--success)', values: series.units_produced }]} />
+          </Panel>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Panel icon={Factory} title="What you made most" delay={0.15}>
+              <BarList items={p.top_products.map((t) => ({ label: t.name, sub: `${t.runs} ${t.runs === 1 ? 'run' : 'runs'}`, value: t.units }))} color="bg-success" empty="No runs completed in this period." />
+            </Panel>
+            <Panel icon={Layers} title="Materials used" description="By completed runs" delay={0.2}>
+              <BarList items={p.materials_used.map((m) => ({ label: m.name, value: m.units }))} color="bg-warning" empty="No materials used in this period." />
+            </Panel>
+          </div>
+          <p className="text-xs text-muted-foreground">{formatCount(p.runs_completed.previous)} runs completed in the {days} days before.</p>
+        </>
       )}
-
-      {hasShortages && (
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>{materialRequirements.materials_with_shortage} material{materialRequirements.materials_with_shortage > 1 ? 's have' : ' has'} a shortage.</strong>{' '}
-            This may delay upcoming production orders. Review the chart below.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* KPI Cards */}
-        <KPICardsGrid cols={4}>
-          <KPICard
-            title="Total Orders"
-            value={dashboard.total_orders}
-            description={`${dashboard.monthly_completed} completed this month`}
-            icon={Factory}
-          />
-          <KPICard
-            title="In Progress"
-            value={dashboard.in_progress_orders}
-            description={`${dashboard.planned_orders} planned`}
-            icon={TrendingUp}
-            iconColor="text-orange-500"
-            valueColor="text-orange-500"
-          />
-          <KPICard
-            title="Completed"
-            value={dashboard.completed_orders}
-            description={`${completionRate}% completion rate`}
-            icon={CheckCircle2}
-            iconColor="text-green-600"
-            valueColor="text-green-600"
-          />
-          <KPICard
-            title="Overdue"
-            value={dashboard.overdue_orders}
-            description={hasOverdue ? 'Needs attention' : 'On schedule'}
-            icon={Clock}
-            iconColor={hasOverdue ? 'text-destructive' : 'text-muted-foreground'}
-            valueColor={hasOverdue ? 'text-destructive' : 'text-green-600'}
-          />
-        </KPICardsGrid>
-      {/* Charts Row */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <ProductionOrdersChart data={dashboard} />
-        <MaterialShortageChart data={materialRequirements} />
-      </div>
-
-      {/* All good state */}
-      {!hasOverdue && !hasShortages && dashboard.total_orders > 0 && (
-        <Card className="border-green-600">
-          <CardContent className="flex items-center justify-center py-8">
-            <div className="text-center space-y-2">
-              <CheckCircle2 className="h-10 w-10 text-green-600 mx-auto" />
-              <p className="font-semibold">Production is running smoothly</p>
-              <p className="text-sm text-muted-foreground">
-                No overdue orders or material shortages
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+    </ReportShell>
+  )
 }

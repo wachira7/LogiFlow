@@ -16,12 +16,13 @@ class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.SerializerMethodField()
     role = serializers.CharField(read_only=True)
     profile_picture = serializers.SerializerMethodField()
+    company_currency = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 'full_name',
-            'phone_number', 'profile_picture', 'company_id', 'company_name',
+            'phone_number', 'profile_picture', 'company_id', 'company_name', 'company_currency',
             'is_active','is_platform_admin', 'is_company_owner', 'is_warehouse_manager',
             'is_production_manager', 'is_logistics_coordinator',
             'is_inventory_manager', 'is_driver', 'role', 'date_joined', 'last_login'
@@ -30,6 +31,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}".strip()
+
+    def get_company_currency(self, obj):
+        """The company's display currency (Company settings), so every member formats money the same way."""
+        settings = getattr(obj.company, 'settings', None) if obj.company_id else None
+        return getattr(settings, 'currency', None) or 'USD'
 
     def get_profile_picture(self, obj):
         if obj.profile_picture and obj.profile_picture.name:

@@ -9,13 +9,16 @@ import { useAuth } from '@/context/AuthContext'
 import { Sidebar } from './Sidebar'
 import { Navbar } from './Navbar'
 import { Logo } from '@/components/landing/Logo'
+import { setCompanyCurrency } from '@/lib/format'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, user } = useAuth()
+  // Set during render (not in an effect) so pages format money in the company currency on first paint
+  setCompanyCurrency(user?.company_currency)
   const pathname = usePathname()
   const reduce = useReducedMotion()
   const [sidebarOpen, setSidebarOpen] = useState(false)

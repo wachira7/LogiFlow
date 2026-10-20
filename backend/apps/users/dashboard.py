@@ -7,25 +7,106 @@ moved in the good direction (so lower delivery time = 'up'), because the UI colo
 """
 from datetime import timedelta
 
-from django.db.models import F
+from django.db.models import Count, F, Sum
+from django.db.models.functions import TruncDate
 
 from apps.distribution.models import CustomerOrder, Shipment
-from apps.inventory.models import InventoryItem, Product, Warehouse
+from apps.inventory.models import InventoryItem, InventoryTransaction, Product, Warehouse
 from apps.payments.models import PaymentMethod
+from apps.production.models import ProductionMaterial, ProductionOrder
+from apps.warehousing.models import WarehouseTransfer
 
 WINDOW_DAYS = 30
 STALE_ORDER_HOURS = 48
 NO_DATA = '—'
 
 
+TREND_DAYS = 14
+
+
 def build_stats(company, total_users, days_active):
+    stock = InventoryItem.objects.filter(warehouse__company=company)
     return {
         'total_users': total_users,
         'total_products': Product.objects.filter(company=company, is_active=True).count(),
         'pending_orders': CustomerOrder.objects.filter(company=company, status__in=['NEW', 'PROCESSING']).count(),
         'active_shipments': Shipment.objects.filter(company=company).exclude(status__in=Shipment.TERMINAL_STATUSES).count(),
         'days_active': days_active,
+        'stock_units': stock.aggregate(v=Sum('quantity'))['v'] or 0,
+        'stock_value': float(stock.aggregate(v=Sum(F('quantity') * F('product__cost_price')))['v'] or 0),
+        'low_stock_items': _low_stock_items(company).count(),
+        'transfers_in_transit': WarehouseTransfer.objects.filter(company=company, status='IN_TRANSIT').count(),
+        'transfers_pending': WarehouseTransfer.objects.filter(company=company, status='PENDING').count(),
+        'production_in_progress': ProductionOrder.objects.filter(company=company, status='IN_PROGRESS').count(),
+        'production_planned': ProductionOrder.objects.filter(company=company, status='PLANNED').count(),
     }
+
+
+def build_trend(company, now):
+    """Daily counts for the last TREND_DAYS days (oldest first) for the dashboard chart."""
+    start = (now - timedelta(days=TREND_DAYS - 1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    days = [(start + timedelta(days=i)).date() for i in range(TREND_DAYS)]
+
+    def per_day(qs, field, value=None):
+        rows = qs.filter(**{f'{field}__gte': start}).annotate(day=TruncDate(field)).values('day')
+        rows = rows.annotate(v=Sum(value) if value else Count('id'))
+        return {r['day']: r['v'] or 0 for r in rows}
+
+    orders = per_day(CustomerOrder.objects.filter(company=company), 'created_at')
+    produced = per_day(ProductionOrder.objects.filter(company=company, status='COMPLETED'), 'end_date', 'quantity')
+    movements = per_day(InventoryTransaction.objects.filter(inventory_item__warehouse__company=company), 'timestamp')
+    delivered = per_day(Shipment.objects.filter(company=company, status='DELIVERED'), 'actual_delivery')
+    return [
+        {'date': d.isoformat(), 'orders': orders.get(d, 0), 'units_produced': produced.get(d, 0),
+         'stock_movements': movements.get(d, 0), 'deliveries': delivered.get(d, 0)}
+        for d in days
+    ]
+
+
+_TXN_LABEL = {
+    'RECEIPT': 'received', 'SHIPMENT': 'shipped', 'ADJUSTMENT': 'adjusted', 'TRANSFER': 'transferred',
+    'RETURN': 'returned', 'PRODUCTION': 'used in production',
+}
+
+
+def build_operations_activity(company, since):
+    """Recent stock movements, transfers and production runs, newest first, each with a link."""
+    items = []
+    txns = (InventoryTransaction.objects.filter(inventory_item__warehouse__company=company, timestamp__gte=since)
+            .select_related('inventory_item__product', 'inventory_item__warehouse', 'performed_by')
+            .order_by('-timestamp')[:8])
+    for t in txns:
+        line = t.inventory_item
+        sign = '+' if t.quantity > 0 else '−'
+        verb = _TXN_LABEL.get(t.transaction_type, t.transaction_type.lower())
+        if t.transaction_type == 'PRODUCTION' and t.quantity > 0:
+            verb = 'returned from production'
+        who = t.performed_by.get_full_name() or t.performed_by.email if t.performed_by else 'System'
+        items.append({
+            'type': 'stock_movement',
+            'message': f'{line.product.name} {sign}{abs(t.quantity)} {verb} at {line.warehouse.name}'
+                       + (f' ({t.reference})' if t.reference else ''),
+            'timestamp': t.timestamp.isoformat(),
+            'user': {'name': who, 'email': t.performed_by.email if t.performed_by else ''},
+            'href': f'/inventory/transactions?search={t.reference}' if t.reference else '/inventory/transactions',
+        })
+    for order in ProductionOrder.objects.filter(company=company, status='COMPLETED', end_date__gte=since).select_related('product', 'created_by')[:5]:
+        items.append({
+            'type': 'production_completed',
+            'message': f'{order.order_number} finished: {order.quantity} × {order.product.name}',
+            'timestamp': order.end_date.isoformat(),
+            'user': {'name': order.created_by.get_full_name() if order.created_by else 'System', 'email': order.created_by.email if order.created_by else ''},
+            'href': f'/production/orders/{order.id}',
+        })
+    for tr in WarehouseTransfer.objects.filter(company=company, status='COMPLETED', completed_at__gte=since).select_related('destination_warehouse', 'initiated_by')[:5]:
+        items.append({
+            'type': 'transfer_completed',
+            'message': f'Transfer {tr.transfer_number} received at {tr.destination_warehouse.name}',
+            'timestamp': tr.completed_at.isoformat(),
+            'user': {'name': tr.initiated_by.get_full_name() if tr.initiated_by else 'System', 'email': tr.initiated_by.email if tr.initiated_by else ''},
+            'href': f'/warehousing/transfers/{tr.id}',
+        })
+    return items
 
 
 def _low_stock_items(company):
@@ -156,6 +237,7 @@ def build_alerts(company, now, setup_progress):
             'message': f'{_plural(overdue_count, "shipment")} past the estimated delivery time'
                        + (f', {very_late} by more than 24 hours' if very_late else ''),
             'action': 'View Shipments',
+            'href': '/distribution/shipments',
         })
 
     low_stock = _low_stock_items(company).count()
@@ -164,7 +246,8 @@ def build_alerts(company, now, setup_progress):
             'type': 'warning',
             'title': 'Low Stock',
             'message': f'{_plural(low_stock, "stock line")} at or below the reorder point',
-            'action': 'View Inventory',
+            'action': 'View Stock',
+            'href': '/inventory/inventory-items',
         })
 
     stale_orders = CustomerOrder.objects.filter(
@@ -176,6 +259,39 @@ def build_alerts(company, now, setup_progress):
             'title': 'Orders Waiting',
             'message': f'{_plural(stale_orders, "order")} not processed for over {STALE_ORDER_HOURS // 24} days',
             'action': 'View Orders',
+            'href': '/distribution/orders',
+        })
+
+    overdue_runs = ProductionOrder.objects.filter(company=company, status='IN_PROGRESS', end_date__lt=now).count()
+    if overdue_runs:
+        alerts.append({
+            'type': 'warning',
+            'title': 'Production Running Late',
+            'message': f'{_plural(overdue_runs, "production order")} past the target end date',
+            'action': 'View Production',
+            'href': '/production/orders?status=IN_PROGRESS',
+        })
+
+    blocked = _blocked_production_orders(company)
+    if blocked:
+        alerts.append({
+            'type': 'warning',
+            'title': 'Materials Short',
+            'message': f'{_plural(blocked, "planned production order")} can’t start until materials are restocked',
+            'action': 'View Materials',
+            'href': '/production/materials',
+        })
+
+    waiting_transfers = WarehouseTransfer.objects.filter(
+        company=company, status='PENDING', initiated_at__lt=now - timedelta(hours=24),
+    ).count()
+    if waiting_transfers:
+        alerts.append({
+            'type': 'info',
+            'title': 'Transfers Awaiting Approval',
+            'message': f'{_plural(waiting_transfers, "transfer")} pending for over a day',
+            'action': 'Review Transfers',
+            'href': '/warehousing/transfers?status=PENDING',
         })
 
     remaining = setup_progress['total_steps'] - setup_progress['completed_steps']
@@ -185,10 +301,22 @@ def build_alerts(company, now, setup_progress):
             'title': 'Finish Setup',
             'message': f'{_plural(remaining, "setup step")} left',
             'action': 'Continue Setup',
+            'href': '#setup',
         })
 
     timestamp = now.isoformat()
     return [{'id': i, **alert, 'timestamp': timestamp} for i, alert in enumerate(alerts, start=1)]
+
+
+def _blocked_production_orders(company):
+    """Planned orders with at least one material whose warehouse holds less than needed."""
+    stock = {(i.product_id, i.warehouse_id): i.quantity for i in InventoryItem.objects.filter(warehouse__company=company)}
+    blocked = set()
+    for m in ProductionMaterial.objects.filter(production_order__company=company, production_order__status='PLANNED',
+                                               production_order__materials_consumed=False):
+        if stock.get((m.product_id, m.warehouse_id), 0) < m.quantity:
+            blocked.add(m.production_order_id)
+    return len(blocked)
 
 
 def build_recent_order_activity(company, since):
@@ -198,6 +326,7 @@ def build_recent_order_activity(company, since):
             'message': f'Order {order.order_number} received from {order.customer_name}',
             'timestamp': order.created_at.isoformat(),
             'user': {'name': order.customer_name, 'email': order.customer_email},
+            'href': f'/distribution/orders/{order.id}',
         }
         for order in CustomerOrder.objects.filter(company=company, created_at__gte=since).order_by('-created_at')[:5]
     ]

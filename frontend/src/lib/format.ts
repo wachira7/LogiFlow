@@ -8,8 +8,19 @@ const toNumber = (value: Numeric) => {
   return Number.isFinite(n) ? (n as number) : 0
 }
 
-/** Money in the company currency (USD until company settings are wired to the client). */
-export function formatMoney(value: Numeric, currency = 'USD', options: Intl.NumberFormatOptions = {}) {
+// The signed-in company's currency; the app shell sets it from the user's profile before pages render
+let companyCurrency = 'USD'
+
+export function setCompanyCurrency(code?: string | null) {
+  if (code && /^[A-Z]{3}$/.test(code)) companyCurrency = code
+}
+
+export function getCompanyCurrency() {
+  return companyCurrency
+}
+
+/** Money in the company currency unless another is given. */
+export function formatMoney(value: Numeric, currency: string = companyCurrency, options: Intl.NumberFormatOptions = {}) {
   try {
     return new Intl.NumberFormat(undefined, { style: 'currency', currency, maximumFractionDigits: 2, ...options }).format(toNumber(value))
   } catch {

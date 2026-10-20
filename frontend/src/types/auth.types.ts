@@ -9,6 +9,8 @@ export interface User {
   profile_picture?: string // Matches Django field name
   company_id: string // From Django UserSerializer
   company_name: string // From Django UserSerializer
+  /** ISO 4217 code from company settings, e.g. KES */
+  company_currency?: string
   is_active: boolean
   is_platform_admin: boolean
   is_company_owner: boolean // Django role fields

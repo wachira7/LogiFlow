@@ -41,13 +41,13 @@ class DashboardOverviewTests(AuthenticatedAPITestCase):
     def test_response_shape_matches_frontend_contract(self):
         data = self.get()
         for key in ('company', 'user', 'stats', 'recent_activity', 'quick_actions',
-                    'setup_progress', 'performance_metrics', 'alerts', 'generated_at'):
+                    'setup_progress', 'performance_metrics', 'alerts', 'trend', 'generated_at'):
             self.assertIn(key, data)
         for metric in data['performance_metrics']:
             self.assertEqual(set(metric), {'title', 'value', 'change', 'trend', 'description'})
             self.assertIn(metric['trend'], ('up', 'down'))
         for alert in data['alerts']:
-            self.assertEqual(set(alert), {'id', 'type', 'title', 'message', 'timestamp', 'action'})
+            self.assertEqual(set(alert), {'id', 'type', 'title', 'message', 'timestamp', 'action', 'href'})
             self.assertIn(alert['type'], ('critical', 'warning', 'info', 'success'))
 
     def test_empty_company_has_no_fake_numbers(self):
@@ -126,6 +126,43 @@ class DashboardOverviewTests(AuthenticatedAPITestCase):
         activity = self.get()['recent_activity']
         self.assertTrue(any(a['type'] == 'order_created' and 'ORD-777' in a['message'] for a in activity))
         self.assertEqual([a['id'] for a in activity], list(range(1, len(activity) + 1)))
+
+
+    def test_operations_stats_trend_activity_and_alerts(self):
+        from apps.production.models import ProductionMaterial, ProductionOrder
+        from apps.warehousing.models import WarehouseTransfer
+        store, depot = make_warehouse(self.company), make_warehouse(self.company)
+        flour, bread = make_product(self.company), make_product(self.company)
+        InventoryItem.objects.create(product=flour, warehouse=store, quantity=100)
+        # a planned order that needs more flour than the store holds
+        blocked = ProductionOrder.objects.create(company=self.company, order_number='PO-9', product=bread, quantity=5)
+        ProductionMaterial.objects.create(production_order=blocked, product=flour, warehouse=store, quantity=500)
+        # a run that starts and completes through the API (moves stock, so the ledger has entries)
+        r = self.client.post('/api/v1/production/orders/', {
+            'product_id': str(bread.id), 'quantity': 10, 'output_warehouse_id': str(depot.id),
+            'production_materials': [{'product_id': str(flour.id), 'warehouse_id': str(store.id), 'quantity': 20}],
+        }, format='json')
+        oid = r.json()['id']
+        self.client.post(f'/api/v1/production/orders/{oid}/start_production/')
+        self.client.post(f'/api/v1/production/orders/{oid}/complete_production/')
+        WarehouseTransfer.objects.create(company=self.company, transfer_number='TR-OLD', source_warehouse=store,
+                                         destination_warehouse=depot)
+        WarehouseTransfer.objects.filter(transfer_number='TR-OLD').update(initiated_at=timezone.now() - timedelta(days=2))
+
+        data = self.client.get(DASHBOARD).json()
+        stats = data['stats']
+        self.assertEqual((stats['stock_units'], stats['transfers_pending'], stats['production_planned']), (90, 1, 1))
+        self.assertAlmostEqual(stats['stock_value'], float(80 * flour.cost_price + 10 * bread.cost_price))
+        self.assertEqual(len(data['trend']), 14)
+        today = data['trend'][-1]
+        self.assertEqual((today['units_produced'], today['stock_movements']), (10, 2))
+        self.assertTrue(any(a['type'] == 'production_completed' and a['href'].endswith(oid) for a in data['recent_activity']))
+        self.assertTrue(any(a['type'] == 'stock_movement' for a in data['recent_activity']))
+        titles = {a['title']: a for a in data['alerts']}
+        self.assertIn('Materials Short', titles)
+        self.assertIn('Transfers Awaiting Approval', titles)
+        self.assertTrue(all(a.get('href') for a in data['alerts']))
+        self.assertEqual(data['company']['currency'], 'USD')
 
 
 @patch.dict('os.environ', {'EMAIL_PROVIDER': 'smtp'})
