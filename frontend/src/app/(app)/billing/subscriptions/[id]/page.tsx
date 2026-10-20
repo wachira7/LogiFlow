@@ -1,71 +1,62 @@
-// src/app/billing/subscriptions/[id]/page.tsx
-'use client';
+// src/app/(app)/billing/subscriptions/[id]/page.tsx
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { SubscriptionDetail } from '@/components/billing/SubscriptionDetail';
-import { billingService } from '@/services/billingService';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
-import type { UserSubscriptionDetail } from '@/types/billing.types';
+import { use, useCallback, useEffect, useState } from 'react'
+import { Layers, Receipt } from 'lucide-react'
+import { billingService } from '@/services/billingService'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ErrorBanner, PageHeader, Panel, StatusPill } from '@/components/app/kit'
+import { CYCLE, PROVIDER, SubscriptionPill, TX_STATUS } from '@/components/billing/shared'
+import { formatDateTime, formatDay, formatMoney } from '@/lib/format'
+import type { SubscriptionDetail } from '@/types/billing.types'
 
-export default function SubscriptionDetailPage() {
-  const params = useParams();
-  const subscriptionId = params.id as string;
+export default function SubscriptionDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const [sub, setSub] = useState<SubscriptionDetail | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  
-  const [subscription, setSubscription] = useState<UserSubscriptionDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const load = useCallback(() => billingService.subscription(id).then(setSub).catch((err) => setError(err instanceof Error ? err.message : 'Not found')), [id])
   useEffect(() => {
-    const fetchSubscription = async () => {
-      setLoading(true);
-      setError(null);
-      
-      const response = await billingService.getSubscriptionById(subscriptionId);
-      const result = response.success ? response.data : null;
-      
-      if (result) {
-        setSubscription(result);
-      } else {
-        setError('Subscription not found');
-      }
-      
-      setLoading(false);
-    };
+    load()
+  }, [load])
 
-    if (subscriptionId) {
-      fetchSubscription();
-    }
-  
-  }, [subscriptionId]);
+  if (error) return <div className="space-y-6"><PageHeader title="Subscription" back={{ href: '/billing/subscriptions', label: 'Subscriptions' }} /><ErrorBanner title="Couldn’t load this subscription" message={error} onRetry={load} /></div>
+  if (!sub) return <div className="space-y-6"><Skeleton className="h-16 w-72" /><Skeleton className="h-48 rounded-xl" /></div>
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
-  }
-
-  if (error || !subscription) {
-    return (
-      <div className="p-6">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            {error || 'Failed to load subscription details'}
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  const P = PROVIDER[sub.payment_provider]
+  const facts: [string, string][] = [
+    ['Price', `${formatMoney(sub.plan_price, 'USD')} / ${CYCLE[sub.billing_cycle]?.per}`],
+    ['Paid with', P.label],
+    ['Started', formatDay(sub.start_date)],
+    [sub.cancels_at_period_end || ['CANCELLED', 'EXPIRED'].includes(sub.status) ? 'Ends' : 'Renews', formatDay(sub.end_date)],
+    ['Trial', sub.trial_end ? `Until ${formatDay(sub.trial_end)}` : 'No'],
+    ['Next payment', sub.next_payment ? `${formatMoney(sub.next_payment.amount, sub.next_payment.currency)} on ${formatDay(sub.next_payment.date)}` : '—'],
+  ]
 
   return (
-    <div className="p-6">
-      <SubscriptionDetail subscription={subscription} />
+    <div className="space-y-6">
+      <PageHeader icon={Layers} back={{ href: '/billing/subscriptions', label: 'Subscriptions' }} title={sub.plan_name}
+        description={<span className="flex flex-wrap items-center gap-2"><SubscriptionPill sub={sub} /><span>Started by {sub.user_email}</span></span>} />
+      <Panel delay={0.05}>
+        <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          {facts.map(([k, v]) => <div key={k}><dt className="text-xs text-muted-foreground">{k}</dt><dd className="font-medium">{v}</dd></div>)}
+        </dl>
+      </Panel>
+      <Panel icon={Receipt} title="Payments for this subscription" bodyClassName="p-0" delay={0.1}>
+        {sub.recent_transactions.length === 0 ? (
+          <p className="px-5 py-8 text-center text-sm text-muted-foreground">No payments yet.</p>
+        ) : (
+          <ul className="divide-y">
+            {sub.recent_transactions.map((t) => (
+              <li key={t.id} className="flex items-center gap-3 px-5 py-3 text-sm">
+                <span className="flex-1">{formatDateTime(t.created_at)}<span className="block text-xs text-muted-foreground">{t.invoice_number || t.provider_payment_method}</span></span>
+                <StatusPill tone={TX_STATUS[t.status].tone}>{TX_STATUS[t.status].label}</StatusPill>
+                <span className="w-28 text-right font-semibold tabular-nums">{formatMoney(t.amount, t.currency)}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Panel>
     </div>
-  );
+  )
 }

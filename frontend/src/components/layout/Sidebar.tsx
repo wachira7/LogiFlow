@@ -10,7 +10,7 @@ import { useAuth, useAuthUtils } from '@/hooks/useAuth'
 import {
   LayoutDashboard, Package, Truck, Factory, Warehouse, BarChart3, CreditCard, Settings, Users, Building,
   ChevronDown, X, ChevronLeft, ChevronRight, Shield, TrendingUp, Building2, User, Boxes, Tags, History,
-  ArrowRightLeft, Route, MapPin, ClipboardList, Layers, ListChecks, Wallet, Receipt, Bell, Plug, Lock, Home,
+  ArrowRightLeft, Route, MapPin, ClipboardList, Layers, ListChecks, Wallet, Receipt, Bell, Lock, Home,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -105,7 +105,7 @@ const navigation: NavItem[] = [
     roles: ['company_owner'],
     children: [
       { title: 'Profile', href: '/company/profile', icon: Building },
-      { title: 'Users', href: '/company/users', icon: Users },
+      { title: 'Team', href: '/company/users', icon: Users },
       { title: 'Settings', href: '/company/settings', icon: Settings },
     ],
   },
@@ -123,11 +123,9 @@ const navigation: NavItem[] = [
   {
     title: 'Settings', href: '/settings', icon: Settings,
     children: [
-      { title: 'Profile', href: '/profile', icon: User },
-      { title: 'General', href: '/settings/general', icon: Settings },
+      { title: 'Profile', href: '/settings/general', icon: User },
       { title: 'Security', href: '/settings/security', icon: Lock },
       { title: 'Notifications', href: '/settings/notifications', icon: Bell },
-      { title: 'Integrations', href: '/settings/integrations', icon: Plug },
     ],
   },
 ]
@@ -333,7 +331,7 @@ export function Sidebar({ open, onClose, collapsed: collapsedPref, onToggleColla
           {withTooltip(
             `${getUserDisplayName()} · ${user?.email ?? ''}`,
             <Link
-              href="/profile"
+              href="/settings/general"
               onClick={onClose}
               className={cn('flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted', collapsed && 'justify-center')}
             >

@@ -17,7 +17,7 @@ import json
 
 from .serializers import (
     UserSerializer, RegisterSerializer, LoginSerializer,
-    ChangePasswordSerializer, ProfileUpdateSerializer, InviteUserSerializer
+    ChangePasswordSerializer, ProfileUpdateSerializer
 )
 from .models import User, UserNotificationPreferences
 from .dashboard import (
@@ -290,6 +290,17 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         })
 
 
+@api_view(['POST'])
+@permission_classes([permissions.IsAuthenticated])
+def logout_all_view(request):
+    """Sign out of every device, including this one."""
+    from apps.tenants.roles import sign_out_everywhere
+    sign_out_everywhere(request.user)
+    response = Response({'message': 'Signed out of all devices'})
+    clear_auth_cookies(response)
+    return response
+
+
 class ChangePasswordView(generics.GenericAPIView):
     """Change password endpoint."""
     serializer_class = ChangePasswordSerializer
@@ -299,19 +310,12 @@ class ChangePasswordView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        user = request.user
-        
-        # Verify current password
-        if not user.check_password(serializer.validated_data['current_password']):
-            return Response({
-                'error': 'Current password is incorrect'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Set new password
+        user = request.user  # the serializer already checked old_password
+        # Set new password and sign out every other session
+        from apps.tenants.roles import sign_out_everywhere
         user.set_password(serializer.validated_data['new_password'])
         user.save()
-        
-        # Generate new tokens (invalidate old ones)
+        sign_out_everywhere(user)
         tokens = get_tokens_for_user(user)
         
         response = Response({
@@ -323,27 +327,6 @@ class ChangePasswordView(generics.GenericAPIView):
         set_auth_cookies(response, tokens)
         
         return response
-
-
-class InviteUserView(generics.CreateAPIView):
-    """Invite user to company endpoint."""
-    serializer_class = InviteUserSerializer
-    permission_classes = [IsCompanyOwnerOrAdmin]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        # Add current user's company to the invitation
-        serializer.validated_data['company'] = request.user.company
-        serializer.validated_data['invited_by'] = request.user
-        
-        invitation = serializer.save()
-        
-        return Response({
-            'message': 'Invitation sent successfully',
-            'invitation_id': invitation.id
-        }, status=status.HTTP_201_CREATED)
 
 
 class CompanyUsersView(generics.ListAPIView):

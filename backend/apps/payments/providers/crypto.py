@@ -107,7 +107,8 @@ class CryptoService:
             '_raw': payment_data
         }
     
-    def create_payment(self, amount, currency='USD', pay_currency=None, order_id=None, order_description=None, user=None, company=None):
+    def create_payment(self, amount, currency='USD', pay_currency=None, order_id=None, order_description=None, user=None,
+                       company=None, subscription=None):
         """
         ✅ IMPROVED: Create a crypto payment with better error handling.
         """
@@ -196,7 +197,8 @@ class CryptoService:
                     amount=amount,
                     currency=currency,
                     status='PENDING',
-                    payment_type='ONE_TIME',
+                    subscription=subscription,
+                    payment_type='SUBSCRIPTION' if subscription else 'ONE_TIME',
                     provider='CRYPTO',
                     provider_transaction_id=normalized['payment_id'],
                     description=f"{order_description or 'Crypto payment'} - {normalized['pay_currency'] or 'Auto'}",
@@ -298,112 +300,50 @@ class CryptoService:
             return 1.0  # Default minimum
     
     def verify_webhook_signature(self, payload, signature):
-        """Verify NOWPayments IPN signature."""
-        try:
-            if not self.ipn_secret:
-                logger.warning("⚠️ IPN secret not configured, skipping signature verification")
+        """
+        NOWPayments signs the IPN body as HMAC-SHA512 over the JSON with its keys sorted. Without a configured
+        secret nothing can be verified, so the IPN is rejected (except in local development).
+        """
+        if not self.ipn_secret:
+            if settings.DEBUG:
+                logger.warning('NOWPayments IPN secret not set; accepting unsigned IPN in DEBUG only')
                 return True
-            
-            # NOWPayments uses HMAC-SHA512
-            expected_signature = hmac.new(
-                self.ipn_secret.encode('utf-8'),
-                payload if isinstance(payload, bytes) else payload.encode('utf-8'),
-                hashlib.sha512
-            ).hexdigest()
-            
-            is_valid = hmac.compare_digest(signature, expected_signature)
-            
-            if is_valid:
-                logger.info("✅ Webhook signature verified")
-            else:
-                logger.error("❌ Invalid webhook signature")
-            
-            return is_valid
-            
-        except Exception as e:
-            logger.error(f"❌ Webhook signature verification failed: {str(e)}")
+            logger.error('NOWPayments IPN secret not configured; rejecting IPN')
             return False
-    
-    def handle_webhook(self, payload, signature=None):
-        """
-        ✅ IMPROVED: Handle NOWPayments IPN webhook.
-        """
+        if not signature:
+            return False
         try:
-            # Verify signature if provided
-            if signature:
-                if not self.verify_webhook_signature(payload, signature):
-                    logger.error("❌ Invalid NOWPayments webhook signature")
-                    return False
-            else:
-                logger.warning("⚠️ Webhook received without signature")
-            
-            # Parse webhook data
-            if isinstance(payload, bytes):
-                webhook_data = json.loads(payload.decode('utf-8'))
-            else:
-                webhook_data = json.loads(payload) if isinstance(payload, str) else payload
-            
-            logger.info(f"📥 Processing NOWPayments webhook")
-            logger.debug(f"Webhook data: {json.dumps(webhook_data, indent=2)}")
-            
-            # ✅ Normalize webhook data
-            normalized = self.normalize_response(webhook_data)
-            payment_id = normalized['payment_id']
-            payment_status = normalized['payment_status']
-            
-            if not payment_id:
-                logger.warning("⚠️ No payment ID in webhook data")
-                return False
-            
-            # Find the transaction
-            try:
-                transaction = PaymentTransaction.objects.get(
-                    provider_transaction_id=payment_id,
-                    provider='CRYPTO'
-                )
-            except PaymentTransaction.DoesNotExist:
-                logger.warning(f"⚠️ Transaction not found for payment ID: {payment_id}")
-                return False
-            
-            # Map NOWPayments status to our status
-            status_mapping = {
-                'finished': 'COMPLETED',
-                'partially_paid': 'PENDING',
-                'confirmed': 'PENDING',
-                'sending': 'PENDING',
-                'waiting': 'PENDING',
-                'failed': 'FAILED',
-                'refunded': 'REFUNDED',
-                'expired': 'FAILED',
-            }
-            
-            new_status = status_mapping.get(payment_status, transaction.status)
-            
-            # Update transaction
-            old_status = transaction.status
-            transaction.status = new_status
-            
-            # Update payment method info
-            if normalized['pay_currency']:
-                transaction.provider_payment_method = f"Crypto {normalized['pay_currency'].upper()}"
-            
-            # Update description with payment details
-            if payment_status == 'finished' and normalized['pay_amount']:
-                transaction.description = (
-                    f"{transaction.description} - "
-                    f"Paid: {normalized['pay_amount']} {normalized['pay_currency'].upper()}"
-                )
-            
-            transaction.save()
-            
-            logger.info(
-                f"✅ Updated transaction {transaction.id}: "
-                f"{old_status} → {new_status} "
-                f"(NOWPayments: {payment_status})"
-            )
-            
-            return True
-            
-        except Exception as e:
-            logger.error(f"❌ Error processing NOWPayments webhook: {str(e)}")
+            data = json.loads(payload if isinstance(payload, str) else payload.decode('utf-8'))
+        except (ValueError, UnicodeDecodeError):
             return False
+        canonical = json.dumps(data, sort_keys=True, separators=(',', ':'))
+        expected = hmac.new(self.ipn_secret.encode('utf-8'), canonical.encode('utf-8'), hashlib.sha512).hexdigest()
+        return hmac.compare_digest(signature, expected)
+
+    def handle_webhook(self, payload, signature=None):
+        """Apply a verified IPN to its pending transaction (safe to receive twice)."""
+        from ..billing import mark_payment_failed, record_payment
+
+        if not self.verify_webhook_signature(payload, signature):
+            logger.error('Rejected NOWPayments IPN: bad or missing signature')
+            return False
+        data = json.loads(payload if isinstance(payload, str) else payload.decode('utf-8'))
+        normalized = self.normalize_response(data)
+        payment_id = str(normalized['payment_id'] or '')
+        tx = PaymentTransaction.objects.filter(provider='CRYPTO', provider_transaction_id=payment_id).first()
+        if tx is None:
+            logger.warning('NOWPayments IPN for unknown payment %s', payment_id)
+            return False
+        state = normalized['payment_status']
+        if state == 'finished':
+            record_payment(
+                company=tx.company, user=tx.user, provider='CRYPTO', provider_transaction_id=payment_id,
+                amount=tx.amount, currency=tx.currency, status='COMPLETED', subscription=tx.subscription,
+                payment_type=tx.payment_type,
+            )
+        elif state in ('failed', 'expired'):
+            mark_payment_failed(tx, f'crypto payment {state}')
+        elif state == 'refunded' and tx.status == 'COMPLETED':
+            tx.status = 'REFUNDED'
+            tx.save(update_fields=['status', 'updated_at'])
+        return True
