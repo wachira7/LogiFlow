@@ -99,7 +99,8 @@ export function StatCard({
           <Icon className="h-4 w-4" />
         </span>
       </div>
-      <p className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+      {/* smaller on phones so long amounts (e.g. KES 1,744,565) fit two-up */}
+      <p className="mt-2 whitespace-nowrap text-xl font-semibold tracking-tight tabular-nums min-[420px]:text-2xl sm:text-3xl">
         <AnimatedNumber value={value} format={format} />
       </p>
       {hint && <p className="mt-1 truncate text-xs text-muted-foreground">{hint}</p>}

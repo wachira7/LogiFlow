@@ -73,6 +73,7 @@ INSTALLED_APPS = [
     'apps.platform_admin',
     'apps.analytics',
     'apps.ops',
+    'apps.demo',
     'channels',
     'backup',
 ]
@@ -193,7 +194,7 @@ PASSWORD_HASHERS = [
 # Enhanced REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'apps.demo.auth.DemoAwareJWTAuthentication',  # JWT, plus the live demo's sandbox rules
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -218,6 +219,8 @@ REST_FRAMEWORK = {
         'contact': os.getenv('CONTACT_THROTTLE', '5/hour'),
         'public_tracking': os.getenv('PUBLIC_TRACKING_THROTTLE', '60/minute'),
         'location_pings': os.getenv('LOCATION_PING_THROTTLE', '240/hour'),
+        'demo_start': os.getenv('DEMO_START_THROTTLE', '10/hour'),
+        'demo_switch': os.getenv('DEMO_SWITCH_THROTTLE', '60/hour'),
     },
 }
 
@@ -599,3 +602,7 @@ GEO_COUNTRY_CODES = os.getenv('GEO_COUNTRY_CODES', '')  # e.g. 'ke' to prefer Ke
 ROUTING_PROVIDER = os.getenv('ROUTING_PROVIDER', 'straight_line')
 OSRM_URL = os.getenv('OSRM_URL', '')
 OPS_AVERAGE_SPEED_KMH = float(os.getenv('OPS_AVERAGE_SPEED_KMH', '30'))
+
+# ── Live demo ("Try the live demo") ────────────────────────────────────────
+DEMO_LIFETIME_HOURS = int(os.getenv('DEMO_LIFETIME_HOURS', '24'))
+DEMO_MAX_ACTIVE = int(os.getenv('DEMO_MAX_ACTIVE', '300'))

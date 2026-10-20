@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/v1/platform-admin/', include('apps.platform_admin.urls')),
     path('api/v1/analytics/', include('apps.analytics.urls')),
     path('api/v1/ops/', include('apps.ops.urls')),
+    path('api/v1/demo/', include('apps.demo.urls')),
     path('api/v1/public/track/<str:token>/', public_track, name='public-track'),
     path('api/v1/auth/set-cookies/', SetAuthCookiesView.as_view()),
     path('api/v1/contact/', ContactFormView.as_view(), name='contact'),

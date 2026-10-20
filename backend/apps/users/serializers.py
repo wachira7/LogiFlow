@@ -17,12 +17,14 @@ class UserSerializer(serializers.ModelSerializer):
     role = serializers.CharField(read_only=True)
     profile_picture = serializers.SerializerMethodField()
     company_currency = serializers.SerializerMethodField()
+    company_is_demo = serializers.SerializerMethodField()
+    demo_expires_at = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = [
             'id', 'email', 'first_name', 'last_name', 'full_name',
-            'phone_number', 'profile_picture', 'company_id', 'company_name', 'company_currency',
+            'phone_number', 'profile_picture', 'company_id', 'company_name', 'company_currency', 'company_is_demo', 'demo_expires_at',
             'is_active','is_platform_admin', 'is_company_owner', 'is_warehouse_manager',
             'is_production_manager', 'is_logistics_coordinator',
             'is_inventory_manager', 'is_driver', 'role', 'date_joined', 'last_login'
@@ -36,6 +38,12 @@ class UserSerializer(serializers.ModelSerializer):
         """The company's display currency (Company settings), so every member formats money the same way."""
         settings = getattr(obj.company, 'settings', None) if obj.company_id else None
         return getattr(settings, 'currency', None) or 'USD'
+
+    def get_company_is_demo(self, obj):
+        return bool(obj.company_id and obj.company.is_demo)
+
+    def get_demo_expires_at(self, obj):
+        return obj.company.demo_expires_at if obj.company_id and obj.company.is_demo else None
 
     def get_profile_picture(self, obj):
         if obj.profile_picture and obj.profile_picture.name:
