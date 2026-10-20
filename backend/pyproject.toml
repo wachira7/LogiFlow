@@ -46,6 +46,7 @@ dependencies = [
     "django-cloudinary-storage==0.3.0",
     # Security
     "bcrypt>=5.0.0",
+    "daphne>=4.1",
 ]
 
 [dependency-groups]

@@ -27,6 +27,16 @@ class LoginTests(APITestCase):
         self.assertIn('access', r.json()['tokens'])
         self.assertEqual(r.json()['user']['email'], 'dispatcher@example.com')
 
+    def test_refresh_rotates_and_the_old_refresh_token_stops_working(self):
+        # The frontend must store the new refresh token after each refresh (it used to keep the old one)
+        tokens = self.client.post('/api/v1/auth/login/', {'email': 'dispatcher@example.com', 'password': 'testpass123'}).json()['tokens']
+        first = self.client.post('/api/v1/auth/token/refresh/', {'refresh': tokens['refresh']}, format='json')
+        self.assertEqual(first.status_code, 200, first.content)
+        self.assertIn('refresh', first.json())
+        self.assertNotEqual(first.json()['refresh'], tokens['refresh'])
+        self.assertEqual(self.client.post('/api/v1/auth/token/refresh/', {'refresh': tokens['refresh']}, format='json').status_code, 401)
+        self.assertEqual(self.client.post('/api/v1/auth/token/refresh/', {'refresh': first.json()['refresh']}, format='json').status_code, 200)
+
     def test_login_rejects_wrong_password(self):
         r = self.client.post('/api/v1/auth/login/', {'email': 'dispatcher@example.com', 'password': 'wrong'})
         self.assertEqual(r.status_code, 400)

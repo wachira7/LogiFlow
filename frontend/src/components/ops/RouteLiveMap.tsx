@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { opsService, type RouteTrail } from '@/services/opsService'
 import { StopsMap } from '@/components/distribution/StopsMap'
 import { timeAgo } from '@/lib/format'
+import { useRealtime } from '@/lib/realtime'
 import type { RouteStop } from '@/types/distribution.types'
 import { LiveMap } from './LiveMap'
 
@@ -15,10 +16,19 @@ export function RouteLiveMap({ routeId, stops, running, className }: { routeId: 
     let alive = true
     const load = () => opsService.trail(routeId).then((t) => alive && setTrail(t)).catch(() => {})
     load()
-    // Until realtime arrives, refresh a running route's position every 30 seconds
-    const timer = running ? setInterval(load, 30000) : undefined
+    // Live positions arrive over the socket; this is the fallback
+    const timer = running ? setInterval(load, 60000) : undefined
     return () => { alive = false; if (timer) clearInterval(timer) }
   }, [routeId, running])
+
+  useRealtime('fleet.position', (m) => {
+    const p = m.data as { route_id: string | null; latitude: number; longitude: number; recorded_at: string; trail: [number, number][] }
+    if (p.route_id !== routeId) return
+    setTrail((t) => t && {
+      ...t, last_position: { latitude: p.latitude, longitude: p.longitude, recorded_at: p.recorded_at },
+      trail: [...t.trail, ...p.trail.map(([latitude, longitude]) => ({ latitude, longitude, recorded_at: p.recorded_at }))],
+    })
+  }, running)
 
   if (!trail || trail.trail.length === 0) return <StopsMap stops={stops} className={className} />
   const last = trail.last_position!

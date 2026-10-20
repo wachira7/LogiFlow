@@ -30,13 +30,10 @@ services:
     ports:
       - "8000:8000"
     restart: unless-stopped
+    # daphne serves HTTP and the realtime websockets; set CHANNEL_REDIS_URL so Celery's events reach browsers
     command: >
-      gunicorn logistics_project.wsgi:application
-      --bind 0.0.0.0:8000
-      --workers ${GUNICORN_WORKERS:-3}
-      --timeout 120
-      --access-logfile -
-      --error-logfile -
+      daphne -b 0.0.0.0 -p 8000 --proxy-headers
+      logistics_project.asgi:application
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/"]
       interval: 30s

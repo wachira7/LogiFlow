@@ -23,6 +23,7 @@ import { SignaturePad } from '@/components/ops/SignaturePad'
 import { useLocationSharing } from '@/components/ops/useLocationSharing'
 import { cn } from '@/lib/utils'
 import { timeAgo } from '@/lib/format'
+import { useLiveRefresh } from '@/lib/realtime'
 
 const FAIL_REASONS = [['CUSTOMER_UNAVAILABLE', 'Nobody to receive it'], ['ADDRESS_ISSUE', 'Couldn’t find the address'], ['DAMAGED', 'Goods damaged'], ['FAILED_DELIVERY', 'Other reason']] as const
 
@@ -126,6 +127,7 @@ export default function DriverPage() {
 
   const load = useCallback(() => opsService.driverToday().then((d) => { setDay(d); setError(null) }).catch((err) => setError(err instanceof Error ? err.message : 'Couldn’t load your route.')), [])
   useEffect(() => { load() }, [load])
+  useLiveRefresh('route.updated', load)
 
   const route = day?.route
   // Share location automatically once the route is running (the browser asks for permission once)

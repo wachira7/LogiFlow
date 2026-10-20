@@ -8,6 +8,7 @@ import { ChevronRight, LogOut, Menu, Settings, Building, User, CreditCard } from
 import { useAuth, useAuthUtils } from '@/hooks/useAuth'
 import { NotificationBell } from '@/components/shared/NotificationBell'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
+import { LiveIndicator } from '@/components/app/RealtimeBridge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -94,6 +95,7 @@ export function Navbar({ onMenuClick }: NavbarProps = {}) {
         <div className="flex-1 sm:hidden" />
 
         <div className="flex items-center gap-1 sm:gap-2">
+          <LiveIndicator />
           <ThemeToggle />
           {user && <NotificationBell />}
           {isLoading ? (

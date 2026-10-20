@@ -74,5 +74,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 # Use entrypoint script
 ENTRYPOINT ["/app/entrypoint.sh"]
 
-# Default command
-CMD ["gunicorn", "logistics_project.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+# Default command: daphne serves HTTP and the realtime websockets (/ws/...) from the ASGI app.
+# Live updates between processes (web, Celery) need CHANNEL_REDIS_URL (or REDIS_URL) set.
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "--proxy-headers", "logistics_project.asgi:application"]

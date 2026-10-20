@@ -13,6 +13,7 @@ import { ErrorBanner, PageHeader, Panel, StatCard, StatGrid, StatGridSkeleton, S
 import { AppStagger, AppStaggerItem, ease } from '@/components/app/motion'
 import { EventIcon, SeverityPill, age, minutesSince } from '@/components/ops/status'
 import { cn } from '@/lib/utils'
+import { useLiveRefresh, useRealtime, useRealtimeStatus } from '@/lib/realtime'
 import { formatDateTime, timeAgo } from '@/lib/format'
 
 const COLUMN_TONE: Record<string, string> = {
@@ -68,14 +69,21 @@ export default function OpsBoardPage() {
     finally { setRefreshing(false) }
   }, [])
 
-  // Refresh while the tab is visible; live push replaces this in the realtime step
+  // Live events refresh the board straight away; polling is the fallback when the socket is down
+  const status = useRealtimeStatus()
+  useLiveRefresh(['shipment.event', 'exception.updated', 'route.updated'], load)
+  useRealtime('fleet.position', (m) => {
+    const p = m.data as { route_id: string | null; latitude: number; longitude: number; recorded_at: string; speed_kmh: number | null; heading: number | null }
+    if (!p.route_id) return
+    setBoard((b) => b && { ...b, routes: b.routes.map((r) => r.id === p.route_id ? { ...r, last_position: { ...p, live: true } } : r) })
+  })
   useEffect(() => {
     load()
-    const timer = setInterval(() => { if (document.visibilityState === 'visible') load(); else tick((n) => n + 1) }, REFRESH_MS)
+    const timer = setInterval(() => { if (document.visibilityState === 'visible') load(); else tick((n) => n + 1) }, status === 'live' ? REFRESH_MS * 4 : REFRESH_MS)
     const onVisible = () => { if (document.visibilityState === 'visible') load() }
     document.addEventListener('visibilitychange', onVisible)
     return () => { clearInterval(timer); document.removeEventListener('visibilitychange', onVisible) }
-  }, [load])
+  }, [load, status])
 
   const s = board?.summary
   return (
