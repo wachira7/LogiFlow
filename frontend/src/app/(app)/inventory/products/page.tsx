@@ -1,351 +1,129 @@
-// src/app/inventory/products/page.tsx
+// src/app/(app)/inventory/products/page.tsx
 'use client'
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { useProducts } from '@/hooks/useInventory'
+import { Suspense, useEffect, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { ArrowRight, Package, Plus, Search, X } from 'lucide-react'
+import { stockService, type Page, type StockCategory, type StockProduct } from '@/services/stockService'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { Plus, Search, Filter, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useCategories, useWarehouses } from '@/hooks/useInventory'
-import type { ProductFilter } from '@/types/inventory.types'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ExportButton, type CsvColumn } from '@/components/shared/ExportButton'
+import { ErrorBanner, FilterChips, PageHeader, StatusPill, TableSkeleton } from '@/components/app/kit'
+import { FadeIn, MotionRow } from '@/components/app/motion'
+import { Pager, StockMeter, StockPill } from '@/components/inventory/status'
+import { formatCount, formatMoney } from '@/lib/format'
 
-export default function ProductsPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  const [filter, setFilter] = useState<ProductFilter>({})
+type Filter = '' | 'low' | 'inactive'
+const FILTERS = [['', 'All'], ['low', 'To reorder'], ['inactive', 'Inactive']] as const
+const SORTS = [['name', 'Name'], ['stock_on_hand', 'Lowest stock'], ['-stock_on_hand', 'Most stock'], ['-created_at', 'Newest']] as const
+const csv: CsvColumn<StockProduct>[] = [
+  { header: 'SKU', value: (p) => p.sku }, { header: 'Name', value: (p) => p.name }, { header: 'Category', value: (p) => p.category_name },
+  { header: 'Unit', value: (p) => p.unit_of_measure }, { header: 'On hand', value: (p) => p.total_stock }, { header: 'Reorder point', value: (p) => p.reorder_point },
+  { header: 'Cost', value: (p) => p.cost_price }, { header: 'Price', value: (p) => p.unit_price }, { header: 'Active', value: (p) => (p.is_active ? 'Yes' : 'No') },
+]
 
-  const { products, isLoading, pagination, applyFilter, deleteProduct } = useProducts(filter)
-  const { categories } = useCategories()
-  const { warehouses } = useWarehouses()
+function ProductsContent() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const params = useSearchParams()
+  const [filter, setFilter] = useState<Filter>((params.get('filter') as Filter) ?? '')
+  const [category, setCategory] = useState(params.get('category') ?? '')
+  const [ordering, setOrdering] = useState('name')
+  const [query, setQuery] = useState('')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [data, setData] = useState<Page<StockProduct> | null>(null)
+  const [categories, setCategories] = useState<StockCategory[]>([])
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    applyFilter({ ...filter, search: query })
-  }
+  useEffect(() => { stockService.categories().then(setCategories).catch(() => {}) }, [])
+  useEffect(() => { const t = setTimeout(() => { setSearch(query.trim()); setPage(1) }, 300); return () => clearTimeout(t) }, [query])
+  useEffect(() => {
+    setError(null)
+    stockService.products({
+      page, ordering, search, category: category || undefined,
+      low_stock: filter === 'low' || undefined, is_active: filter === 'inactive' ? 'false' : undefined,
+    }).then(setData).catch((err) => setError(err instanceof Error ? err.message : 'Couldn’t load products.'))
+  }, [filter, category, ordering, search, page])
 
-  const handleFilterChange = (key: keyof ProductFilter, value: unknown) => {
-    const filterValue = value === "all" ? undefined : value
-    const newFilter = { ...filter, [key]: filterValue }
-    setFilter(newFilter)
-    applyFilter(newFilter)
-  }
-
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
-      try {
-        await deleteProduct(id)
-      } catch (error) {
-        console.error('Delete failed:', error)
-      }
-    }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
-    )
-  }
+  const choose = (f: Filter) => { setFilter(f); setPage(1); router.replace(f ? `${pathname}?filter=${f}` : pathname, { scroll: false }) }
+  const rows = data?.results
+  const filtered = !!(filter || category || search)
+  const open = (id: string) => router.push(`/inventory/products/${id}`)
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Products</h1>
-          <p className="text-muted-foreground">
-            Manage your product catalog and inventory
-          </p>
-        </div>
-        <Link href="/inventory/products/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Product
-          </Button>
-        </Link>
-      </div>
+      <PageHeader icon={Package} title="Products" description={data ? `${formatCount(data.count)} ${data.count === 1 ? 'product' : 'products'}${filtered ? ' match' : ' in your catalogue'}` : 'Everything you buy, make or sell.'}
+        actions={<><ExportButton filename={`products-${new Date().toISOString().slice(0, 10)}`} rows={rows ?? []} columns={csv} />
+          <Button onClick={() => router.push('/inventory/products/new')} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90"><Plus className="mr-2 h-4 w-4" />New product</Button></>} />
 
-      {/* Filters & Search */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search products..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                />
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Filters
-            </Button>
+      <FadeIn delay={0.05} className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <FilterChips id="products" options={FILTERS} value={filter} onChange={choose} />
+        <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto]">
+          <div className="relative sm:w-64">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Name, SKU or barcode…" className="bg-card pl-9 pr-9" aria-label="Search products" />
+            {query && <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground" aria-label="Clear"><X className="h-3.5 w-3.5" /></button>}
           </div>
+          <Select value={category || 'all'} onValueChange={(v) => { setCategory(v === 'all' ? '' : v); setPage(1) }}>
+            <SelectTrigger className="w-full bg-card sm:w-44" aria-label="Category"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="all">All categories</SelectItem>{categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.full_path || c.name}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={ordering} onValueChange={(v) => { setOrdering(v); setPage(1) }}>
+            <SelectTrigger className="w-full bg-card sm:w-40" aria-label="Sort"><SelectValue /></SelectTrigger>
+            <SelectContent>{SORTS.map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </FadeIn>
 
-          {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t">
-              <Select
-                value={filter.category || ''}
-                onValueChange={(value) => handleFilterChange('category', value || undefined)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={filter.warehouse || ''}
-                onValueChange={(value) => handleFilterChange('warehouse', value || undefined)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Warehouses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Warehouses</SelectItem>
-                  {warehouses.map((warehouse) => (
-                    <SelectItem key={warehouse.id} value={warehouse.id}>
-                      {warehouse.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={filter.is_active?.toString() || ''}
-                onValueChange={(value) => 
-                  handleFilterChange('is_active', value === '' ? undefined : value === 'true')
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
-                  <SelectItem value="true">Active</SelectItem>
-                  <SelectItem value="false">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleFilterChange('low_stock', !filter.low_stock)}
-                  className={filter.low_stock ? 'bg-orange-50 border-orange-200' : ''}
-                >
-                  Low Stock
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardHeader>
-      </Card>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{pagination.count}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {products.filter(p => p.is_active).length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {products.filter(p => p.needs_reorder).length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Categories</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{categories.length}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Products Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Products List</CardTitle>
-          <CardDescription>
-            A list of all products in your inventory
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {products.length === 0 ? (
-            <EmptyState
-              title="No products found"
-              description="Get started by adding your first product"
-              action={
-                <Link href="/inventory/products/new">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Product
-                  </Button>
-                </Link>
-              }
-            />
-          ) : (
-            <div className="space-y-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Stock Level</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Last Updated</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{product.name}</div>
-                          {product.description && (
-                            <div className="text-sm text-muted-foreground">
-                              {product.description}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {product.sku}
-                      </TableCell>
-                      <TableCell>
-                        {product.category?.name || 'Uncategorized'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <span>{product.total_stock ?? 0}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {product.unit_of_measure}
-                          </span>
-                          {product.needs_reorder && (
-                            <Badge variant="destructive" className="text-xs">
-                              Low
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={product.is_active ? "default" : "secondary"}>
-                          {product.is_active ? 'Active' : 'Inactive'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {new Date(product.updated_at).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/inventory/products/${product.id}`}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/inventory/products/${product.id}/edit`}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDelete(product.id)}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              {pagination.count > pagination.page_size && (
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    Showing {((pagination.page - 1) * pagination.page_size) + 1} to{' '}
-                    {Math.min(pagination.page * pagination.page_size, pagination.count)} of{' '}
-                    {pagination.count} products
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={!pagination.previous}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={!pagination.next}
-                    >
-                      Next
-                    </Button>
-                  </div>
+      {error && <ErrorBanner title="Couldn’t load products" message={error} />}
+      {!rows ? <TableSkeleton rows={6} cols={5} /> : rows.length === 0 ? (
+        <EmptyState icon={<Package />} title={filtered ? 'No matching products' : 'No products yet'}
+          description={filtered ? 'Try another filter or search.' : 'Add the products you stock. Then receive stock into a warehouse.'}
+          action={!filtered ? <Button onClick={() => router.push('/inventory/products/new')} className="bg-brand text-brand-foreground hover:bg-brand/90"><Plus className="mr-2 h-4 w-4" />New product</Button> : undefined} />
+      ) : (
+        <FadeIn delay={0.1} className="overflow-hidden rounded-xl border bg-card shadow-sm">
+          <ul className="divide-y md:hidden">
+            {rows.map((p) => (
+              <li key={p.id}><button onClick={() => open(p.id)} className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-muted/60">
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="flex items-center justify-between gap-2"><p className="truncate font-medium">{p.name}</p>
+                    {p.is_active ? <StockPill quantity={p.total_stock} reorderPoint={p.reorder_point} max={p.max_stock_level} /> : <StatusPill tone="neutral">Inactive</StatusPill>}</div>
+                  <p className="text-xs text-muted-foreground">{p.sku} · {formatCount(p.total_stock)} {p.unit_of_measure} · {formatMoney(p.unit_price)}</p>
+                  <StockMeter quantity={p.total_stock} reorderPoint={p.reorder_point} max={p.max_stock_level} />
                 </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" /></button></li>
+            ))}
+          </ul>
+          <div className="relative hidden overflow-x-auto md:block">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr><th className="px-5 py-3 font-medium">Product</th><th className="px-3 py-3 font-medium">Category</th><th className="w-48 px-3 py-3 font-medium">On hand</th><th className="px-3 py-3 font-medium">Status</th><th className="px-3 py-3 text-right font-medium">Cost</th><th className="px-5 py-3 text-right font-medium">Price</th></tr>
+              </thead>
+              <tbody className="divide-y">
+                {rows.map((p, i) => (
+                  <MotionRow key={p.id} index={i} className={`cursor-pointer transition-colors hover:bg-muted/40 ${p.is_active ? '' : 'opacity-60'}`} onClick={() => open(p.id)}>
+                    <td className="px-5 py-3"><p className="font-medium">{p.name}</p><p className="font-mono text-xs text-muted-foreground">{p.sku}</p></td>
+                    <td className="px-3 py-3 text-muted-foreground">{p.category_name ?? '—'}</td>
+                    <td className="px-3 py-3"><p className="tabular-nums"><span className="font-medium">{formatCount(p.total_stock)}</span> <span className="text-xs text-muted-foreground">{p.unit_of_measure}{p.reorder_point ? ` · reorder at ${formatCount(p.reorder_point)}` : ''}</span></p>
+                      <StockMeter className="mt-1.5" quantity={p.total_stock} reorderPoint={p.reorder_point} max={p.max_stock_level} /></td>
+                    <td className="px-3 py-3">{p.is_active ? <StockPill quantity={p.total_stock} reorderPoint={p.reorder_point} max={p.max_stock_level} /> : <StatusPill tone="neutral">Inactive</StatusPill>}</td>
+                    <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">{formatMoney(p.cost_price)}</td>
+                    <td className="px-5 py-3 text-right font-medium tabular-nums">{formatMoney(p.unit_price)}</td>
+                  </MotionRow>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </FadeIn>
+      )}
+      {data && <Pager page={page} count={data.count} onPage={setPage} />}
     </div>
   )
+}
+
+export default function ProductsPage() {
+  return <Suspense fallback={<TableSkeleton rows={6} cols={5} />}><ProductsContent /></Suspense>
 }

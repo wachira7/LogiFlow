@@ -1,382 +1,132 @@
-// src/app/inventory/page.tsx
+// src/app/(app)/inventory/page.tsx
 'use client'
 
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useInventoryDashboard, useCategories, useWarehouses, useProducts } from '@/hooks/useInventory'
-import { LowStockAlert } from '@/components/inventory/products/LowStockAlert'
+import { AlertTriangle, ArrowDownToLine, BarChart3, Boxes, Building2, Check, FolderTree, History, Package, PackageX, Plus, Wallet } from 'lucide-react'
+import { stockService, type Movement, type StockReport } from '@/services/stockService'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Package, FolderTree, Building, AlertTriangle,TrendingUp, Plus, Eye, BarChart3, ArrowLeft, CheckCircle2, Circle, ChevronRight, ArrowRight } from 'lucide-react'
+import { ActionTile, ErrorBanner, PageHeader, Panel, StatCard, StatGrid, StatGridSkeleton, TableSkeleton } from '@/components/app/kit'
+import { AppStagger, AppStaggerItem, FadeIn } from '@/components/app/motion'
+import { BarList } from '@/components/analytics/Charts'
+import { MovementFeed, StockMeter, TextLink } from '@/components/inventory/status'
+import { cn } from '@/lib/utils'
+import { formatCount, formatMoney, toNumber } from '@/lib/format'
 
-export default function InventoryPage() {
-  const { stats, isLoading } = useInventoryDashboard()
-  const { categories } = useCategories()
-  const { warehouses } = useWarehouses()
-  const { products } = useProducts()
+const money0 = (n: number) => formatMoney(n, undefined, { maximumFractionDigits: 0 })
 
-  // Setup steps logic
-  const setupSteps = [
-    {
-      id: 1,
-      title: 'Create Categories',
-      description: 'Organise your products into categories first',
-      href: '/inventory/categories/new',
-      viewHref: '/inventory/categories',
-      icon: FolderTree,
-      completed: (categories?.length || 0) > 0,
-      count: categories?.length || 0,
-      color: 'text-blue-500',
-      bg: 'bg-blue-50 dark:bg-blue-950',
-      border: 'border-blue-200 dark:border-blue-800'
-    },
-    {
-      id: 2,
-      title: 'Add Warehouses',
-      description: 'Define where your stock will be stored',
-      href: '/inventory/warehouses/new',
-      viewHref: '/inventory/warehouses',
-      icon: Building,
-      completed: (warehouses?.length || 0) > 0,
-      count: warehouses?.length || 0,
-      color: 'text-purple-500',
-      bg: 'bg-purple-50 dark:bg-purple-950',
-      border: 'border-purple-200 dark:border-purple-800'
-    },
-    {
-      id: 3,
-      title: 'Add Products',
-      description: 'Create products that belong to your categories',
-      href: '/inventory/products/new',
-      viewHref: '/inventory/products',
-      icon: Package,
-      completed: (products?.length || 0) > 0,
-      count: products?.length || 0,
-      color: 'text-emerald-500',
-      bg: 'bg-emerald-50 dark:bg-emerald-950',
-      border: 'border-emerald-200 dark:border-emerald-800'
-    },
-    {
-      id: 4,
-      title: 'Stock Inventory',
-      description: 'Assign products to warehouses with quantities',
-      href: '/inventory/inventory-items/new',
-      viewHref: '/inventory/inventory-items',
-      icon: TrendingUp,
-      completed: (stats?.total_inventory_items || 0) > 0,
-      count: stats?.total_inventory_items || 0,
-      color: 'text-orange-500',
-      bg: 'bg-orange-50 dark:bg-orange-950',
-      border: 'border-orange-200 dark:border-orange-800'
-    }
-  ]
+export default function InventoryOverviewPage() {
+  const [report, setReport] = useState<StockReport | null>(null)
+  const [moves, setMoves] = useState<Movement[] | null>(null)
+  const [counts, setCounts] = useState<{ categories: number; warehouses: number } | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const completedSteps = setupSteps.filter(s => s.completed).length
-  const setupProgress = Math.round((completedSteps / setupSteps.length) * 100)
-  const isSetupComplete = completedSteps === setupSteps.length
-  const nextStep = setupSteps.find(s => !s.completed)
+  const load = useCallback(async () => {
+    setError(null)
+    try {
+      const [r, m, c, w] = await Promise.all([
+        stockService.report(), stockService.movements({ page_size: 8 }), stockService.categories(), stockService.warehouses(),
+      ])
+      setReport(r); setMoves(m.results); setCounts({ categories: c.length, warehouses: w.length })
+    } catch (err) { setError(err instanceof Error ? err.message : 'Couldn’t load inventory.') }
+  }, [])
+  useEffect(() => { load() }, [load])
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
-    )
-  }
+  const steps = report && counts ? [
+    { title: 'Add a category', done: counts.categories > 0, href: '/inventory/categories/new', icon: FolderTree },
+    { title: 'Add a warehouse', done: counts.warehouses > 0, href: '/inventory/warehouses/new', icon: Building2 },
+    { title: 'Add a product', done: report.total_products > 0, href: '/inventory/products/new', icon: Package },
+    { title: 'Receive stock', done: report.total_units > 0, href: '/inventory/inventory-items/new', icon: ArrowDownToLine },
+  ] : []
+  const next = steps.findIndex((s) => !s.done)
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/dashboard">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Dashboard
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Inventory Overview</h1>
-            <p className="text-muted-foreground">
-              Monitor your inventory status and manage stock levels
-            </p>
+      <PageHeader icon={Boxes} title="Inventory" description="What you hold, where it sits and what needs reordering."
+        actions={<>
+          <Button variant="outline" asChild><Link href="/inventory/inventory-items/new"><ArrowDownToLine className="mr-2 h-4 w-4" />Receive stock</Link></Button>
+          <Button asChild className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90"><Link href="/inventory/products/new"><Plus className="mr-2 h-4 w-4" />New product</Link></Button>
+        </>} />
+
+      {error && <ErrorBanner title="Couldn’t load inventory" message={error} onRetry={load} />}
+
+      {next >= 0 && (
+        <FadeIn delay={0.05}>
+          <div className="rounded-2xl border bg-gradient-to-br from-brand/10 via-card to-card p-4 shadow-sm sm:p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div><p className="font-semibold">Set up inventory</p><p className="text-sm text-muted-foreground">{steps.filter((s) => s.done).length} of {steps.length} done. Each step unlocks the next.</p></div>
+              <span className="text-2xl font-bold tabular-nums text-brand">{Math.round((steps.filter((s) => s.done).length / steps.length) * 100)}%</span>
+            </div>
+            <ol className="mt-4 grid gap-2 sm:grid-cols-4">
+              {steps.map((s, i) => (
+                <li key={s.title}>
+                  <Link href={s.href} aria-disabled={i > next} className={cn('flex items-center gap-3 rounded-xl border bg-card px-3 py-2.5 text-sm transition-colors',
+                    s.done ? 'text-muted-foreground' : i === next ? 'border-brand ring-2 ring-brand/20' : 'pointer-events-none opacity-50')}>
+                    <span className={cn('grid h-7 w-7 shrink-0 place-items-center rounded-full', s.done ? 'bg-success-soft text-success' : i === next ? 'bg-brand text-brand-foreground' : 'bg-muted')}>
+                      {s.done ? <Check className="h-4 w-4" /> : <s.icon className="h-3.5 w-3.5" />}
+                    </span>
+                    <span className={cn('font-medium', s.done && 'line-through')}>{s.title}</span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
           </div>
-        </div>
-      </div>
-
-      {/* Setup Guide - shown when not complete */}
-      {!isSetupComplete && (
-        <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center space-x-2">
-                  <span>🚀 Getting Started</span>
-                  <Badge variant="secondary">{completedSteps} of {setupSteps.length} complete</Badge>
-                </CardTitle>
-                <CardDescription className="mt-1">
-                  Follow these steps to set up your inventory module
-                </CardDescription>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-primary">{setupProgress}%</div>
-                <div className="text-xs text-muted-foreground">complete</div>
-              </div>
-            </div>
-            <Progress value={setupProgress} className="mt-3 h-2" />
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              {setupSteps.map((step, index) => {
-                const Icon = step.icon
-                const isNext = step.id === nextStep?.id
-                return (
-                  <div
-                    key={step.id}
-                    className={`relative rounded-lg border p-4 transition-all ${
-                      step.completed
-                        ? 'border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800'
-                        : isNext
-                        ? `${step.border} ${step.bg} ring-2 ring-primary/20`
-                        : 'border-muted bg-muted/30 opacity-60'
-                    }`}
-                  >
-                    {/* Step number connector */}
-                    {index < setupSteps.length - 1 && (
-                      <div className="hidden md:block absolute -right-1.5 top-1/2 -translate-y-1/2 z-10">
-                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                      </div>
-                    )}
-
-                    <div className="flex items-start justify-between mb-2">
-                      <div className={`p-1.5 rounded-md ${step.completed ? 'bg-green-100 dark:bg-green-900' : step.bg}`}>
-                        {step.completed ? (
-                          <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        ) : (
-                          <Icon className={`h-4 w-4 ${isNext ? step.color : 'text-muted-foreground'}`} />
-                        )}
-                      </div>
-                      <span className="text-xs text-muted-foreground">Step {step.id}</span>
-                    </div>
-
-                    <div className="mb-3">
-                      <div className={`font-medium text-sm ${step.completed ? 'line-through text-muted-foreground' : ''}`}>
-                        {step.title}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{step.description}</div>
-                      {step.completed && (
-                        <div className="text-xs text-green-600 font-medium mt-1">
-                          ✓ {step.count} {step.count === 1 ? 'item' : 'items'} added
-                        </div>
-                      )}
-                    </div>
-
-                    {step.completed ? (
-                      <Link href={step.viewHref}>
-                        <Button variant="ghost" size="sm" className="w-full h-7 text-xs">
-                          <Eye className="mr-1 h-3 w-3" />
-                          View
-                        </Button>
-                      </Link>
-                    ) : isNext ? (
-                      <Link href={step.href}>
-                        <Button size="sm" className="w-full h-7 text-xs">
-                          <Plus className="mr-1 h-3 w-3" />
-                          Start
-                        </Button>
-                      </Link>
-                    ) : (
-                      <Button size="sm" variant="ghost" className="w-full h-7 text-xs" disabled>
-                        <Circle className="mr-1 h-3 w-3" />
-                        Pending
-                      </Button>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Next action banner */}
-            {nextStep && (
-              <div className="mt-4 flex items-center justify-between p-3 rounded-lg bg-primary/10 border border-primary/20">
-                <div className="flex items-center space-x-2">
-                  <ArrowRight className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">
-                    Next: <span className="text-primary">{nextStep.title}</span>
-                  </span>
-                  <span className="text-sm text-muted-foreground">— {nextStep.description}</span>
-                </div>
-                <Link href={nextStep.href}>
-                  <Button size="sm">
-                    <Plus className="mr-2 h-3 w-3" />
-                    {nextStep.title}
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        </FadeIn>
       )}
 
-      {/* Setup complete banner */}
-      {isSetupComplete && (
-        <Card className="border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800">
-          <CardContent className="flex items-center justify-between py-4">
-            <div className="flex items-center space-x-3">
-              <CheckCircle2 className="h-6 w-6 text-green-600" />
-              <div>
-                <div className="font-medium text-green-800 dark:text-green-200">
-                  Inventory is fully set up!
-                </div>
-                <div className="text-sm text-green-600 dark:text-green-400">
-                  All {setupSteps.length} setup steps completed
-                </div>
-              </div>
-            </div>
-            <Badge className="bg-green-600">Active</Badge>
-          </CardContent>
-        </Card>
+      {!report ? <StatGridSkeleton count={4} /> : (
+        <StatGrid>
+          <StatCard label="Stock value" value={toNumber(report.total_stock_value)} icon={Wallet} tone="brand" format={money0} hint={`${formatCount(report.total_units)} units at cost`} href="/inventory/reports" />
+          <StatCard label="Products" value={report.active_products} icon={Package} tone="info" hint={report.inactive_products ? `${report.inactive_products} inactive` : 'All active'} href="/inventory/products" />
+          <StatCard label="To reorder" value={report.low_stock_products} icon={AlertTriangle} tone="warning" hint="At or below reorder point" href="/inventory/products?filter=low" />
+          <StatCard label="Out of stock" value={report.out_of_stock_products} icon={PackageX} tone="danger" hint="Active products with none on hand" href="/inventory/inventory-items?filter=out" />
+        </StatGrid>
       )}
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_products || 0}</div>
-            <p className="text-xs text-muted-foreground">Across all categories</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Categories</CardTitle>
-            <FolderTree className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_categories || 0}</div>
-            <p className="text-xs text-muted-foreground">Product categories</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Warehouses</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_warehouses || 0}</div>
-            <p className="text-xs text-muted-foreground">Storage locations</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{stats?.low_stock_count || 0}</div>
-            <p className="text-xs text-muted-foreground">Need attention</p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 lg:grid-cols-5">
+        <Panel className="lg:col-span-3" icon={AlertTriangle} title="Reorder list" description="Lowest stock first, with a suggested order up to max stock" delay={0.1} bodyClassName="p-0"
+          action={<TextLink href="/inventory/products?filter=low">All</TextLink>}>
+          {!report ? <div className="p-4"><TableSkeleton rows={4} cols={3} /></div> : report.reorder.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm text-muted-foreground">Nothing to reorder. Every product is above its reorder point.</p>
+          ) : (
+            <AppStagger className="divide-y">
+              {report.reorder.slice(0, 6).map((p) => (
+                <AppStaggerItem key={p.id}>
+                  <Link href={`/inventory/products/${p.id}`} className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-muted/50 sm:px-5">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <p className="truncate font-medium">{p.name}</p>
+                        <p className="shrink-0 text-sm tabular-nums"><span className={cn('font-semibold', p.stock === 0 ? 'text-danger' : 'text-warning')}>{formatCount(p.stock)}</span><span className="text-muted-foreground"> / {formatCount(p.reorder_point)}</span></p>
+                      </div>
+                      <StockMeter className="mt-2" quantity={p.stock} reorderPoint={p.reorder_point} max={p.max_stock_level} />
+                    </div>
+                    <span className="hidden shrink-0 rounded-lg bg-brand-soft px-2 py-1 text-xs font-medium text-brand sm:inline">Order {formatCount(p.suggested_order)}</span>
+                  </Link>
+                </AppStaggerItem>
+              ))}
+            </AppStagger>
+          )}
+        </Panel>
+        <Panel className="lg:col-span-2" icon={Building2} title="Value by warehouse" delay={0.15} action={<TextLink href="/inventory/warehouses">Warehouses</TextLink>}>
+          {!report ? <TableSkeleton rows={3} cols={2} /> : (
+            <BarList items={report.by_warehouse.map((w) => ({ label: w.name, sub: `${formatCount(w.units)} units · ${w.lines} lines`, value: toNumber(w.value) }))} format={money0} empty="No stock in any warehouse yet." />
+          )}
+        </Panel>
       </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common inventory management tasks</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link href="/inventory/products/new">
-              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                <Plus className="h-6 w-6" />
-                <span>Add Product</span>
-              </Button>
-            </Link>
-            <Link href="/inventory/categories/new">
-              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                <FolderTree className="h-6 w-6" />
-                <span>Add Category</span>
-              </Button>
-            </Link>
-            <Link href="/inventory/warehouses/new">
-              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                <Building className="h-6 w-6" />
-                <span>Add Warehouse</span>
-              </Button>
-            </Link>
-            <Link href="/inventory/inventory-items/new">
-              <Button variant="outline" className="w-full h-20 flex flex-col space-y-2">
-                <Package className="h-6 w-6" />
-                <span>Add Stock</span>
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-
-     {/* Low Stock & Navigation */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
-              <span>Low Stock Alert</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <LowStockAlert compact showViewAll limit={5} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Inventory Sections</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Link href="/inventory/products">
-              <Button variant="ghost" className="w-full justify-start">
-                <Package className="mr-2 h-4 w-4" />
-                Products
-              </Button>
-            </Link>
-            <Link href="/inventory/categories">
-              <Button variant="ghost" className="w-full justify-start">
-                <FolderTree className="mr-2 h-4 w-4" />
-                Categories
-              </Button>
-            </Link>
-            <Link href="/inventory/warehouses">
-              <Button variant="ghost" className="w-full justify-start">
-                <Building className="mr-2 h-4 w-4" />
-                Warehouses
-              </Button>
-            </Link>
-            <Link href="/inventory/inventory-items">
-              <Button variant="ghost" className="w-full justify-start">
-                <Eye className="mr-2 h-4 w-4" />
-                Stock Levels
-              </Button>
-            </Link>
-            <Link href="/inventory/transactions">
-              <Button variant="ghost" className="w-full justify-start">
-                <TrendingUp className="mr-2 h-4 w-4" />
-                Transactions
-              </Button>
-            </Link>
-            <Link href="/inventory/reports">
-              <Button variant="ghost" className="w-full justify-start">
-                <BarChart3 className="mr-2 h-4 w-4" />
-                Reports
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 lg:grid-cols-5">
+        <Panel className="lg:col-span-3" icon={History} title="Latest movements" delay={0.2} bodyClassName="p-0" action={<TextLink href="/inventory/transactions">History</TextLink>}>
+          {!moves ? <div className="p-4"><TableSkeleton rows={4} cols={3} /></div> : <MovementFeed rows={moves} empty="No stock has moved yet. Receive stock to get started." />}
+        </Panel>
+        <AppStagger className="grid content-start gap-3 lg:col-span-2">
+          {([
+            ['/inventory/inventory-items', Boxes, 'Stock levels', 'Every product in every warehouse'],
+            ['/inventory/categories', FolderTree, 'Categories', 'Group products for reporting'],
+            ['/inventory/reports', BarChart3, 'Stock report', 'Valuation and exports'],
+          ] as const).map(([href, icon, title, description]) => (
+            <AppStaggerItem key={href}><ActionTile href={href} icon={icon} title={title} description={description} /></AppStaggerItem>
+          ))}
+        </AppStagger>
       </div>
     </div>
   )

@@ -3,7 +3,8 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
-from django.db.models import Exists, F, OuterRef, Sum
+from django.utils import timezone
+from django.db.models import Count, Exists, F, OuterRef, Sum
 from django.db.models.functions import Coalesce
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters
@@ -12,7 +13,7 @@ from .serializers import (
     CategorySerializer, ProductListSerializer, ProductDetailSerializer,
     WarehouseSerializer, InventoryItemSerializer, InventoryTransactionSerializer,
     StockAdjustmentSerializer, BulkStockUpdateSerializer, ProductCreateUpdateSerializer,
-    InventoryItemCreateSerializer,
+    InventoryItemCreateSerializer, StockReceiptSerializer,
 )
 from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
@@ -128,24 +129,47 @@ class ProductViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet)
 
     @action(detail=False, methods=['get'])
     def stock_report(self, request):
-        """Get comprehensive stock report."""
+        """Stock snapshot: totals, value by warehouse and category, and what needs reordering."""
         products = self.get_queryset()
-        
+        company = request.user.company
+        lines = InventoryItem.objects.filter(warehouse__company=company, product__in=products.values('pk'))
+        line_value = F('quantity') * F('product__cost_price')
+
         total_products = products.count()
-        active_products = products.filter(is_active=True).count()
-        low_stock_count = products.filter(
-            reorder_point__gt=0, inventory_items__quantity__lte=F('reorder_point')
-        ).distinct().count()
-        total_stock_value = InventoryItem.objects.filter(product__in=products.values('pk')).aggregate(
-            total=Sum(F('quantity') * F('product__cost_price'))
-        )['total'] or 0
-        
+        active = products.filter(is_active=True)
+        low = active.filter(reorder_point__gt=0, stock_on_hand__lte=F('reorder_point'))
+        totals = lines.aggregate(value=Sum(line_value), units=Sum('quantity'))
+
+        by_warehouse = [
+            {'id': str(w['warehouse_id']), 'name': w['warehouse__name'], 'lines': w['lines'],
+             'units': w['units'] or 0, 'value': w['value'] or 0}
+            for w in lines.values('warehouse_id', 'warehouse__name')
+            .annotate(lines=Count('id'), units=Sum('quantity'), value=Sum(line_value)).order_by('-value')
+        ]
+        by_category = [
+            {'id': str(c['product__category_id']) if c['product__category_id'] else None,
+             'name': c['product__category__name'] or 'Uncategorised', 'units': c['units'] or 0, 'value': c['value'] or 0}
+            for c in lines.values('product__category_id', 'product__category__name')
+            .annotate(units=Sum('quantity'), value=Sum(line_value)).order_by('-value')
+        ]
+        reorder = [
+            {'id': str(p.id), 'name': p.name, 'sku': p.sku, 'unit_of_measure': p.unit_of_measure,
+             'stock': p.stock_on_hand, 'reorder_point': p.reorder_point, 'max_stock_level': p.max_stock_level,
+             'suggested_order': max((p.max_stock_level or p.reorder_point * 2) - p.stock_on_hand, 0)}
+            for p in low.order_by('stock_on_hand', 'name')[:50]
+        ]
+
         return Response({
             'total_products': total_products,
-            'active_products': active_products,
-            'inactive_products': total_products - active_products,
-            'low_stock_products': low_stock_count,
-            'total_stock_value': total_stock_value
+            'active_products': active.count(),
+            'inactive_products': total_products - active.count(),
+            'low_stock_products': low.count(),
+            'out_of_stock_products': active.filter(stock_on_hand=0).count(),
+            'total_stock_value': totals['value'] or 0,
+            'total_units': totals['units'] or 0,
+            'by_warehouse': by_warehouse,
+            'by_category': by_category,
+            'reorder': reorder,
         })
 
 class WarehouseViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
@@ -202,7 +226,7 @@ class WarehouseViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSe
         total_quantity = sum(item.quantity for item in inventory_items)
         total_value = sum(item.stock_value for item in inventory_items)
         low_stock_items = inventory_items.filter(
-            quantity__lte=F('product__reorder_point')
+            product__reorder_point__gt=0, quantity__lte=F('product__reorder_point')
         ).count()
         
         return Response({
@@ -229,6 +253,8 @@ class InventoryItemViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
         ).select_related('product', 'warehouse')
         if self.request.query_params.get('low_stock') == 'true':
             qs = qs.filter(product__reorder_point__gt=0, quantity__lte=F('product__reorder_point'))
+        if self.request.query_params.get('out_of_stock') == 'true':
+            qs = qs.filter(quantity__lte=0)
         return qs
 
     def create(self, request, *args, **kwargs):
@@ -282,6 +308,8 @@ class InventoryItemViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
                     f'you can remove at most {old_quantity}.'
                 )
             inventory_item.quantity = new_quantity
+            if reason.strip().lower() == 'stock count':
+                inventory_item.last_checked = timezone.now()
             inventory_item.save()
             
             # Create transaction record
@@ -300,6 +328,32 @@ class InventoryItemViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
             'new_quantity': new_quantity,
             'adjustment': adjustment_quantity
         })
+
+    @action(detail=False, methods=['post'])
+    def receive(self, request):
+        """Goods in: add stock to a warehouse (creating the stock line if needed) and record a RECEIPT."""
+        serializer = StockReceiptSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        with transaction.atomic():
+            item, created = InventoryItem.objects.get_or_create(
+                product=data['product'], warehouse=data['warehouse'], defaults={'quantity': 0, 'location': data['location']},
+            )
+            item = InventoryItem.objects.select_for_update().get(pk=item.pk)
+            old_quantity = item.quantity
+            item.quantity += data['quantity']
+            if data['location']:
+                item.location = data['location']
+            item.save()
+            InventoryTransaction.objects.create(
+                inventory_item=item, transaction_type='RECEIPT', quantity=data['quantity'],
+                reference=data['reference'] or 'Goods received', notes=data['notes'], performed_by=request.user,
+            )
+        return Response({
+            'message': f'Received {data["quantity"]} × {data["product"].name} into {data["warehouse"].name}.',
+            'created': created, 'old_quantity': old_quantity, 'new_quantity': item.quantity,
+            'item': InventoryItemSerializer(item).data,
+        }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'])
     def bulk_update(self, request):
@@ -323,12 +377,14 @@ class InventoryItemViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
                     defaults={'quantity': 0}
                 )
                 
+                inventory_item = InventoryItem.objects.select_for_update().get(pk=inventory_item.pk)
                 old_quantity = inventory_item.quantity
                 adjustment = new_quantity - old_quantity
-                if adjustment == 0:
-                    continue  # unchanged: nothing to record
+                inventory_item.last_checked = timezone.now()  # a bulk update is a count, even when nothing changed
                 inventory_item.quantity = new_quantity
                 inventory_item.save()
+                if adjustment == 0:
+                    continue  # unchanged: nothing to record
                 
                 # Create transaction record
                 InventoryTransaction.objects.create(

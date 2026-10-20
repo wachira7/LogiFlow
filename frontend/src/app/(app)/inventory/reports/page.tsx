@@ -1,370 +1,123 @@
-//src/app/inventory/reports/page.tsx
+// src/app/(app)/inventory/reports/page.tsx
+// Stock snapshot: valuation by warehouse and category, the reorder list, and CSV exports.
 'use client'
 
-import { useState } from 'react'
-import { useInventoryDashboard, useProducts, useCategories, useWarehouses } from '@/hooks/useInventory'
-import { LowStockAlert } from '@/components/inventory/products/LowStockAlert'
+import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
+import { AlertTriangle, BarChart3, Boxes, Building2, Download, FileSpreadsheet, FolderTree, Loader2, PackageX, TrendingUp, Wallet } from 'lucide-react'
+import { toast } from 'sonner'
+import { stockService, type StockLine, type StockReport } from '@/services/stockService'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Progress } from '@/components/ui/progress'
-import { BarChart3, Download, FileText, TrendingUp, TrendingDown, Package, AlertTriangle, Building, FolderTree} from 'lucide-react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ExportButton, downloadCsv, type CsvColumn } from '@/components/shared/ExportButton'
+import { ErrorBanner, PageHeader, Panel, StatCard, StatGrid, StatGridSkeleton, TableSkeleton } from '@/components/app/kit'
+import { MotionRow } from '@/components/app/motion'
+import { BarList, Donut } from '@/components/analytics/Charts'
+import { StockMeter } from '@/components/inventory/status'
+import { formatCount, formatMoney, toNumber } from '@/lib/format'
 
-export default function ReportsPage() {
-  const [exportLoading, setExportLoading] = useState<string | null>(null)
+const money0 = (n: number) => formatMoney(n, undefined, { maximumFractionDigits: 0 })
+const today = () => new Date().toISOString().slice(0, 10)
+type Reorder = StockReport['reorder'][number]
+const reorderCsv: CsvColumn<Reorder>[] = [
+  { header: 'SKU', value: (r) => r.sku }, { header: 'Product', value: (r) => r.name }, { header: 'On hand', value: (r) => r.stock },
+  { header: 'Reorder point', value: (r) => r.reorder_point }, { header: 'Max stock', value: (r) => r.max_stock_level || '' }, { header: 'Suggested order', value: (r) => r.suggested_order }, { header: 'Unit', value: (r) => r.unit_of_measure },
+]
+const valuationCsv: CsvColumn<StockLine>[] = [
+  { header: 'Warehouse', value: (l) => l.warehouse_name }, { header: 'SKU', value: (l) => l.product_sku }, { header: 'Product', value: (l) => l.product_name },
+  { header: 'Bin', value: (l) => l.location }, { header: 'Quantity', value: (l) => l.quantity }, { header: 'Unit', value: (l) => l.unit_of_measure },
+  { header: 'Unit cost', value: (l) => l.product_cost_price }, { header: 'Value at cost', value: (l) => l.stock_value }, { header: 'Unit price', value: (l) => l.product_unit_price },
+]
 
-  const { stats, lowStockProducts, isLoading } = useInventoryDashboard()
-  const { products } = useProducts()
-  const { categories } = useCategories()
-  const { warehouses } = useWarehouses()
+export default function StockReportPage() {
+  const [report, setReport] = useState<StockReport | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [exporting, setExporting] = useState(false)
 
-  const handleExport = async (reportType: string) => {
-    setExportLoading(reportType)
-    // Simulate export delay
-    setTimeout(() => {
-      setExportLoading(null)
-      // In real implementation, trigger download here
-      console.log(`Exporting ${reportType} report...`)
-    }, 2000)
+  const load = useCallback(() => {
+    setError(null)
+    stockService.report().then(setReport).catch((err) => setError(err instanceof Error ? err.message : 'Couldn’t build the report.'))
+  }, [])
+  useEffect(() => { load() }, [load])
+
+  // Every stock line, page by page, for the valuation sheet
+  const exportValuation = async () => {
+    setExporting(true)
+    try {
+      const rows: StockLine[] = []
+      for (let page = 1; ; page++) {
+        const r = await stockService.lines({ page, ordering: undefined })
+        rows.push(...r.results)
+        if (!r.next) break
+      }
+      rows.sort((a, b) => a.warehouse_name.localeCompare(b.warehouse_name) || a.product_name.localeCompare(b.product_name))
+      downloadCsv(`stock-valuation-${today()}`, rows, valuationCsv)
+      toast.success(`Exported ${formatCount(rows.length)} stock lines`)
+    } catch (err) { toast.error(err instanceof Error ? err.message : 'Export failed.') }
+    finally { setExporting(false) }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
-    )
-  }
-
-  const activeProducts = products.filter(p => p.is_active)
-  const inactiveProducts = products.filter(p => !p.is_active)
-  const outOfStockProducts = products.filter(p => (p.total_stock ?? 0) === 0)
-  
-  const categoriesWithProducts = categories.map(category => ({
-    ...category,
-    productCount: products.filter(p => p.category_id === category.id).length
-  })).sort((a, b) => b.productCount - a.productCount)
-
+  const value = toNumber(report?.total_stock_value)
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inventory Reports</h1>
-          <p className="text-muted-foreground">
-            Comprehensive analytics and reports for your inventory
-          </p>
-        </div>
-        <div className="flex space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => handleExport('inventory')}
-            disabled={exportLoading === 'inventory'}
-          >
-            {exportLoading === 'inventory' ? (
-              <LoadingSpinner />
-            ) : (
-              <Download className="mr-2 h-4 w-4" />
-            )}
-            Export All
-          </Button>
-        </div>
+      <PageHeader icon={BarChart3} title="Stock report" description={`Snapshot of what you hold right now, valued at cost in your currency.`}
+        actions={<>
+          <Button variant="outline" asChild><Link href="/analytics/inventory"><TrendingUp className="mr-2 h-4 w-4" />Trends</Link></Button>
+          <Button onClick={exportValuation} disabled={exporting || !report?.total_units} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90">
+            {exporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileSpreadsheet className="mr-2 h-4 w-4" />}Valuation CSV</Button>
+        </>} />
+
+      {error && <ErrorBanner title="Couldn’t build the report" message={error} onRetry={load} />}
+      {!report ? <StatGridSkeleton count={4} /> : (
+        <StatGrid>
+          <StatCard label="Stock value" value={value} icon={Wallet} tone="brand" format={money0} hint={`${formatCount(report.total_units)} units`} />
+          <StatCard label="Active products" value={report.active_products} icon={Boxes} tone="info" hint={`${report.inactive_products} inactive`} />
+          <StatCard label="To reorder" value={report.low_stock_products} icon={AlertTriangle} tone="warning" hint={`${Math.round((report.low_stock_products / Math.max(report.active_products, 1)) * 100)}% of active products`} />
+          <StatCard label="Out of stock" value={report.out_of_stock_products} icon={PackageX} tone="danger" hint="None on hand anywhere" />
+        </StatGrid>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Panel icon={Building2} title="Value by warehouse" delay={0.1}
+          action={report && <ExportButton filename={`value-by-warehouse-${today()}`} rows={report.by_warehouse} label="CSV"
+            columns={[{ header: 'Warehouse', value: (w) => w.name }, { header: 'Stock lines', value: (w) => w.lines }, { header: 'Units', value: (w) => w.units }, { header: 'Value', value: (w) => w.value }]} />}>
+          {!report ? <TableSkeleton rows={3} cols={2} /> : (
+            <BarList items={report.by_warehouse.map((w) => ({ label: w.name, sub: `${formatCount(w.units)} units · ${value ? Math.round((toNumber(w.value) / value) * 100) : 0}%`, value: toNumber(w.value) }))} format={money0} empty="No stock yet." />
+          )}
+        </Panel>
+        <Panel icon={FolderTree} title="Value by category" delay={0.15}
+          action={report && <ExportButton filename={`value-by-category-${today()}`} rows={report.by_category} label="CSV"
+            columns={[{ header: 'Category', value: (c) => c.name }, { header: 'Units', value: (c) => c.units }, { header: 'Value', value: (c) => c.value }]} />}>
+          {!report ? <TableSkeleton rows={3} cols={2} /> : report.by_category.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">No stock yet.</p> : (
+            <Donut data={report.by_category.map((c) => ({ label: c.name, value: Math.round(toNumber(c.value)) }))} center="at cost" />
+          )}
+        </Panel>
       </div>
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats?.total_products || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              {activeProducts.length} active, {inactiveProducts.length} inactive
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-orange-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{lowStockProducts.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Requires immediate attention
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{outOfStockProducts.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Products with zero stock
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$0</div>
-            <p className="text-xs text-muted-foreground">
-              Total inventory value
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Reports Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="stock">Stock Analysis</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
-          <TabsTrigger value="warehouses">Warehouses</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Low Stock Alert */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <AlertTriangle className="h-5 w-5 text-orange-500" />
-                  <span>Low Stock Alert</span>
-                </CardTitle>
-                <CardDescription>
-                  Products that need immediate restocking
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                 <LowStockAlert showViewAll={false} limit={10} />
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5" />
-                  <span>Quick Reports</span>
-                </CardTitle>
-                <CardDescription>
-                  Generate and export common reports
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => handleExport('low-stock')}
-                  disabled={exportLoading === 'low-stock'}
-                >
-                  {exportLoading === 'low-stock' ? (
-                    <LoadingSpinner />
-                  ) : (
-                    <AlertTriangle className="mr-2 h-4 w-4" />
-                  )}
-                  Low Stock Report
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => handleExport('stock-valuation')}
-                  disabled={exportLoading === 'stock-valuation'}
-                >
-                  {exportLoading === 'stock-valuation' ? (
-                    <LoadingSpinner />
-                  ) : (
-                    <BarChart3 className="mr-2 h-4 w-4" />
-                  )}
-                  Stock Valuation
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => handleExport('movement-history')}
-                  disabled={exportLoading === 'movement-history'}
-                >
-                  {exportLoading === 'movement-history' ? (
-                    <LoadingSpinner />
-                  ) : (
-                    <TrendingUp className="mr-2 h-4 w-4" />
-                  )}
-                  Movement History
-                </Button>
-              </CardContent>
-            </Card>
+      <Panel icon={AlertTriangle} title="Reorder list" description="Suggested order brings each product back to max stock (or twice its reorder point)" bodyClassName="p-0" delay={0.2}
+        action={report && <ExportButton filename={`reorder-list-${today()}`} rows={report.reorder} columns={reorderCsv} label="Purchase list" />}>
+        {!report ? <div className="p-4"><TableSkeleton rows={4} cols={4} /></div> : report.reorder.length === 0 ? (
+          <p className="px-5 py-10 text-center text-sm text-muted-foreground">Nothing to reorder. Every product with a reorder point is above it.</p>
+        ) : (
+          <div className="relative overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr><th className="px-4 py-2.5 font-medium sm:px-5">Product</th><th className="w-56 px-3 py-2.5 font-medium">On hand / reorder point</th><th className="px-4 py-2.5 text-right font-medium sm:px-5">Order</th></tr>
+              </thead>
+              <tbody className="divide-y">
+                {report.reorder.map((r, i) => (
+                  <MotionRow key={r.id} index={i}>
+                    <td className="px-4 py-3 sm:px-5"><Link href={`/inventory/products/${r.id}`} className="font-medium hover:underline">{r.name}</Link><p className="font-mono text-xs text-muted-foreground">{r.sku}</p></td>
+                    <td className="px-3 py-3"><p className="tabular-nums"><span className={r.stock === 0 ? 'font-semibold text-danger' : 'font-semibold text-warning'}>{formatCount(r.stock)}</span><span className="text-muted-foreground"> / {formatCount(r.reorder_point)} {r.unit_of_measure}</span></p>
+                      <StockMeter className="mt-1.5" quantity={r.stock} reorderPoint={r.reorder_point} max={r.max_stock_level} /></td>
+                    <td className="px-4 py-3 text-right sm:px-5"><span className="rounded-lg bg-brand-soft px-2 py-1 text-xs font-semibold tabular-nums text-brand">{formatCount(r.suggested_order)}</span></td>
+                  </MotionRow>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </TabsContent>
-
-        <TabsContent value="stock" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Stock Analysis</CardTitle>
-              <CardDescription>
-                Detailed breakdown of your inventory status
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Current Stock</TableHead>
-                    <TableHead>Reorder Level</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Days of Stock</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {products.slice(0, 10).map((product) => {
-                    const stockLevel = product.total_stock ?? 0
-                    const reorderLevel = product.reorder_point ?? 0
-                    const status = stockLevel === 0 ? 'out' : stockLevel <= reorderLevel ? 'low' : 'good'
-                    
-                    return (
-                      <TableRow key={product.id}>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{product.name}</div>
-                            <div className="text-sm text-muted-foreground">{product.sku}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium">{stockLevel}</span>
-                          <span className="text-sm text-muted-foreground ml-1">
-                            {product.unit_of_measure}
-                          </span>
-                        </TableCell>
-                        <TableCell>{reorderLevel}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              status === 'out' ? 'destructive' :
-                              status === 'low' ? 'secondary' : 'default'
-                            }
-                            className={
-                              status === 'low' ? 'bg-orange-100 text-orange-800' :
-                              status === 'good' ? 'bg-green-100 text-green-800' : ''
-                            }
-                          >
-                            {status === 'out' ? 'Out of Stock' :
-                             status === 'low' ? 'Low Stock' : 'Good'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm">
-                            {stockLevel > 0 ? `~${Math.floor(stockLevel / 10)} days` : '-'}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="categories" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <FolderTree className="h-5 w-5" />
-                <span>Category Performance</span>
-              </CardTitle>
-              <CardDescription>
-                Product distribution across categories
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {categoriesWithProducts.slice(0, 8).map((category) => (
-                  <div key={category.id} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div>
-                        <div className="font-medium">{category.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {category.description || 'No description'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <div className="text-right">
-                        <div className="font-medium">{category.productCount} products</div>
-                        <div className="text-sm text-muted-foreground">
-                          {products.length > 0 ? ((category.productCount / products.length) * 100).toFixed(1) : 0}%
-                        </div>
-                      </div>
-                      <Progress 
-                        value={products.length > 0 ? (category.productCount / products.length) * 100 : 0} 
-                        className="h-2 w-24" 
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="warehouses" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Building className="h-5 w-5" />
-                <span>Warehouse Overview</span>
-              </CardTitle>
-              <CardDescription>
-                Inventory distribution across warehouses
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {warehouses.map((warehouse) => (
-                  <div key={warehouse.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div>
-                        <div className="font-medium">{warehouse.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {warehouse.code} • {warehouse.address}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <div className="font-medium">{warehouse.total_products || 0} products</div>
-                        <div className="text-sm text-muted-foreground">
-                          {warehouse.utilization_percentage == null ? 'No capacity set' : `${Number(warehouse.utilization_percentage).toFixed(1)}% utilized`}
-                        </div>
-                      </div>
-                      <Progress 
-                        value={warehouse.utilization_percentage || 0} 
-                        className="h-2 w-24" 
-                      />
-                      <Badge variant={warehouse.is_active ? "default" : "secondary"}>
-                        {warehouse.is_active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+        )}
+      </Panel>
+      <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><Download className="h-3.5 w-3.5" />Exports open in Excel or Google Sheets. Values use each product’s current cost.</p>
     </div>
   )
 }

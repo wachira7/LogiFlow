@@ -75,6 +75,53 @@ class InventoryTests(AuthenticatedAPITestCase):
         self.assertEqual(report['total_products'], 1)
         self.assertEqual(report['low_stock_products'], 1)
 
+    def test_stock_report_snapshot(self):
+        self.adjust(4)
+        empty = make_product(self.company, reorder_point=0)
+        InventoryItem.objects.create(product=empty, warehouse=self.warehouse, quantity=0)
+        make_product(make_company())  # other company's products never count
+        report = self.client.get(f'{BASE}/products/stock_report/').json()
+        self.assertEqual(report['total_products'], 2)
+        self.assertEqual(report['out_of_stock_products'], 1)
+        self.assertEqual(report['total_units'], 4)
+        self.assertEqual(float(report['total_stock_value']), float(4 * self.product.cost_price))
+        self.assertEqual([w['id'] for w in report['by_warehouse']], [str(self.warehouse.id)])
+        self.assertEqual(report['by_warehouse'][0]['lines'], 2)
+        self.assertEqual([r['id'] for r in report['reorder']], [str(self.product.id)])
+        self.assertEqual(report['reorder'][0]['suggested_order'], 16)  # back up to twice the reorder point
+        out = self.results(self.client.get(f'{BASE}/inventory-items/?out_of_stock=true'))
+        self.assertEqual([i['product_id'] for i in out], [str(empty.id)])
+        summary = self.client.get(f'{BASE}/warehouses/{self.warehouse.id}/stock_summary/').json()
+        self.assertEqual(summary['low_stock_items'], 1)  # the empty line has no reorder point, so it isn't "low"
+
+
+    def test_receive_records_a_receipt_and_adds_to_existing_stock(self):
+        url = f'{BASE}/inventory-items/receive/'
+        body = {'product_id': str(self.product.id), 'warehouse_id': str(self.warehouse.id), 'quantity': 30, 'reference': 'PO-77', 'location': 'A-1'}
+        r = self.client.post(url, body, format='json')
+        self.assertEqual(r.status_code, 201, r.content)
+        r = self.client.post(url, {**body, 'quantity': 5, 'location': ''}, format='json')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual(r.json()['new_quantity'], 35)
+        item = InventoryItem.objects.get(product=self.product, warehouse=self.warehouse)
+        self.assertEqual((item.quantity, item.location), (35, 'A-1'))
+        self.assertEqual(list(item.transactions.values_list('transaction_type', 'quantity', 'reference').order_by('timestamp')),
+                         [('RECEIPT', 30, 'PO-77'), ('RECEIPT', 5, 'PO-77')])
+        self.assertEqual(self.client.post(url, {**body, 'quantity': 0}, format='json').status_code, 400)
+        self.assertEqual(self.client.post(url, {**body, 'product_id': str(self.other_product.id)}, format='json').status_code, 400)
+        self.warehouse.is_active = False
+        self.warehouse.save()
+        self.assertEqual(self.client.post(url, body, format='json').status_code, 400)
+
+    def test_stock_count_sets_last_checked(self):
+        self.adjust(5)
+        item = InventoryItem.objects.get()
+        self.assertIsNotNone(item.last_checked)  # the helper's reason is 'Stock count'
+        r = self.client.post(f'{BASE}/inventory-items/adjust_stock/', {
+            'product_id': str(self.product.id), 'warehouse_id': str(self.warehouse.id), 'adjustment_quantity': 1, 'reason': 'Damaged',
+        }, format='json')
+        self.assertEqual(r.status_code, 200)
+
 
 class InventoryAuditTests(AuthenticatedAPITestCase):
     """Behaviour the inventory module must guarantee (written during the module audit)."""

@@ -47,7 +47,7 @@ const navigation: NavItem[] = [
       { title: 'Stock', href: '/inventory/inventory-items', icon: Boxes },
       { title: 'Categories', href: '/inventory/categories', icon: Tags },
       { title: 'Warehouses', href: '/inventory/warehouses', icon: Warehouse },
-      { title: 'Transactions', href: '/inventory/transactions', icon: History },
+      { title: 'Movements', href: '/inventory/transactions', icon: History },
       { title: 'Reports', href: '/inventory/reports', icon: BarChart3 },
     ],
   },

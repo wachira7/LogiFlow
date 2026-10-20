@@ -1,166 +1,132 @@
-// src/app/inventory/products/[id]/page.tsx
+// src/app/(app)/inventory/products/[id]/page.tsx
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useProduct } from '@/hooks/useInventory'
+import { useParams, useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { AlertTriangle, Boxes, Building2, Edit, History, MoreHorizontal, Package, Plus, Power, Tag, Trash2, Wallet } from 'lucide-react'
+import { stockService, type Movement, type StockProductDetail } from '@/services/stockService'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent,  CardHeader, CardTitle } from '@/components/ui/card'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Edit, Package, AlertTriangle } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { ErrorBanner, PageHeader, Panel, StatCard, StatGrid, StatusPill } from '@/components/app/kit'
+import { AppStagger, AppStaggerItem } from '@/components/app/motion'
+import { AdjustStockDialog, type AdjustTarget } from '@/components/inventory/AdjustStockDialog'
+import { MovementFeed, StockMeter, StockPill, TextLink } from '@/components/inventory/status'
+import { formatCount, formatMoney, timeAgo, toNumber } from '@/lib/format'
 
 export default function ProductDetailPage() {
-  const params = useParams()
-  const productId = params?.id as string
-  const { product, isLoading } = useProduct(productId)
+  const { id } = useParams<{ id: string }>()
+  const router = useRouter()
+  const [p, setP] = useState<StockProductDetail | null>(null)
+  const [moves, setMoves] = useState<Movement[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [adjust, setAdjust] = useState<AdjustTarget | null>(null)
+  const [confirm, setConfirm] = useState(false)
+  const [busy, setBusy] = useState(false)
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
-    )
+  const load = useCallback(async () => {
+    try {
+      const [prod, m] = await Promise.all([stockService.product(id), stockService.movements({ product: id, page_size: 12 })])
+      setP(prod); setMoves(m.results); setError(null)
+    } catch (err) { setError(err instanceof Error ? err.message : 'Couldn’t load this product.') }
+  }, [id])
+  useEffect(() => { load() }, [load])
+
+  const toggleActive = async () => {
+    if (!p) return
+    try { await stockService.updateProduct(id, { is_active: !p.is_active }); toast.success(p.is_active ? 'Product deactivated' : 'Product reactivated'); load() }
+    catch (err) { toast.error(err instanceof Error ? err.message : 'That didn’t work.') }
+  }
+  const remove = async () => {
+    setBusy(true)
+    try { await stockService.deleteProduct(id); toast.success('Product deleted'); router.push('/inventory/products') }
+    catch (err) { toast.error(err instanceof Error ? err.message : 'Couldn’t delete it.'); setConfirm(false) }
+    finally { setBusy(false) }
   }
 
-  if (!product) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <Package className="h-12 w-12 text-muted-foreground" />
-        <div className="text-center">
-          <h2 className="text-xl font-semibold">Product not found</h2>
-          <p className="text-muted-foreground">The product you&apos;re looking for doesn&apos;t exist.</p>
-        </div>
-        <Link href="/inventory/products">
-          <Button>Back to Products</Button>
-        </Link>
-      </div>
-    )
-  }
+  if (error && !p) return <div className="space-y-6"><PageHeader icon={Package} title="Product" back={{ href: '/inventory/products', label: 'Products' }} /><ErrorBanner title="Couldn’t load this product" message={error} onRetry={load} /></div>
+  if (!p) return <div className="space-y-6"><Skeleton className="h-16 w-80" /><div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}</div><Skeleton className="h-72 rounded-xl" /></div>
+
+  const value = p.total_stock * toNumber(p.cost_price)
+  const facts: [string, React.ReactNode][] = [
+    ['SKU', <span key="s" className="font-mono">{p.sku}</span>], ['Category', p.category_full_path || p.category_name || '—'], ['Unit', p.unit_of_measure || 'ea'],
+    ['Barcode', p.barcode || '—'], ['Weight', p.weight ? `${toNumber(p.weight)} kg` : '—'], ['Dimensions', p.dimensions || '—'],
+    ['Min / max stock', `${formatCount(p.min_stock_level)} / ${p.max_stock_level ? formatCount(p.max_stock_level) : '—'}`], ['Lead time', p.lead_time_days ? `${p.lead_time_days} days` : '—'],
+  ]
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/inventory/products">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{product.name}</h1>
-            <p className="text-muted-foreground">Product Details</p>
-          </div>
+      <PageHeader icon={Package} back={{ href: '/inventory/products', label: 'Products' }}
+        title={p.name}
+        description={<span className="flex flex-wrap items-center gap-2">{p.is_active ? <StockPill quantity={p.total_stock} reorderPoint={p.reorder_point} max={p.max_stock_level} /> : <StatusPill tone="neutral">Inactive</StatusPill>}<span className="font-mono text-xs">{p.sku}</span></span>}
+        actions={<>
+          <Button variant="outline" onClick={() => router.push(`/inventory/products/${id}/edit`)}><Edit className="mr-2 h-4 w-4" />Edit</Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild><Button variant="outline" size="icon" aria-label="More actions"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={toggleActive}><Power className="mr-2 h-4 w-4" />{p.is_active ? 'Deactivate' : 'Reactivate'}</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-danger focus:text-danger" onClick={() => setConfirm(true)}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>} />
+
+      {p.needs_reorder && p.is_active && (
+        <div className="flex items-start gap-3 rounded-xl border border-warning/30 bg-warning-soft px-4 py-3 text-sm">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
+          <p><span className="font-medium">Time to reorder.</span> {formatCount(p.total_stock)} on hand against a reorder point of {formatCount(p.reorder_point)}
+            {p.max_stock_level ? `; ordering ${formatCount(Math.max(p.max_stock_level - p.total_stock, 0))} brings it back to max stock` : ''}.</p>
         </div>
-        <Link href={`/inventory/products/${product.id}/edit`}>
-          <Button>
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Product
-          </Button>
-        </Link>
+      )}
+
+      <StatGrid>
+        <StatCard label="On hand" value={p.total_stock} icon={Boxes} tone="brand" hint={`${p.unit_of_measure || 'units'} across ${p.stock_by_warehouse.length} ${p.stock_by_warehouse.length === 1 ? 'warehouse' : 'warehouses'}`} />
+        <StatCard label="Stock value" value={value} icon={Wallet} tone="info" format={(n) => formatMoney(n, undefined, { maximumFractionDigits: 0 })} hint="At cost" />
+        <StatCard label="Price" value={toNumber(p.unit_price)} icon={Tag} tone="success" format={(n) => formatMoney(n)} hint={`Cost ${formatMoney(p.cost_price)}`} />
+        <StatCard label="Markup" value={p.profit_margin ?? 0} icon={Wallet} tone={p.profit_margin < 0 ? 'danger' : 'warning'} format={(n) => `${n.toFixed(1)}%`} hint="Price over cost" />
+      </StatGrid>
+
+      <div className="grid gap-6 lg:grid-cols-5">
+        <Panel className="lg:col-span-3" icon={Building2} title="Stock by warehouse" bodyClassName="p-0" delay={0.1}
+          action={<Button size="sm" variant="outline" asChild><Link href={`/inventory/inventory-items/new?product=${id}`}><Plus className="mr-1 h-3.5 w-3.5" />Stock elsewhere</Link></Button>}>
+          {p.stock_by_warehouse.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm text-muted-foreground">Not stocked anywhere yet. <Link href={`/inventory/inventory-items/new?product=${id}`} className="font-medium text-brand hover:underline">Receive stock</Link> to start tracking it.</p>
+          ) : (
+            <AppStagger className="divide-y">
+              {p.stock_by_warehouse.map((s) => (
+                <AppStaggerItem key={s.warehouse_id} className="flex items-center gap-4 px-4 py-3.5 sm:px-5">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <Link href={`/inventory/warehouses/${s.warehouse_id}`} className="truncate font-medium hover:underline">{s.warehouse_name}</Link>
+                      <span className="shrink-0 font-semibold tabular-nums">{formatCount(s.quantity)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{[s.location && `Bin ${s.location}`, s.last_checked && `Checked ${timeAgo(s.last_checked)}`].filter(Boolean).join(' · ') || 'No bin location'}</p>
+                    <StockMeter className="mt-2" quantity={s.quantity} reorderPoint={p.reorder_point} max={p.max_stock_level} />
+                  </div>
+                  <Button size="sm" variant="ghost" className="text-brand" onClick={() => setAdjust({ productId: p.id, productName: p.name, warehouseId: s.warehouse_id, warehouseName: s.warehouse_name, quantity: s.quantity, unit: p.unit_of_measure })}>Adjust</Button>
+                </AppStaggerItem>
+              ))}
+            </AppStagger>
+          )}
+        </Panel>
+        <Panel className="lg:col-span-2" title="Details" delay={0.15}>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+            {facts.map(([k, v]) => <div key={k}><dt className="text-xs text-muted-foreground">{k}</dt><dd className="mt-0.5 truncate font-medium">{v}</dd></div>)}
+          </dl>
+          {p.description && <p className="mt-4 border-t pt-4 text-sm text-muted-foreground">{p.description}</p>}
+        </Panel>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Main Product Info */}
-        <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Name</label>
-                  <p className="mt-1 font-medium">{product.name}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">SKU</label>
-                  <p className="mt-1 font-mono text-sm">{product.sku}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Category</label>
-                  <p className="mt-1">{product.category?.name || 'Uncategorized'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Unit of Measure</label>
-                  <p className="mt-1">{product.unit_of_measure}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Reorder Point</label>
-                  <p className="mt-1">{product.reorder_point ?? '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Stock Levels</label>
-                  <p className="mt-1">{product.min_stock_level ?? '-'} – {product.max_stock_level ?? '-'}</p>
-                </div>
-              </div>
-              {product.description && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Description</label>
-                  <p className="mt-1">{product.description}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+      <Panel icon={History} title="Movement history" bodyClassName="p-0" delay={0.2} action={<TextLink href={`/inventory/transactions?product=${id}`}>All movements</TextLink>}>
+        {!moves ? <div className="p-5"><Skeleton className="h-24" /></div> : <MovementFeed rows={moves} showProduct={false} empty="No movements yet." />}
+      </Panel>
 
-        {/* Status & Stock Info */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Product Status</label>
-                <div className="mt-1">
-                  <Badge variant={product.is_active ? "default" : "secondary"}>
-                    {product.is_active ? 'Active' : 'Inactive'}
-                  </Badge>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Current Stock</label>
-                <div className="mt-1 flex items-center space-x-2">
-                  <span className="text-2xl font-bold">{product.total_stock ?? 0}</span>
-                  <span className="text-muted-foreground">{product.unit_of_measure}</span>
-                  {product.needs_reorder && (
-                    <Badge variant="destructive" className="text-xs">
-                      <AlertTriangle className="mr-1 h-3 w-3" />
-                      Low Stock
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              {!!product.total_stock && (
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">Stock value (at cost)</label>
-                  <p className="mt-1 text-lg font-semibold tabular-nums">
-                    {(Number(product.total_stock) * Number(product.cost_price ?? 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Timestamps</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Created</label>
-                <p className="mt-1 text-sm">{new Date(product.created_at).toLocaleString()}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
-                <p className="mt-1 text-sm">{new Date(product.updated_at).toLocaleString()}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <AdjustStockDialog target={adjust} onClose={() => setAdjust(null)} onDone={load} />
+      <ConfirmDialog open={confirm} onOpenChange={setConfirm} loading={busy} variant="destructive" title={`Delete ${p.name}?`}
+        description="Only products with no stock history can be deleted. If it has history, deactivate it instead." confirmText="Delete" cancelText="Keep it" onConfirm={remove} />
     </div>
   )
 }
