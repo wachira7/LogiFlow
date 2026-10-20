@@ -162,6 +162,8 @@ class Seeder:
                 area = self.rng.choice(AREAS)
                 o = self.order(self.rng.choice(CUSTOMERS), area, self.lines(), days_ago=day)
                 s = self.shipment_for(o, area)
+                s.driver = self.driver
+                s.save(update_fields=['driver'])
                 start = self.now - timedelta(days=day, hours=self.rng.randint(4, 9))
                 eta = start + timedelta(hours=self.rng.choice([6, 8, 24]))
                 ship_svc.ship(s, self.owner, carrier='Own fleet', estimated_delivery=eta, allow_unpacked=True)
@@ -193,6 +195,8 @@ class Seeder:
         for cust, area_i in ((6, 3), (7, 0)):
             o = self.order(CUSTOMERS[cust], AREAS[area_i], self.lines(), status='PROCESSING')
             s = self.shipment_for(o, AREAS[area_i])
+            s.driver = self.driver
+            s.save(update_fields=['driver'])
             start = self.now - timedelta(hours=self.rng.randint(5, 7))
             ship_svc.ship(s, self.owner, carrier='Own fleet', estimated_delivery=start + timedelta(hours=4), allow_unpacked=True)
             ship_svc.deliver(s, self.driver, start + timedelta(hours=3))

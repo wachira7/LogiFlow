@@ -28,9 +28,9 @@ function Card({ c }: { c: BoardCard }) {
       exit={reduce ? undefined : { opacity: 0, scale: 0.96 }} transition={{ duration: 0.3, ease }}>
       <Link href={`/distribution/shipments/${c.id}`}
         className={cn('card-lift block rounded-xl border bg-card p-3 text-sm shadow-sm', c.is_delayed && 'border-danger/40', c.open_exceptions > 0 && !c.is_delayed && 'border-warning/50')}>
-        <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-xs font-medium">{c.number}</span>
-          <span className="flex gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-1">
+          <span className="whitespace-nowrap font-mono text-xs font-medium">{c.number}</span>
+          <span className="flex flex-wrap gap-1">
             {c.open_exceptions > 0 && <StatusPill tone="warning"><AlertTriangle className="h-3 w-3" />{c.open_exceptions}</StatusPill>}
             {c.is_delayed && <StatusPill tone="danger" pulse>Late</StatusPill>}
           </span>
