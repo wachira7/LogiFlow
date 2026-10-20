@@ -214,6 +214,18 @@ yarn dev
 The app will be available at `http://localhost:3000`  
 Django Admin at `http://localhost:8000/admin`
 
+### 7. Run the backend tests
+
+```bash
+cd backend
+uv run python manage.py test          # quick, on SQLite
+./scripts/test-postgres.sh            # on PostgreSQL 15, like CI and production (needs Docker)
+./scripts/test-postgres.sh apps.ops   # one app; KEEP_DB=1 keeps the database for the next run
+```
+
+Run the PostgreSQL version before pushing changes to queries, locking or migrations: SQLite accepts
+some things PostgreSQL rejects (for example `SELECT … FOR UPDATE` across an optional join).
+
 ---
 
 ## 📁 Project Structure
