@@ -19,6 +19,7 @@ import { ShipmentPill, ShipmentProgress, StopPill } from '@/components/distribut
 import { formatCount, formatDateTime } from '@/lib/format'
 import type { ShipmentDetail } from '@/types/distribution.types'
 import { ShipmentTimeline } from '@/components/ops/ShipmentTimeline'
+import { useLiveRefresh } from '@/lib/realtime'
 import { VehicleAssign } from '@/components/ops/VehicleAssign'
 
 export default function ShipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -35,6 +36,7 @@ export default function ShipmentDetailPage({ params }: { params: Promise<{ id: s
 
   const load = useCallback(() => distributionService.shipment(id).then(setS).catch((err) => setError(err instanceof Error ? err.message : 'Not found')), [id])
   useEffect(() => { load() }, [load])
+  useLiveRefresh('shipment.event', load, { when: (m) => (m.data as { shipment: { id: string } }).shipment.id === id })
 
   const act = async (action: Parameters<typeof distributionService.shipmentAction>[1], data: Record<string, unknown> = {}) => {
     setBusy(true)

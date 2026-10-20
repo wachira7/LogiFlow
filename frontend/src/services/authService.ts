@@ -166,14 +166,15 @@ export class AuthService {
         }
       }
 
-      const response = await api.post<{ access: string; expires_in: number }>('/api/v1/auth/token/refresh/', {
+      const response = await api.post<{ access: string; refresh?: string; expires_in: number }>('/api/v1/auth/token/refresh/', {
         refresh: refreshToken,
       })
 
       if (response.success && response.data) {
         TokenManager.setTokens({
           access: response.data.access,
-          refresh: refreshToken,
+          // refresh tokens rotate (and the old one is blacklisted), so keep the new one
+          refresh: response.data.refresh ?? refreshToken,
           expires_in: response.data.expires_in,
         })
 

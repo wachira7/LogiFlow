@@ -147,7 +147,8 @@ class ApiClient {
         const data = await response.json()
         TokenManager.setTokens({
           access: data.access,
-          refresh: refreshToken,
+          // refresh tokens rotate (and the old one is blacklisted), so keep the new one
+          refresh: data.refresh ?? refreshToken,
           expires_in: data.expires_in || 3600, // Default 1 hour
         })
         return true

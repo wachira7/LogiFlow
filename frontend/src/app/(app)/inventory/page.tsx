@@ -12,6 +12,7 @@ import { BarList } from '@/components/analytics/Charts'
 import { MovementFeed, StockMeter, TextLink } from '@/components/inventory/status'
 import { cn } from '@/lib/utils'
 import { formatCount, formatMoney, toNumber } from '@/lib/format'
+import { useLiveRefresh } from '@/lib/realtime'
 
 const money0 = (n: number) => formatMoney(n, undefined, { maximumFractionDigits: 0 })
 
@@ -31,6 +32,7 @@ export default function InventoryOverviewPage() {
     } catch (err) { setError(err instanceof Error ? err.message : 'Couldn’t load inventory.') }
   }, [])
   useEffect(() => { load() }, [load])
+  useLiveRefresh('inventory.movement', load, { ms: 1500 })
 
   const steps = report && counts ? [
     { title: 'Add a category', done: counts.categories > 0, href: '/inventory/categories/new', icon: FolderTree },

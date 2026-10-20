@@ -8,6 +8,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { useAuth } from '@/context/AuthContext'
 import { Sidebar, type NavItem } from './Sidebar'
 import { Navbar } from './Navbar'
+import { RealtimeBridge } from '@/components/app/RealtimeBridge'
 import { Logo } from '@/components/landing/Logo'
 import { setCompanyCurrency } from '@/lib/format'
 
@@ -84,6 +85,8 @@ export function DashboardLayout({ children, nav, banner }: DashboardLayoutProps)
       />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        {/* company app only: platform admins don't belong to a company */}
+        {!nav && <RealtimeBridge />}
         {banner}
         <Navbar onMenuClick={() => setSidebarOpen(true)} sidebarCollapsed={sidebarCollapsed} />
 

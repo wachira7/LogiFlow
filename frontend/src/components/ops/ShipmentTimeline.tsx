@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Panel } from '@/components/app/kit'
 import { AppStagger, AppStaggerItem } from '@/components/app/motion'
 import { formatDateTime, timeAgo } from '@/lib/format'
+import { useLiveRefresh } from '@/lib/realtime'
 import { EventIcon, ExceptionStatusPill, SeverityPill } from './status'
 import { RaiseExceptionDialog } from './RaiseExceptionDialog'
 
@@ -22,6 +23,9 @@ export function ShipmentTimeline({ shipmentId, refreshKey = 0 }: { shipmentId: s
 
   const load = useCallback(() => { opsService.timeline(shipmentId).then(setData).catch(() => setData(null)) }, [shipmentId])
   useEffect(() => { load() }, [load, refreshKey])
+  useLiveRefresh(['shipment.event', 'exception.updated'], load, {
+    when: (m) => { const d = m.data as { shipment?: { id: string }; shipment_id?: string }; return (d.shipment?.id ?? d.shipment_id) === shipmentId },
+  })
 
   if (!data) return <Panel icon={History} title="Timeline"><Skeleton className="h-40" /></Panel>
   const link = typeof window !== 'undefined' ? `${window.location.origin}/track/${data.shipment.public_token}` : ''

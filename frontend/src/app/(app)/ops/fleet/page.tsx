@@ -22,6 +22,7 @@ import { AppStagger, AppStaggerItem, FadeIn, MotionRow } from '@/components/app/
 import { LiveMap, type MapMarker } from '@/components/ops/LiveMap'
 import { VEHICLE_STATUS, VEHICLE_TYPES, VehiclePill, age, minutesSince } from '@/components/ops/status'
 import { cn } from '@/lib/utils'
+import { useLiveRefresh, useRealtime, useRealtimeStatus } from '@/lib/realtime'
 import { timeAgo } from '@/lib/format'
 
 type Unit = { id: string; kind: 'vehicle' | 'driver'; title: string; sub: string; status?: VehicleStatus; route: FleetLive['drivers'][number]['route']; ping: FleetLive['drivers'][number]['last_ping']; href?: string }
@@ -92,6 +93,7 @@ function FleetContent() {
   const [dialog, setDialog] = useState(false)
   const [deleting, setDeleting] = useState<Vehicle | null>(null)
   const [busy, setBusy] = useState(false)
+  const status = useRealtimeStatus()
 
   const load = useCallback(() => {
     Promise.all([opsService.fleetLive(), opsService.vehicles()]).then(([l, v]) => { setLive(l); setVehicles(v); setError(null) })
@@ -100,9 +102,19 @@ function FleetContent() {
   useEffect(() => {
     load()
     teamService.members().then((m) => setMembers(m.filter((x) => x.is_active))).catch(() => {})
-    const t = setInterval(() => document.visibilityState === 'visible' && opsService.fleetLive().then(setLive).catch(() => {}), 20000)
+    const t = setInterval(() => document.visibilityState === 'visible' && status !== 'live' && opsService.fleetLive().then(setLive).catch(() => {}), 20000)
     return () => clearInterval(t)
-  }, [load])
+  }, [load, status])
+  useLiveRefresh(['fleet.vehicle', 'route.updated'], load)
+  useRealtime('fleet.position', (m) => {
+    const p = m.data as { driver_id: string; vehicle_id: string | null; latitude: number; longitude: number; speed_kmh: number | null; heading: number | null; recorded_at: string }
+    const ping = { latitude: p.latitude, longitude: p.longitude, speed_kmh: p.speed_kmh, heading: p.heading, recorded_at: p.recorded_at, live: true }
+    setLive((l) => l && {
+      ...l, generated_at: new Date().toISOString(),
+      vehicles: l.vehicles.map((v) => (v.id === p.vehicle_id ? { ...v, last_ping: ping } : v)),
+      drivers: l.drivers.map((d) => (d.id === p.driver_id ? { ...d, last_ping: ping } : d)),
+    })
+  })
 
   // One entry per thing on the road: vehicles, plus drivers sharing location without a vehicle
   const units: Unit[] = useMemo(() => {

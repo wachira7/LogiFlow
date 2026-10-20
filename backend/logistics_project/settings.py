@@ -40,6 +40,7 @@ ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 # Application definition
 INSTALLED_APPS = [
+    'daphne',  # must be first: makes runserver serve websockets too
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -72,6 +73,7 @@ INSTALLED_APPS = [
     'apps.platform_admin',
     'apps.analytics',
     'apps.ops',
+    'channels',
     'backup',
 ]
 
@@ -119,6 +121,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'logistics_project.wsgi.application'
+ASGI_APPLICATION = 'logistics_project.asgi.application'
+
+# ── Realtime (Django Channels) ─────────────────────────────────────────────
+# Redis carries messages between processes (web, Celery) in production. Without a URL we fall
+# back to an in-memory layer, which only works inside one process (local development, tests).
+CHANNEL_REDIS_URL = os.getenv('CHANNEL_REDIS_URL') or os.getenv('REDIS_URL', '')
+CHANNEL_LAYERS = {
+    'default': {'BACKEND': 'channels_redis.core.RedisChannelLayer', 'CONFIG': {'hosts': [CHANNEL_REDIS_URL], 'capacity': 500, 'expiry': 30}}
+    if CHANNEL_REDIS_URL else {'BACKEND': 'channels.layers.InMemoryChannelLayer'}
+}
+REALTIME_ENABLED = os.getenv('REALTIME_ENABLED', 'True').lower() == 'true'
 
 # Database Configuration from Environment
 DB_ENGINE = os.getenv('DB_ENGINE', 'django.db.backends.sqlite3')

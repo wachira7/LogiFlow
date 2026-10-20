@@ -22,6 +22,7 @@ import { ExceptionStatusPill, SEVERITY, SeverityPill, age } from '@/components/o
 import { RaiseExceptionDialog } from '@/components/ops/RaiseExceptionDialog'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
+import { useLiveRefresh } from '@/lib/realtime'
 import { formatDateTime, timeAgo } from '@/lib/format'
 
 type View = 'open' | 'mine' | 'unassigned' | 'closed' | 'all'
@@ -109,6 +110,7 @@ function ExceptionsContent() {
     opsService.exceptionSummary().then(setSummary).catch(() => {})
   }, [view, query])
   useEffect(() => { const t = setTimeout(load, query ? 300 : 0); return () => clearTimeout(t) }, [load, query])
+  useLiveRefresh('exception.updated', load)
   useEffect(() => { teamService.members().then((m) => setMembers(m.filter((x) => x.is_active))).catch(() => {}) }, [])
 
   // Open items first by severity, then oldest first so nothing waits forever

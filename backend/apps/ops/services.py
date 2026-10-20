@@ -16,6 +16,8 @@ from django.utils import timezone
 from apps.distribution.events import record_event
 from apps.distribution.models import DeliveryException, DeliveryRoute, LocationPing, ProofOfDelivery, RouteStop, Shipment, Vehicle
 
+from realtime.broadcast import publish
+
 from . import geo
 
 LIVE_PING_MINUTES = 15          # a position older than this isn't "live"
@@ -137,6 +139,14 @@ def record_pings(user, rows):
         speed_kmh=r.get('speed_kmh'), heading=r.get('heading'), recorded_at=min(r.get('recorded_at') or now, now),
     ) for r in rows]
     LocationPing.objects.bulk_create(pings)
+    latest = max(pings, key=lambda p: p.recorded_at)
+    publish(user.company_id, 'fleet.position', {
+        'driver_id': user.id, 'driver': user.get_full_name() or user.email, 'vehicle_id': vehicle.id if vehicle else None,
+        'vehicle': vehicle.registration if vehicle else None, 'route_id': route.id if route else None,
+        'latitude': float(latest.latitude), 'longitude': float(latest.longitude), 'speed_kmh': latest.speed_kmh,
+        'heading': latest.heading, 'recorded_at': latest.recorded_at,
+        'trail': [[float(p.latitude), float(p.longitude)] for p in sorted(pings, key=lambda p: p.recorded_at)],
+    })
     return pings, route, vehicle
 
 
