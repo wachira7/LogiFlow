@@ -10,8 +10,15 @@ from django.utils import timezone
 from utils.permissions import IsPlatformAdmin
 from .models import PlatformSettings, PlatformAuditLog, SystemHealth, PlatformNotification
 from .serializers import ( PlatformSettingsSerializer, PlatformAuditLogSerializer, SystemHealthSerializer, PlatformNotificationSerializer, CompanyManagementSerializer )
-from .analytics import get_platform_overview, get_company_overview
-from .dashboard import get_system_health_dashboard
+from .analytics import get_company_detail, get_company_overview, get_platform_overview
+from .health import system_health
+
+
+def audit(request, action, description, company=None, **metadata):
+    PlatformAuditLog.objects.create(
+        admin_user=request.user, action=action, target_company=company, description=description,
+        ip_address=request.META.get('REMOTE_ADDR'), user_agent=request.META.get('HTTP_USER_AGENT', '')[:500], metadata=metadata,
+    )
 
 
 class PlatformSettingsViewSet(viewsets.ModelViewSet):
@@ -28,10 +35,16 @@ class PlatformSettingsViewSet(viewsets.ModelViewSet):
         return PlatformSettings.objects.all()
 
     def perform_create(self, serializer):
-        serializer.save(modified_by=self.request.user)
+        setting = serializer.save(modified_by=self.request.user)
+        audit(self.request, 'SETTINGS_CHANGED', f'Created platform setting {setting.setting_key}')
 
     def perform_update(self, serializer):
-        serializer.save(modified_by=self.request.user)
+        setting = serializer.save(modified_by=self.request.user)
+        audit(self.request, 'SETTINGS_CHANGED', f'Changed platform setting {setting.setting_key}')
+
+    def perform_destroy(self, instance):
+        audit(self.request, 'SETTINGS_CHANGED', f'Deleted platform setting {instance.setting_key}')
+        instance.delete()
 
 
 class PlatformAuditLogViewSet(viewsets.ReadOnlyModelViewSet):
@@ -73,53 +86,21 @@ class PlatformAuditLogViewSet(viewsets.ReadOnlyModelViewSet):
         })
 
 
-class SystemHealthViewSet(viewsets.ModelViewSet):
+class SystemHealthViewSet(viewsets.ReadOnlyModelViewSet):
+    """Live health checks (dashboard) plus any stored metric history (read-only)."""
     pagination_class = None
     serializer_class = SystemHealthSerializer
     permission_classes = [IsPlatformAdmin]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'metric_name', 'auto_generated']
-    search_fields = ['metric_name', 'description']
-    ordering_fields = ['metric_name', 'metric_value', 'created_at']
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['status', 'metric_name']
     ordering = ['-created_at']
 
     def get_queryset(self):
-        return SystemHealth.objects.all()
+        return SystemHealth.objects.all()[:500]
 
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
-        return Response(get_system_health_dashboard())
-
-    @action(detail=False, methods=['post'])
-    def generate_test_metrics(self, request):
-        import random
-
-        test_metrics = [
-            {'name': 'cpu_usage',         'value': random.uniform(20, 80),  'unit': '%'},
-            {'name': 'memory_usage',      'value': random.uniform(40, 90),  'unit': '%'},
-            {'name': 'disk_usage',        'value': random.uniform(10, 70),  'unit': '%'},
-            {'name': 'active_connections','value': random.randint(50, 300), 'unit': 'count'},
-            {'name': 'response_time_avg', 'value': random.uniform(100, 500),'unit': 'ms'},
-            {'name': 'error_rate',        'value': random.uniform(0, 0.1),  'unit': '%'},
-            {'name': 'uptime',            'value': random.uniform(99.5,100),'unit': '%'},
-        ]
-
-        created = []
-        for m in test_metrics:
-            metric = SystemHealth.objects.create(
-                metric_name=m['name'],
-                metric_value=m['value'],
-                metric_unit=m['unit'],
-                threshold_warning=70 if m['unit'] == '%' else None,
-                threshold_critical=90 if m['unit'] == '%' else None,
-                description=f"Test metric for {m['name']}",
-            )
-            created.append(metric)
-
-        return Response({
-            'message': f'Generated {len(created)} test metrics',
-            'metrics': [f"{m.metric_name}: {m.metric_value}{m.metric_unit}" for m in created],
-        })
+        return Response(system_health())
 
 
 class PlatformAnalyticsViewSet(viewsets.ViewSet):
@@ -132,73 +113,79 @@ class PlatformAnalyticsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'])
     def company_overview(self, request):
-        return Response(get_company_overview())
+        return Response(get_company_overview(request.query_params.get('search', '').strip(), request.query_params.get('status', '')))
+
+    @action(detail=False, methods=['get'])
+    def company_detail(self, request):
+        from apps.tenants.models import Company
+        company = Company.objects.filter(id=request.query_params.get('company_id')).first()
+        if company is None:
+            return Response({'error': 'Company not found', 'message': 'Company not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(get_company_detail(company))
 
     @action(detail=False, methods=['post'])
     def manage_company(self, request):
+        from django.db.models import ProtectedError, RestrictedError
+
+        from apps.payments.billing import BillingError, extend_trial
+        from apps.tenants.models import Company
+        from apps.tenants.roles import sign_out_everywhere
+
         serializer = CompanyManagementSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        action_name, reason = data['action'], data['reason']
+        company = Company.objects.filter(id=data['company_id']).first()
+        if company is None:
+            return Response({'error': 'Company not found', 'message': 'Company not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        from apps.tenants.models import Company
+        def fail(message):
+            return Response({'error': message, 'message': message}, status=status.HTTP_400_BAD_REQUEST)
 
-        company_id  = serializer.validated_data['company_id']
-        action      = serializer.validated_data['action']
-        reason      = serializer.validated_data['reason']
-        notify_users = serializer.validated_data['notify_users']
-
-        try:
-            company = Company.objects.get(id=company_id)
-        except Company.DoesNotExist:
-            return Response({'error': 'Company not found'}, status=status.HTTP_404_NOT_FOUND)
-
-        with transaction.atomic():
-            if action == 'ACTIVATE':
-                company.is_active = True
-                company.save()
-                action_description = f"Activated company {company.name}"
-
-            elif action == 'SUSPEND':
+        if action_name == 'ACTIVATE':
+            if company.is_active:
+                return fail('This company is already active.')
+            company.is_active = True
+            company.save(update_fields=['is_active', 'updated_at'])
+            audit(request, 'COMPANY_ACTIVATED', f'Activated {company.name}. Reason: {reason}', company, reason=reason)
+            result, message = 'active', f'{company.name} is active again'
+        elif action_name == 'SUSPEND':
+            if not company.is_active:
+                return fail('This company is already suspended.')
+            with transaction.atomic():
                 company.is_active = False
-                company.save()
-                action_description = f"Suspended company {company.name}"
+                company.save(update_fields=['is_active', 'updated_at'])
+                for user in company.users.all():
+                    sign_out_everywhere(user)
+                audit(request, 'COMPANY_SUSPENDED', f'Suspended {company.name}. Reason: {reason}', company, reason=reason)
+            result, message = 'suspended', f'{company.name} is suspended and its users were signed out'
+        elif action_name in ('EXTEND_TRIAL', 'RESET_TRIAL'):
+            try:
+                sub = extend_trial(company, data['days'])
+            except BillingError as exc:
+                return fail(str(exc))
+            except Exception as exc:  # Stripe unreachable
+                return Response({'error': f'Stripe didn’t accept the change: {exc}', 'message': 'Stripe is unavailable right now.'},
+                                status=status.HTTP_502_BAD_GATEWAY)
+            audit(request, 'TRIAL_EXTENDED', f'Extended {company.name}’s trial by {data["days"]} days to {sub.end_date:%d %b %Y}. Reason: {reason}',
+                  company, reason=reason, days=data['days'])
+            result, message = 'trialing', f'Trial extended to {sub.end_date:%d %b %Y}'
+        else:  # DELETE
+            if data.get('confirm_name', '').strip() != company.name:
+                return fail('Type the company’s exact name to confirm deleting it.')
+            name = company.name
+            try:
+                with transaction.atomic():
+                    audit(request, 'COMPANY_DELETED', f'Deleted {name}. Reason: {reason}', None, reason=reason, company_id=str(company.id))
+                    company.users.all().delete()
+                    company.delete()
+            except (ProtectedError, RestrictedError):
+                return fail(f'{name} has stock and order history that must be kept, so it can’t be deleted. Suspend it instead.')
+            return Response({'message': f'{name} was deleted', 'company_status': 'deleted'})
 
-            elif action == 'DELETE':
-                company_name = company.name
-                company.delete()
-                action_description = f"Deleted company {company_name}"
-
-            elif action == 'RESET_TRIAL':
-                from apps.payments.models import UserSubscription
-                from datetime import timedelta
-                UserSubscription.objects.filter(
-                    company=company, is_trial=True
-                ).update(
-                    trial_end=timezone.now() + timedelta(days=14),
-                    status='TRIALING',
-                )
-                action_description = f"Reset trial for company {company.name}"
-
-            PlatformAuditLog.objects.create(
-                admin_user=request.user,
-                action='COMPANY_SUSPENDED' if action == 'SUSPEND' else 'COMPANY_ACTIVATED',
-                target_company=company if action != 'DELETE' else None,
-                description=f"{action_description}. Reason: {reason}",
-                ip_address=request.META.get('REMOTE_ADDR'),
-                user_agent=request.META.get('HTTP_USER_AGENT', ''),
-                metadata={'action': action, 'reason': reason, 'notify_users': notify_users},
-            )
-
-            if notify_users and action != 'DELETE':
-                self._send_company_notification(company, action, reason, request.user)
-
-        return Response({
-            'message': action_description,
-            'company_status': (
-                'active' if action == 'ACTIVATE'
-                else 'suspended' if action == 'SUSPEND'
-                else 'deleted'
-            ),
-        })
+        if data['notify_users']:
+            self._send_company_notification(company, 'RESET_TRIAL' if action_name == 'EXTEND_TRIAL' else action_name, reason, request.user)
+        return Response({'message': message, 'company_status': result})
 
     def _send_company_notification(self, company, action, reason, admin_user):
         from apps.users.models import User
@@ -281,7 +268,8 @@ class PlatformNotificationViewSet(viewsets.ModelViewSet):
         ).prefetch_related('target_companies')
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        notification = serializer.save(created_by=self.request.user)
+        audit(self.request, 'NOTIFICATION_PUBLISHED', f'Created notification “{notification.title}”')
 
     @action(detail=True, methods=['post'])
     def mark_sent(self, request, pk=None):
@@ -293,14 +281,15 @@ class PlatformNotificationViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def send_now(self, request, pk=None):
+        """Publish now: it appears in users' notification bell immediately (and until it expires)."""
         notification = self.get_object()
+        notification.is_active = True
         notification.is_sent = True
         notification.sent_at = timezone.now()
+        notification.scheduled_for = None
         notification.save()
-        return Response({
-            'message': f'Notification "{notification.title}" sent successfully',
-            'sent_at': notification.sent_at,
-        })
+        audit(request, 'NOTIFICATION_PUBLISHED', f'Published notification “{notification.title}”')
+        return Response({'message': f'“{notification.title}” is now showing to users', 'sent_at': notification.sent_at})
 
     @action(detail=False, methods=['get'])
     def active(self, request):

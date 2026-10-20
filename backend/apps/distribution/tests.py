@@ -1,9 +1,10 @@
 from datetime import timedelta
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.utils import timezone
 
-from apps.distribution.models import DeliveryRoute, OrderItem, RouteStop, Shipment
+from apps.distribution.models import CustomerOrder, DeliveryRoute, OrderItem, RouteStop, Shipment
 from utils.testing import (
     AuthenticatedAPITestCase, make_company, make_order, make_product, make_shipment, make_user, make_warehouse,
 )
@@ -54,8 +55,10 @@ class OrderLifecycleTests(AuthenticatedAPITestCase):
         shipment = Shipment.objects.get(id=r.json()['shipment_id'])
         self.assertEqual(shipment.order, self.order)
         self.assertEqual(shipment.shipment_items.get().quantity, 3)
+        self.assertEqual(shipment.destination_address, self.order.shipping_address)
+        # the order ships when its shipment actually leaves the warehouse
         self.order.refresh_from_db()
-        self.assertEqual(self.order.status, 'SHIPPED')
+        self.assertEqual(self.order.status, 'PROCESSING')
 
     def test_ship_requires_processing_status(self):
         r = self.client.post(f'{BASE}/orders/{self.order.id}/ship_order/', {'warehouse_id': str(self.warehouse.id)})
@@ -157,8 +160,7 @@ class ShipmentTests(AuthenticatedAPITestCase):
         self.assertEqual(data['delayed_shipments'], 1)
 
 
-@patch('apps.distribution.views.time.sleep')
-@patch('apps.distribution.views.geocode_address', return_value=(-1.2921, 36.8219))
+@patch('apps.ops.geo.geocode', return_value=(-1.2921, 36.8219))
 class RouteTests(AuthenticatedAPITestCase):
     def setUp(self):
         super().setUp()
@@ -214,7 +216,7 @@ class RouteTests(AuthenticatedAPITestCase):
         r = self.client.post(f'{BASE}/route-stops/{stop.id}/fail_stop/', {'notes': 'Customer absent'})
         self.assertEqual(r.json()['status'], 'FAILED')
 
-    def test_update_geocodes_only_when_address_changes(self, geocode, sleep):
+    def test_update_geocodes_only_when_address_changes(self, geocode):
         self.add_stop()
         stop = self.route.route_stops.get()
         geocode.reset_mock()
@@ -292,6 +294,8 @@ class ShipmentEventRecordingTests(AuthenticatedAPITestCase):
 
     def test_ship_order_records_created(self):
         order = make_order(self.company, status='PROCESSING')
+        product = make_product(self.company)
+        OrderItem.objects.create(order=order, product=product, quantity=1, unit_price=product.unit_price, total_price=product.unit_price)
         r = self.client.post(f'{BASE}/orders/{order.id}/ship_order/', {'warehouse_id': str(self.warehouse.id)})
         shipment = Shipment.objects.get(id=r.json()['shipment_id'])
         self.assertEqual(shipment.events.get().event_type, 'CREATED')
@@ -307,8 +311,7 @@ class ShipmentEventRecordingTests(AuthenticatedAPITestCase):
         self.client.patch(f'{BASE}/shipments/{shipment.id}/', {'notes': 'Fragile'}, format='json')
         self.assertEqual(shipment.events.count(), 1)
 
-    @patch('apps.distribution.views.time.sleep')
-    @patch('apps.distribution.views.geocode_address', return_value=None)
+    @patch('apps.ops.geo.geocode', return_value=None)
     def test_route_stop_actions_record_stop_events(self, *_):
         route = DeliveryRoute.objects.create(company=self.company, route_name='CBD')
         delivered = make_shipment(self.company, warehouse=self.warehouse, status='SHIPPED')
@@ -326,9 +329,11 @@ class ShipmentEventRecordingTests(AuthenticatedAPITestCase):
             ('STOP_COMPLETED', '', ''),
             ('STATUS_CHANGED', 'SHIPPED', 'DELIVERED'),
         ])
-        fail_event = failed.events.get()
-        self.assertEqual(fail_event.event_type, 'STOP_FAILED')
+        fail_event = failed.events.get(event_type='STOP_FAILED')
         self.assertEqual(fail_event.data['notes'], 'Gate locked')
+        # a failed stop also opens an exception for someone to follow up
+        self.assertEqual(failed.events.filter(event_type='EXCEPTION_RAISED').count(), 1)
+        self.assertEqual(failed.exceptions.get().exception_type, 'FAILED_DELIVERY')
 
 
 class LogisticsModelTests(AuthenticatedAPITestCase):
@@ -362,3 +367,121 @@ class LogisticsModelTests(AuthenticatedAPITestCase):
         make_shipment(self.company, status='RETURNED')
         stats = self.client.get('/api/v1/auth/dashboard/overview/').json()['stats']
         self.assertEqual(stats['active_shipments'], 1)
+
+
+class StockAndRulesTests(AuthenticatedAPITestCase):
+    """Stock leaves the warehouse once, when a shipment ships; totals and statuses can't be faked."""
+
+    def setUp(self):
+        super().setUp()
+        from apps.inventory.models import InventoryItem
+        self.warehouse = make_warehouse(self.company)
+        self.flour = make_product(self.company, unit_price=Decimal('100.00'))
+        self.oil = make_product(self.company, unit_price=Decimal('250.00'))
+        InventoryItem.objects.create(product=self.flour, warehouse=self.warehouse, quantity=50)
+        InventoryItem.objects.create(product=self.oil, warehouse=self.warehouse, quantity=5)
+
+    def qty(self, product):
+        from apps.inventory.models import InventoryItem
+        return InventoryItem.objects.get(product=product, warehouse=self.warehouse).quantity
+
+    def create_order(self, oil=2, **extra):
+        return self.client.post(f'{BASE}/orders/', {
+            'customer_name': 'Wanjiku Stores', 'customer_email': 'w@stores.co.ke', 'shipping_address': 'Moi Ave, Nairobi',
+            'tax_amount': '16.00', 'shipping_amount': '50.00', 'discount_amount': '6.00', 'total_amount': '1',
+            'order_items': [{'product_id': str(self.flour.id), 'quantity': 10}, {'product_id': str(self.oil.id), 'quantity': oil}],
+            **extra,
+        }, format='json')
+
+    def to_shipment(self, order_id):
+        self.client.post(f'{BASE}/orders/{order_id}/process_order/')
+        r = self.client.post(f'{BASE}/orders/{order_id}/ship_order/', {'warehouse_id': str(self.warehouse.id)})
+        self.assertEqual(r.status_code, 200, r.content)
+        sid = r.json()['shipment_id']
+        for step in ('pick_shipment', 'pack_shipment'):
+            self.client.post(f'{BASE}/shipments/{sid}/{step}/')
+        return sid
+
+    def test_order_total_is_computed_and_number_generated(self):
+        r = self.create_order()
+        self.assertEqual(r.status_code, 201, r.content)
+        order = CustomerOrder.objects.get(id=r.json()['id'])
+        self.assertEqual(order.total_amount, Decimal('10') * 100 + 2 * 250 + 16 + 50 - 6)  # client's '1' ignored
+        self.assertTrue(order.order_number.startswith('ORD-'))
+        self.assertEqual(self.create_order(order_items=[]).status_code, 400)
+        dup = [{'product_id': str(self.flour.id), 'quantity': 1}, {'product_id': str(self.flour.id), 'quantity': 2}]
+        self.assertEqual(self.create_order(order_items=dup).status_code, 400)
+
+    def test_shipping_takes_stock_once_and_return_puts_it_back(self):
+        oid = self.create_order().json()['id']
+        sid = self.to_shipment(oid)
+        self.assertEqual((self.qty(self.flour), self.qty(self.oil)), (50, 5))  # nothing moves before shipping
+        r = self.client.post(f'{BASE}/shipments/{sid}/ship_shipment/', {'carrier': 'G4S'})
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual((self.qty(self.flour), self.qty(self.oil)), (40, 3))
+        self.assertEqual(CustomerOrder.objects.get(id=oid).status, 'SHIPPED')
+        self.assertEqual(self.client.post(f'{BASE}/shipments/{sid}/ship_shipment/').status_code, 400)
+        self.client.post(f'{BASE}/shipments/{sid}/deliver_shipment/')
+        self.assertEqual(CustomerOrder.objects.get(id=oid).status, 'DELIVERED')
+        r = self.client.post(f'{BASE}/shipments/{sid}/return_shipment/', {'reason': 'Damaged'})
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual((self.qty(self.flour), self.qty(self.oil)), (50, 5))
+        self.assertEqual(self.client.post(f'{BASE}/shipments/{sid}/return_shipment/').status_code, 400)
+
+    def test_shortage_blocks_shipping(self):
+        oid = self.create_order(oil=9).json()['id']
+        sid = self.to_shipment(oid)
+        r = self.client.post(f'{BASE}/shipments/{sid}/ship_shipment/')
+        self.assertEqual(r.status_code, 400)
+        self.assertIn('insufficient_items', r.json())
+        self.assertEqual((self.qty(self.flour), self.qty(self.oil)), (50, 5))
+
+    def test_statuses_cannot_be_patched(self):
+        oid = self.create_order().json()['id']
+        sid = self.to_shipment(oid)
+        self.client.patch(f'{BASE}/orders/{oid}/', {'status': 'DELIVERED'}, format='json')
+        self.client.patch(f'{BASE}/shipments/{sid}/', {'status': 'DELIVERED'}, format='json')
+        self.assertEqual(CustomerOrder.objects.get(id=oid).status, 'PROCESSING')
+        self.assertEqual(Shipment.objects.get(id=sid).status, 'PACKED')
+
+    def test_order_edits_only_before_shipping(self):
+        oid = self.create_order().json()['id']
+        r = self.client.patch(f'{BASE}/orders/{oid}/', {'order_items': [{'product_id': str(self.oil.id), 'quantity': 1}]}, format='json')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual(Decimal(r.json()['total_amount']), Decimal('250') + 16 + 50 - 6)
+        sid = self.to_shipment(oid)
+        self.client.post(f'{BASE}/shipments/{sid}/ship_shipment/')
+        self.assertEqual(self.client.patch(f'{BASE}/orders/{oid}/', {'notes': 'x'}, format='json').status_code, 400)
+        self.assertEqual(self.client.delete(f'{BASE}/orders/{oid}/').status_code, 400)
+
+    def test_cancelling_order_cancels_its_waiting_shipment(self):
+        oid = self.create_order().json()['id']
+        sid = self.to_shipment(oid)
+        self.assertEqual(self.client.post(f'{BASE}/orders/{oid}/cancel_order/').status_code, 200)
+        self.assertEqual(Shipment.objects.get(id=sid).status, 'CANCELLED')
+        self.assertEqual(self.qty(self.flour), 50)
+        # a second shipment can't be created while one is live, but can after cancelling
+        oid2 = self.create_order().json()['id']
+        self.to_shipment(oid2)
+        r = self.client.post(f'{BASE}/orders/{oid2}/ship_order/', {'warehouse_id': str(self.warehouse.id)})
+        self.assertEqual(r.status_code, 400)
+
+    @patch('apps.ops.geo.geocode', return_value=None)
+    def test_route_stop_ships_and_delivers_and_failed_stops_dont_block(self, *_):
+        oid = self.create_order().json()['id']
+        sid = self.to_shipment(oid)
+        other = make_shipment(self.company, warehouse=self.warehouse)
+        route = self.client.post(f'{BASE}/routes/', {'route_name': 'Nairobi CBD'}, format='json').json()
+        rid = route['id']
+        s1 = self.client.post(f'{BASE}/routes/{rid}/add_stop/', {'shipment_id': sid, 'address': 'Moi Ave'}, format='json').json()['stop']
+        s2 = self.client.post(f'{BASE}/routes/{rid}/add_stop/', {'shipment_id': str(other.id), 'address': 'Tom Mboya St'}, format='json').json()['stop']
+        self.client.post(f'{BASE}/routes/{rid}/start_route/')
+        self.client.post(f'{BASE}/route-stops/{s1["id"]}/arrive_at_stop/')
+        r = self.client.post(f'{BASE}/route-stops/{s1["id"]}/complete_stop/')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual(Shipment.objects.get(id=sid).status, 'DELIVERED')
+        self.assertEqual(self.qty(self.flour), 40)  # stock left when the stop delivered it
+        self.client.post(f'{BASE}/route-stops/{s2["id"]}/fail_stop/', {'notes': 'Gate closed'})
+        self.assertEqual(self.client.post(f'{BASE}/routes/{rid}/complete_route/').status_code, 200)
+        r = self.client.post(f'{BASE}/routes/{rid}/add_stop/', {'shipment_id': sid, 'address': 'x'}, format='json')
+        self.assertEqual(r.status_code, 400)  # delivered shipments don't need stops (and the route is done)

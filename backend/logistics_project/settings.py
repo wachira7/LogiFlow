@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     'apps.payments',
     'apps.platform_admin',
     'apps.analytics',
+    'apps.ops',
     'backup',
 ]
 
@@ -194,6 +195,8 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'password_reset': os.getenv('PASSWORD_RESET_THROTTLE', '5/hour'),
         'contact': os.getenv('CONTACT_THROTTLE', '5/hour'),
+        'public_tracking': os.getenv('PUBLIC_TRACKING_THROTTLE', '60/minute'),
+        'location_pings': os.getenv('LOCATION_PING_THROTTLE', '240/hour'),
     },
 }
 
@@ -426,8 +429,12 @@ CLOUDINARY_STORAGE = {
     'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
 }
 
+# Uploads go to Cloudinary. In local development without Cloudinary credentials they go to MEDIA_ROOT
+# instead; outside DEBUG we always use Cloudinary (container disks are wiped on deploy).
+_CLOUDINARY_CONFIGURED = bool(os.getenv('CLOUDINARY_URL') or (os.getenv('CLOUDINARY_CLOUD_NAME') and os.getenv('CLOUDINARY_API_KEY')))
 STORAGES = {
-    'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage'},
+    'default': {'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage' if (_CLOUDINARY_CONFIGURED or not DEBUG)
+                else 'django.core.files.storage.FileSystemStorage'},
     'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
 }
 
@@ -560,3 +567,14 @@ PAGINATION_SETTINGS = {
     'SEARCH_PAGE_SIZE': int(os.getenv('SEARCH_PAGE_SIZE', 15)),
     'MAX_PAGE_SIZE': int(os.getenv('MAX_PAGE_SIZE', 200)),
 }
+
+# ── Operations: geocoding and travel times ─────────────────────────────────
+# Free/open-source defaults. Switch ROUTING_PROVIDER to 'osrm' and set OSRM_URL (self-hosted or a
+# hosted OSRM-compatible service) for road-based ETAs; GEO_PROVIDER 'none' turns geocoding off.
+GEO_PROVIDER = os.getenv('GEO_PROVIDER', 'nominatim')
+NOMINATIM_URL = os.getenv('NOMINATIM_URL', 'https://nominatim.openstreetmap.org/search')
+GEO_CONTACT_EMAIL = os.getenv('GEO_CONTACT_EMAIL', os.getenv('CONTACT_EMAIL', 'ops@logiflow.app'))
+GEO_COUNTRY_CODES = os.getenv('GEO_COUNTRY_CODES', '')  # e.g. 'ke' to prefer Kenyan matches
+ROUTING_PROVIDER = os.getenv('ROUTING_PROVIDER', 'straight_line')
+OSRM_URL = os.getenv('OSRM_URL', '')
+OPS_AVERAGE_SPEED_KMH = float(os.getenv('OPS_AVERAGE_SPEED_KMH', '30'))

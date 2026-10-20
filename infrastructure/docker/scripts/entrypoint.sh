@@ -19,23 +19,28 @@ echo "✅ PostgreSQL is up!"
 echo "📦 Collecting static files..."
 python manage.py collectstatic --noinput --clear
 
-# Create superuser if needed
-echo "👤 Creating superuser if needed..."
-python manage.py shell <<EOF
+# Create a superuser only when a password is provided (never fall back to a default)
+if [ -n "${DJANGO_SUPERUSER_PASSWORD}" ]; then
+  echo "👤 Creating superuser if needed..."
+  python manage.py shell <<'PYEOF'
+import os
 from django.contrib.auth import get_user_model
 User = get_user_model()
 if not User.objects.filter(username='admin').exists():
     User.objects.create_superuser(
         username='admin',
-        email='admin@logiflow.com',
-        password='${DJANGO_SUPERUSER_PASSWORD:-admin123}',
+        email=os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@logiflow.com'),
+        password=os.environ['DJANGO_SUPERUSER_PASSWORD'],
         first_name='Admin',
         last_name='User'
     )
     print('✅ Superuser created!')
 else:
     print('✅ Superuser already exists')
-EOF
+PYEOF
+else
+  echo "ℹ️  DJANGO_SUPERUSER_PASSWORD not set; skipping superuser creation"
+fi
 
 echo "✅ Backend initialization complete!"
 echo "🚀 Starting application..."

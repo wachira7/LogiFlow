@@ -15,6 +15,7 @@ const publicRoutes = [
   '/pricing',
   '/about',
   '/auth/accept-invitation',
+  '/track',
 ]
 
 // PROTECTED ROUTES - Auth required (regular users)
@@ -29,6 +30,8 @@ const protectedRoutes = [
   '/profile',
   '/settings',
   '/company',
+  '/ops',
+  '/driver',
 ]
 
 //  PLATFORM ADMIN ROUTES - Auth + platform admin role required

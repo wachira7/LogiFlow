@@ -526,8 +526,12 @@ def get_platform_notifications(request):
     """
     from apps.platform_admin.models import PlatformNotification
 
+    now = timezone.now()
     notifications = PlatformNotification.objects.filter(
         is_active=True,
+    ).filter(
+        models.Q(scheduled_for__isnull=True) | models.Q(scheduled_for__lte=now),
+        models.Q(expires_at__isnull=True) | models.Q(expires_at__gt=now),
     ).filter(
         models.Q(is_global=True) |
         models.Q(target_companies=request.user.company)

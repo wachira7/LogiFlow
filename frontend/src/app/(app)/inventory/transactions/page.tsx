@@ -1,365 +1,128 @@
-//src/app/inventory/transactions/page.tsx
+// src/app/(app)/inventory/transactions/page.tsx
+// The stock ledger: every receipt, shipment, adjustment, transfer, return and production movement.
 'use client'
 
-import { useState } from 'react'
-import { useTransactions, useProducts, useWarehouses } from '@/hooks/useInventory'
-import { Button } from '@/components/ui/button'
+import { Suspense, useEffect, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { History, Search, X } from 'lucide-react'
+import { stockService, type Movement, type MovementType, type Page, type StockWarehouse } from '@/services/stockService'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { Search, Filter, Calendar, TrendingUp, TrendingDown, RotateCcw, ArrowRightLeft, Factory } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { TRANSACTION_TYPES } from '@/types/inventory.types'
-import type { TransactionFilter, TransactionType } from '@/types/inventory.types'
+import { EmptyState } from '@/components/shared/EmptyState'
+import { ExportButton, type CsvColumn } from '@/components/shared/ExportButton'
+import { ErrorBanner, FilterChips, PageHeader, TableSkeleton } from '@/components/app/kit'
+import { FadeIn, MotionRow } from '@/components/app/motion'
+import { MOVEMENT, MovementIcon, Pager, SignedQty } from '@/components/inventory/status'
+import { formatCount, formatDateTime, timeAgo } from '@/lib/format'
 
-export default function TransactionsPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [showFilters, setShowFilters] = useState(false)
-  const [filter, setFilter] = useState<TransactionFilter>({})
+const FILTERS = [['', 'All'], ...Object.entries(MOVEMENT).map(([k, v]) => [k, v.label] as const)] as readonly (readonly ['' | MovementType, string])[]
+const csv: CsvColumn<Movement>[] = [
+  { header: 'When', value: (m) => m.timestamp }, { header: 'Type', value: (m) => MOVEMENT[m.transaction_type]?.label ?? m.transaction_type },
+  { header: 'SKU', value: (m) => m.product_sku }, { header: 'Product', value: (m) => m.product_name }, { header: 'Warehouse', value: (m) => m.warehouse_name },
+  { header: 'Quantity', value: (m) => m.quantity }, { header: 'Balance after', value: (m) => m.balance_after }, { header: 'Reference', value: (m) => m.reference },
+  { header: 'Notes', value: (m) => m.notes }, { header: 'By', value: (m) => m.performed_by_name },
+]
 
-  const { transactions, isLoading, pagination, applyFilter } = useTransactions(filter)
-  const { products } = useProducts()
-  const { warehouses } = useWarehouses()
+function MovementsContent() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const params = useSearchParams()
+  const product = params.get('product') ?? ''
+  const [type, setType] = useState<'' | MovementType>((params.get('type') as MovementType) ?? '')
+  const [warehouse, setWarehouse] = useState(params.get('warehouse') ?? '')
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const [query, setQuery] = useState('')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [data, setData] = useState<Page<Movement> | null>(null)
+  const [warehouses, setWarehouses] = useState<StockWarehouse[]>([])
+  const [productName, setProductName] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query)
-    applyFilter({ ...filter, search: query })
-  }
+  useEffect(() => { stockService.warehouses().then(setWarehouses).catch(() => {}) }, [])
+  useEffect(() => { if (product) stockService.product(product).then((p) => setProductName(p.name)).catch(() => setProductName('this product')); else setProductName(null) }, [product])
+  useEffect(() => { const t = setTimeout(() => { setSearch(query.trim()); setPage(1) }, 300); return () => clearTimeout(t) }, [query])
+  useEffect(() => {
+    setError(null)
+    stockService.movements({ page, search, product: product || undefined, transaction_type: type || undefined, warehouse: warehouse || undefined, date_from: from || undefined, date_to: to || undefined })
+      .then(setData).catch((err) => setError(err instanceof Error ? err.message : 'Couldn’t load movements.'))
+  }, [page, search, product, type, warehouse, from, to])
 
-  const handleFilterChange = (key: keyof TransactionFilter, value: unknown) => {
-    const newFilter = { ...filter, [key]: value }
-    setFilter(newFilter)
-    applyFilter(newFilter)
-  }
-
-  const getTransactionIcon = (type: TransactionType) => {
-    switch (type) {
-      case 'RECEIPT': return <TrendingUp className="h-4 w-4 text-green-600" />
-      case 'SHIPMENT': return <TrendingDown className="h-4 w-4 text-red-600" />
-      case 'RETURN': return <RotateCcw className="h-4 w-4 text-orange-600" />
-      case 'ADJUSTMENT': return <RotateCcw className="h-4 w-4 text-blue-600" />
-      case 'TRANSFER': return <ArrowRightLeft className="h-4 w-4 text-purple-600" />
-      case 'PRODUCTION': return <Factory className="h-4 w-4 text-teal-600" />
-    }
-  }
-
-  const getTransactionColor = (type: TransactionType) => {
-    switch (type) {
-      case 'RECEIPT': return 'bg-green-100 text-green-800 border-green-200'
-      case 'SHIPMENT': return 'bg-red-100 text-red-800 border-red-200'
-      case 'RETURN': return 'bg-orange-100 text-orange-800 border-orange-200'
-      case 'ADJUSTMENT': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'TRANSFER': return 'bg-purple-100 text-purple-800 border-purple-200'
-      case 'PRODUCTION': return 'bg-teal-100 text-teal-800 border-teal-200'
-    }
-  }
-
-  const totalTransactions = transactions.length
-  const inTransactions = transactions.filter(t => t.transaction_type === 'RECEIPT').length
-  const outTransactions = transactions.filter(t => t.transaction_type === 'SHIPMENT').length
-  const adjustmentTransactions = transactions.filter(t => t.transaction_type === 'ADJUSTMENT').length
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
-    )
-  }
+  const reset = (fn: () => void) => { fn(); setPage(1) }
+  const rows = data?.results
+  const filtered = !!(type || warehouse || from || to || search || product)
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inventory Transactions</h1>
-          <p className="text-muted-foreground">
-            Track all inventory movements and stock changes
-          </p>
-        </div>
-      </div>
+      <PageHeader icon={History} title="Stock movements" description="The full ledger. Every change to stock lands here with who made it and the balance after."
+        actions={<ExportButton filename={`stock-movements-${new Date().toISOString().slice(0, 10)}`} rows={rows ?? []} columns={csv} />} />
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalTransactions}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stock In</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{inTransactions}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stock Out</CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{outTransactions}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Adjustments</CardTitle>
-            <RotateCcw className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{adjustmentTransactions}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters & Search */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search transactions..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                />
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="mr-2 h-4 w-4" />
-              Filters
-            </Button>
+      <FadeIn delay={0.05} className="space-y-3">
+        <FilterChips id="movements" options={FILTERS} value={type} onChange={(v) => reset(() => setType(v))} />
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[1fr_auto_auto_auto]">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Product, reference or note…" className="bg-card pl-9 pr-9" aria-label="Search movements" />
+            {query && <button onClick={() => setQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground" aria-label="Clear"><X className="h-3.5 w-3.5" /></button>}
           </div>
+          <Select value={warehouse || 'all'} onValueChange={(v) => reset(() => setWarehouse(v === 'all' ? '' : v))}>
+            <SelectTrigger className="w-full bg-card xl:w-48" aria-label="Warehouse"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="all">All warehouses</SelectItem>{warehouses.map((w) => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}</SelectContent>
+          </Select>
+          <Input type="date" value={from} max={to || undefined} onChange={(e) => reset(() => setFrom(e.target.value))} className="bg-card xl:w-40" aria-label="From date" />
+          <Input type="date" value={to} min={from || undefined} onChange={(e) => reset(() => setTo(e.target.value))} className="bg-card xl:w-40" aria-label="To date" />
+        </div>
+        {product && (
+          <button onClick={() => router.replace(pathname)} className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-sm font-medium text-brand">
+            Product: {productName ?? '…'} <X className="h-3.5 w-3.5" /><span className="sr-only">Clear product filter</span>
+          </button>
+        )}
+      </FadeIn>
 
-          {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t">
-              <Select
-                value={filter.transaction_type || ''}
-                onValueChange={(value) => handleFilterChange('transaction_type', value || undefined)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
-                  {TRANSACTION_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={filter.product || ''}
-                onValueChange={(value) => handleFilterChange('product', value || undefined)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Products" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Products</SelectItem>
-                  {products.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={filter.warehouse || ''}
-                onValueChange={(value) => handleFilterChange('warehouse', value || undefined)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Warehouses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">All Warehouses</SelectItem>
-                  {warehouses.map((warehouse) => (
-                    <SelectItem key={warehouse.id} value={warehouse.id}>
-                      {warehouse.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="flex space-x-2">
-                <Input
-                  type="date"
-                  placeholder="From date"
-                  value={filter.date_from || ''}
-                  onChange={(e) => handleFilterChange('date_from', e.target.value || undefined)}
-                  className="flex-1"
-                />
-                <Input
-                  type="date"
-                  placeholder="To date"
-                  value={filter.date_to || ''}
-                  onChange={(e) => handleFilterChange('date_to', e.target.value || undefined)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-          )}
-        </CardHeader>
-      </Card>
-
-      {/* Transactions Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-          <CardDescription>
-            Complete log of all inventory movements and changes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {transactions.length === 0 ? (
-            <EmptyState
-              title="No transactions found"
-              description="Inventory transactions will appear here as you manage stock"
-              icon={<Calendar className="h-12 w-12 text-muted-foreground/50" />}
-            />
-          ) : (
-            <div className="space-y-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Warehouse</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Balance</TableHead>
-                    <TableHead>Reason / reference</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Created By</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          {getTransactionIcon(transaction.transaction_type)}
-                          <Badge 
-                            variant="outline" 
-                            className={getTransactionColor(transaction.transaction_type)}
-                          >
-                            {TRANSACTION_TYPES.find(t => t.value === transaction.transaction_type)?.label || transaction.transaction_type}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{transaction.product_name}</div>
-                          <div className="text-sm text-muted-foreground font-mono">
-                            {transaction.product_sku}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">{transaction.warehouse_name}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          {/* the stored quantity is signed: negative means stock went out */}
-                          <span className={`font-medium tabular-nums ${transaction.quantity < 0 ? 'text-danger' : 'text-success'}`}>
-                            {transaction.quantity < 0 ? '−' : '+'}
-                            {Math.abs(transaction.quantity)}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {transaction.unit_of_measure}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {transaction.balance_after == null ? (
-                            <span className="text-muted-foreground">—</span>
-                          ) : (
-                            <span className="tabular-nums">
-                              <span className="text-muted-foreground">{transaction.balance_before}</span>
-                              <span className="mx-1 text-xs text-muted-foreground">→</span>
-                              <span className="font-medium">{transaction.balance_after}</span>
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="text-sm font-medium">{transaction.reference || '-'}</div>
-                          {transaction.notes && (
-                            <div className="text-xs text-muted-foreground">
-                              {transaction.notes}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          <div>{new Date(transaction.timestamp).toLocaleDateString()}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(transaction.timestamp).toLocaleTimeString()}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {transaction.performed_by_name || 'System'}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              {pagination.count > pagination.page_size && (
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">
-                    Showing {((pagination.page - 1) * pagination.page_size) + 1} to{' '}
-                    {Math.min(pagination.page * pagination.page_size, pagination.count)} of{' '}
-                    {pagination.count} transactions
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={!pagination.previous}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={!pagination.next}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {error && <ErrorBanner title="Couldn’t load movements" message={error} />}
+      {!rows ? <TableSkeleton rows={8} cols={5} /> : rows.length === 0 ? (
+        <EmptyState icon={<History />} title={filtered ? 'No matching movements' : 'No movements yet'} description={filtered ? 'Try a wider date range or another filter.' : 'Receiving, shipping, adjusting or transferring stock records a movement here.'} />
+      ) : (
+        <FadeIn delay={0.1} className="overflow-hidden rounded-xl border bg-card shadow-sm">
+          <ul className="divide-y md:hidden">
+            {rows.map((m) => (
+              <li key={m.id} className="flex items-center gap-3 px-4 py-3">
+                <MovementIcon type={m.transaction_type} />
+                <div className="min-w-0 flex-1"><p className="truncate font-medium">{m.product_name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{MOVEMENT[m.transaction_type]?.label} · {m.warehouse_name} · {timeAgo(m.timestamp)}</p></div>
+                <div className="text-right"><SignedQty value={m.quantity} />{m.balance_after != null && <p className="text-xs tabular-nums text-muted-foreground">→ {formatCount(m.balance_after)}</p>}</div>
+              </li>
+            ))}
+          </ul>
+          <div className="relative hidden overflow-x-auto md:block">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr><th className="px-5 py-3 font-medium">Movement</th><th className="px-3 py-3 font-medium">Product</th><th className="px-3 py-3 font-medium">Warehouse</th><th className="px-3 py-3 text-right font-medium">Qty</th><th className="px-3 py-3 text-right font-medium">Balance</th><th className="px-3 py-3 font-medium">Reference</th><th className="px-5 py-3 font-medium">By</th></tr>
+              </thead>
+              <tbody className="divide-y">
+                {rows.map((m, i) => (
+                  <MotionRow key={m.id} index={i} className="transition-colors hover:bg-muted/40">
+                    <td className="px-5 py-3"><div className="flex items-center gap-3"><MovementIcon type={m.transaction_type} />
+                      <div><p className="font-medium">{MOVEMENT[m.transaction_type]?.label ?? m.transaction_type}</p><p className="text-xs text-muted-foreground" title={formatDateTime(m.timestamp)}>{timeAgo(m.timestamp)}</p></div></div></td>
+                    <td className="px-3 py-3"><p className="font-medium">{m.product_name}</p><p className="font-mono text-xs text-muted-foreground">{m.product_sku}</p></td>
+                    <td className="px-3 py-3 text-muted-foreground">{m.warehouse_name}</td>
+                    <td className="px-3 py-3 text-right"><SignedQty value={m.quantity} /></td>
+                    <td className="px-3 py-3 text-right tabular-nums text-muted-foreground">{m.balance_before != null && m.balance_after != null ? <>{formatCount(m.balance_before)} → <span className="font-medium text-foreground">{formatCount(m.balance_after)}</span></> : '—'}</td>
+                    <td className="max-w-56 px-3 py-3"><p className="truncate">{m.reference || '—'}</p>{m.notes && <p className="truncate text-xs text-muted-foreground" title={m.notes}>{m.notes}</p>}</td>
+                    <td className="px-5 py-3 text-muted-foreground">{m.performed_by_name || 'System'}</td>
+                  </MotionRow>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </FadeIn>
+      )}
+      {data && <Pager page={page} count={data.count} onPage={setPage} />}
     </div>
   )
+}
+
+export default function MovementsPage() {
+  return <Suspense fallback={<TableSkeleton rows={8} cols={5} />}><MovementsContent /></Suspense>
 }

@@ -10,7 +10,7 @@ import { useAuth, useAuthUtils } from '@/hooks/useAuth'
 import {
   LayoutDashboard, Package, Truck, Factory, Warehouse, BarChart3, CreditCard, Settings, Users, Building,
   ChevronDown, X, ChevronLeft, ChevronRight, Shield, TrendingUp, Building2, User, Boxes, Tags, History,
-  ArrowRightLeft, Route, MapPin, ClipboardList, Layers, ListChecks, Wallet, Receipt, Bell, Lock, Home,
+  ArrowRightLeft, Route, MapPin, ClipboardList, Layers, ListChecks, Wallet, Receipt, Bell, Lock, Home, Radar, Siren, Smartphone,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -20,13 +20,15 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Logo } from '@/components/landing/Logo'
 
 interface SidebarProps {
+  /** Menu to show; defaults to the company app menu */
+  items?: NavItem[]
   open: boolean
   onClose: () => void
   collapsed: boolean
   onToggleCollapse: () => void
 }
 
-interface NavItem {
+export interface NavItem {
   title: string
   href: string
   icon: React.ComponentType<{ className?: string }>
@@ -38,6 +40,15 @@ interface NavItem {
 const navigation: NavItem[] = [
   { title: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   {
+    title: 'Operations', href: '/ops', icon: Radar,
+    children: [
+      { title: 'Ops board', href: '/ops', icon: Radar },
+      { title: 'Exceptions', href: '/ops/exceptions', icon: Siren },
+      { title: 'Fleet', href: '/ops/fleet', icon: Truck },
+      { title: 'Driver app', href: '/driver', icon: Smartphone },
+    ],
+  },
+  {
     title: 'Inventory', href: '/inventory', icon: Package,
     children: [
       { title: 'Overview', href: '/inventory', icon: Home },
@@ -45,7 +56,7 @@ const navigation: NavItem[] = [
       { title: 'Stock', href: '/inventory/inventory-items', icon: Boxes },
       { title: 'Categories', href: '/inventory/categories', icon: Tags },
       { title: 'Warehouses', href: '/inventory/warehouses', icon: Warehouse },
-      { title: 'Transactions', href: '/inventory/transactions', icon: History },
+      { title: 'Movements', href: '/inventory/transactions', icon: History },
       { title: 'Reports', href: '/inventory/reports', icon: BarChart3 },
     ],
   },
@@ -154,7 +165,7 @@ const subscribeDesktop = (cb: () => void) => {
   return () => mq.removeEventListener('change', cb)
 }
 
-export function Sidebar({ open, onClose, collapsed: collapsedPref, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ items: customItems, open, onClose, collapsed: collapsedPref, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname()
   // The icon-only rail is a desktop preference; the phone drawer always shows labels
   const isDesktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(desktopQuery).matches, () => true)
@@ -163,15 +174,16 @@ export function Sidebar({ open, onClose, collapsed: collapsedPref, onToggleColla
   const { hasAnyRole, getUserDisplayName } = useAuthUtils()
   const { user } = useAuth()
 
-  const items = navigation.filter((item) => !item.roles || hasAnyRole(item.roles))
+  const source = customItems ?? navigation
+  const items = source.filter((item) => !item.roles || hasAnyRole(item.roles))
   const current = activeHref(pathname, items)
   const [expanded, setExpanded] = useState<string[]>([])
 
   // Open the section that holds the current page
   useEffect(() => {
-    const owner = navigation.find((item) => item.children && sectionOwns(item, pathname))
+    const owner = source.find((item) => item.children && sectionOwns(item, pathname))
     if (owner) setExpanded((prev) => (prev.includes(owner.title) ? prev : [...prev, owner.title]))
-  }, [pathname])
+  }, [pathname, source])
 
   const toggle = (title: string) =>
     setExpanded((prev) => (prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]))

@@ -34,6 +34,9 @@ class PlatformAuditLog(TimeStampedModel):
         ('USER_IMPERSONATED', 'User Impersonated'),
         ('SETTINGS_CHANGED', 'Settings Changed'),
         ('SYSTEM_MAINTENANCE', 'System Maintenance'),
+        ('COMPANY_DELETED', 'Company Deleted'),
+        ('TRIAL_EXTENDED', 'Trial Extended'),
+        ('NOTIFICATION_PUBLISHED', 'Notification Published'),
     ]
     
     admin_user = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='admin_actions')

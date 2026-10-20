@@ -122,6 +122,7 @@ class IsCompanyMember(permissions.BasePermission):
         # Company must be active
         if not request.user.company.is_active:
             logger.warning(f"User {request.user.email} belongs to inactive company")
+            self.message = 'Your company’s LogiFlow account is suspended. Please contact support.'
             return False
         
         return True

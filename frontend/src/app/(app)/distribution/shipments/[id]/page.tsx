@@ -1,468 +1,155 @@
-// src/app/distribution/shipments/[id]/page.tsx
-'use client';
+// src/app/(app)/distribution/shipments/[id]/page.tsx
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useDistribution } from '@/hooks/useDistribution';
-import { DeliveryStatus } from '@/components/distribution/DeliveryStatus';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Edit2, Package, PackageCheck, Truck, CheckCircle, Trash2, Calendar, User, ExternalLink } from 'lucide-react';
-import type { ShipmentStatus } from '@/types/distribution.types';
-import { formatDate } from '@/utils/dateUtils';
+import { use, useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { AlertTriangle, CheckCircle2, ClipboardList, Copy, Edit, Hand, Loader2, MapPin, Package, Phone, Route, RotateCcw, Trash2, Truck, Warehouse, XCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import { distributionService } from '@/services/distributionService'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { ErrorBanner, PageHeader, Panel } from '@/components/app/kit'
+import { ShipmentPill, ShipmentProgress, StopPill } from '@/components/distribution/status'
+import { formatCount, formatDateTime } from '@/lib/format'
+import type { ShipmentDetail } from '@/types/distribution.types'
+import { ShipmentTimeline } from '@/components/ops/ShipmentTimeline'
+import { VehicleAssign } from '@/components/ops/VehicleAssign'
 
+export default function ShipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const router = useRouter()
+  const [s, setS] = useState<ShipmentDetail | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [shipOpen, setShipOpen] = useState(false)
+  const [ship, setShip] = useState({ carrier: '', tracking: '', eta: '' })
+  const [reasonFor, setReasonFor] = useState<'cancel' | 'return' | null>(null)
+  const [reason, setReason] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
+  const load = useCallback(() => distributionService.shipment(id).then(setS).catch((err) => setError(err instanceof Error ? err.message : 'Not found')), [id])
+  useEffect(() => { load() }, [load])
 
-const statusLabels: Record<ShipmentStatus, string> = {
-  PENDING: 'Pending',
-  PICKED: 'Picked',
-  PACKED: 'Packed',
-  SHIPPED: 'Shipped',
-  DELIVERED: 'Delivered',
-};
-
-const statusIcons: Record<ShipmentStatus, React.ComponentType<{ className?: string }>> = {
-  PENDING: Package,
-  PICKED: Package,
-  PACKED: PackageCheck,
-  SHIPPED: Truck,
-  DELIVERED: CheckCircle,
-};
-
-export default function ShipmentDetailsPage() {
-  const params = useParams();
-  const router = useRouter();
-  const shipmentId = params.id as string;
-  
-  const {
-    selectedShipment,
-    fetchShipment,
-    deleteShipment,
-    pickShipment,
-    packShipment,
-    shipShipment,
-    deliverShipment,
-    loading,
-  } = useDistribution();
-
-  const [actionLoading, setActionLoading] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-
-  useEffect(() => {
-    if (shipmentId) {
-      fetchShipment(shipmentId);
-    }
-  }, [shipmentId, fetchShipment]);
-
-  const handleBack = () => {
-    router.push('/distribution/shipments');
-  };
-
-  const handleEdit = () => {
-    router.push(`/distribution/shipments/${shipmentId}/edit`);
-  };
-
-  const handleViewOrder = () => {
-    if (selectedShipment?.order_id) {
-      router.push(`/distribution/orders/${selectedShipment.order_id}`);
-    }
-  };
-
-  // Workflow action handlers
-  const handlePick = async () => {
-    setActionLoading(true);
+  const act = async (action: Parameters<typeof distributionService.shipmentAction>[1], data: Record<string, unknown> = {}) => {
+    setBusy(true)
     try {
-      await pickShipment(shipmentId);
-      await fetchShipment(shipmentId);
+      const r = await distributionService.shipmentAction(id, action, data)
+      toast.success(r.message)
+      setS(r.shipment)
+      setShipOpen(false); setReasonFor(null); setReason('')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'That didn’t work.')
     } finally {
-      setActionLoading(false);
+      setBusy(false)
     }
-  };
-
-  const handlePack = async () => {
-    setActionLoading(true);
-    try {
-      await packShipment(shipmentId);
-      await fetchShipment(shipmentId);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleShip = async () => {
-    // In a real implementation, this would open a dialog for shipping details
-    setActionLoading(true);
-    try {
-      await shipShipment(shipmentId, {
-        tracking_number: `TRK-${Date.now()}`,
-        carrier: 'Default Carrier',
-      });
-      await fetchShipment(shipmentId);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleDeliver = async () => {
-    setActionLoading(true);
-    try {
-      await deliverShipment(shipmentId);
-      await fetchShipment(shipmentId);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await deleteShipment(shipmentId);
-      router.push('/distribution/shipments');
-    } finally {
-      setShowDeleteDialog(false);
-    }
-  };
-
-  if (loading || !selectedShipment) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="flex items-center justify-center py-8">
-            <LoadingSpinner size="lg" />
-          </CardContent>
-        </Card>
-      </div>
-    );
   }
 
-  const shipment = selectedShipment;
-  
-  const canEdit = shipment.status !== 'DELIVERED';
-  const canPick = shipment.status === 'PENDING';
-  const canPack = shipment.status === 'PICKED';
-  const canShip = shipment.status === 'PACKED';
-  const canDeliver = shipment.status === 'SHIPPED';
-  const canDelete = shipment.status === 'PENDING';
+  if (error) return <div className="space-y-6"><PageHeader title="Shipment" back={{ href: '/distribution/shipments', label: 'Shipments' }} /><ErrorBanner title="Couldn’t load this shipment" message={error} /></div>
+  if (!s) return <div className="space-y-6"><Skeleton className="h-16 w-72" /><Skeleton className="h-28 rounded-xl" /><Skeleton className="h-72 rounded-xl" /></div>
+
+  const preShip = ['PENDING', 'PICKED', 'PACKED'].includes(s.status)
+  const next: Record<string, { label: string; icon: typeof Hand; run: () => void }> = {
+    PENDING: { label: 'Mark picked', icon: Hand, run: () => act('pick') },
+    PICKED: { label: 'Mark packed', icon: Package, run: () => act('pack') },
+    PACKED: { label: 'Ship it', icon: Truck, run: () => { setShip({ carrier: s.carrier, tracking: s.tracking_number, eta: '' }); setShipOpen(true) } },
+    SHIPPED: { label: 'Mark delivered', icon: CheckCircle2, run: () => act('deliver') },
+  }
+  const primary = next[s.status]
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Shipment {shipment.shipment_number}</h1>
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-1" />
-                {formatDate(shipment.created_at)}
-              </div>
-              <DeliveryStatus
-                status={shipment.status}
-                isDelayed={shipment.is_delayed}
-                compact
-              /> 
-            </div>
-          </div>
+    <div className="space-y-6">
+      <PageHeader icon={Truck} back={{ href: '/distribution/shipments', label: 'Shipments' }} title={s.shipment_number}
+        description={<span className="flex flex-wrap items-center gap-2"><ShipmentPill status={s.status} delayed={s.is_delayed} /><span>{s.customer_name ?? s.recipient_name ?? 'Manual shipment'} · from {s.warehouse_name}</span></span>}
+        actions={<>
+          {preShip && <Button size="sm" variant="outline" onClick={() => router.push(`/distribution/shipments/${id}/edit`)}><Edit className="mr-2 h-4 w-4" />Edit</Button>}
+          {['PENDING', 'CANCELLED'].includes(s.status) && <Button size="sm" variant="outline" className="text-danger hover:text-danger" onClick={() => setConfirmDelete(true)}><Trash2 className="mr-2 h-4 w-4" />Delete</Button>}
+          {preShip && <Button size="sm" variant="outline" onClick={() => setReasonFor('cancel')}><XCircle className="mr-2 h-4 w-4" />Cancel</Button>}
+          {['SHIPPED', 'DELIVERED', 'FAILED'].includes(s.status) && <Button size="sm" variant="outline" onClick={() => setReasonFor('return')}><RotateCcw className="mr-2 h-4 w-4" />Record return</Button>}
+          {primary && <Button size="sm" disabled={busy} onClick={primary.run} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90">{busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <primary.icon className="mr-2 h-4 w-4" />}{primary.label}</Button>}
+        </>} />
+
+      {s.is_delayed && <div className="flex items-center gap-3 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger"><AlertTriangle className="h-5 w-5" />Past the estimated delivery time ({formatDateTime(s.estimated_delivery)}).</div>}
+
+      {['CANCELLED', 'RETURNED'].includes(s.status) ? (
+        <div className="rounded-xl border bg-muted/40 px-4 py-3 text-sm">{s.status === 'CANCELLED' ? 'This shipment was cancelled before it left; no stock moved.' : 'Returned to the warehouse; the stock was added back.'}</div>
+      ) : (
+        <Panel delay={0.05} bodyClassName="p-5 sm:p-6"><ShipmentProgress status={s.status} />
+          {preShip && <p className="mt-4 text-center text-xs text-muted-foreground">Stock is taken from {s.warehouse_name} when you ship it.</p>}
+        </Panel>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <Panel icon={Package} title={`Items (${formatCount(s.shipment_items.reduce((a, i) => a + i.quantity, 0))} units)`} bodyClassName="p-0" delay={0.1}>
+            {s.shipment_items.length === 0 ? <p className="px-5 py-6 text-sm text-muted-foreground">No items listed (manual shipment).</p> : (
+              <ul className="divide-y">{s.shipment_items.map((i) => (
+                <li key={i.id} className="flex items-center justify-between px-5 py-3 text-sm"><span><span className="font-medium">{i.product_name}</span><span className="block text-xs text-muted-foreground">{i.product_sku}</span></span><span className="font-semibold tabular-nums">× {formatCount(i.quantity)}</span></li>
+              ))}</ul>
+            )}
+          </Panel>
+          <ShipmentTimeline shipmentId={id} refreshKey={s.events.length} />
         </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-2">
-          {canEdit && (
-            <Button variant="outline" onClick={handleEdit} disabled={actionLoading}>
-              <Edit2 className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-          )}
-
-          {canPick && (
-            <Button onClick={handlePick} disabled={actionLoading}>
-              {actionLoading ? (
-                <LoadingSpinner size="sm" className="mr-2" />
-              ) : (
-                <Package className="h-4 w-4 mr-2" />
-              )}
-              Pick Shipment
-            </Button>
-          )}
-
-          {canPack && (
-            <Button onClick={handlePack} disabled={actionLoading}>
-              {actionLoading ? (
-                <LoadingSpinner size="sm" className="mr-2" />
-              ) : (
-                <PackageCheck className="h-4 w-4 mr-2" />
-              )}
-              Pack Shipment
-            </Button>
-          )}
-
-          {canShip && (
-            <Button onClick={handleShip} disabled={actionLoading}>
-              {actionLoading ? (
-                <LoadingSpinner size="sm" className="mr-2" />
-              ) : (
-                <Truck className="h-4 w-4 mr-2" />
-              )}
-              Ship Shipment
-            </Button>
-          )}
-
-          {canDeliver && (
-            <Button onClick={handleDeliver} disabled={actionLoading}>
-              {actionLoading ? (
-                <LoadingSpinner size="sm" className="mr-2" />
-              ) : (
-                <CheckCircle className="h-4 w-4 mr-2" />
-              )}
-              Mark Delivered
-            </Button>
-          )}
-
-          {canDelete && (
-            <Button 
-              variant="outline" 
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={actionLoading}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Shipment Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Shipment Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium mb-2">Basic Details</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Shipment #:</span>
-                      <span className="font-mono">{shipment.shipment_number}</span>
-                    </div>
-                    {shipment.order_number && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Order:</span>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-blue-600"
-                          onClick={handleViewOrder}
-                        >
-                          {shipment.order_number}
-                          <ExternalLink className="h-3 w-3 ml-1" />
-                        </Button>
-                      </div>
-                    )}
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Warehouse:</span>
-                      <span>{shipment.warehouse_name}</span>
-                    </div>
-                    {shipment.driver_name && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground flex items-center">
-                          <User className="h-4 w-4 mr-1" /> Driver: </span>
-                        <span>{shipment.driver_name}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="font-medium mb-2">Shipping Details</h4>
-                  <div className="space-y-2 text-sm">
-                    {shipment.carrier && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Carrier:</span>
-                        <span>{shipment.carrier}</span>
-                      </div>
-                    )}
-                    {shipment.tracking_number && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tracking #:</span>
-                        <span className="font-mono">{shipment.tracking_number}</span>
-                      </div>
-                    )}
-                    {shipment.shipping_date && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Ship Date:</span>
-                        <span>{formatDate(shipment.shipping_date)}</span>
-                      </div>
-                    )}
-                    {shipment.estimated_delivery && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Est. Delivery:</span>
-                        <span>{formatDate(shipment.estimated_delivery)}</span>
-                      </div>
-                    )}
-                    {shipment.actual_delivery && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Delivered:</span>
-                        <span>{formatDate(shipment.actual_delivery)}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {shipment.vehicle_info && (
-                <div className="pt-4 border-t">
-                  <h5 className="font-medium mb-2 flex items-center">
-                    <Truck className="h-4 w-4 mr-2" />
-                    Vehicle Information
-                  </h5>
-                  <p className="text-sm text-muted-foreground">{shipment.vehicle_info}</p>
-                </div>
-              )}
-
-              {shipment.notes && (
-                <div className="pt-4 border-t">
-                  <h5 className="font-medium mb-2">Notes</h5>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {shipment.notes}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Shipment Items */}
-          {shipment.shipment_items && shipment.shipment_items.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipment Items</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Product</TableHead>
-                        <TableHead>SKU</TableHead>
-                        <TableHead className="text-right">Quantity</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {shipment.shipment_items.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-medium">
-                            {item.product_name}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {item.product_sku}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {item.quantity}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Sidebar */}
         <div className="space-y-6">
-          {/* Status Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Status Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {(['PENDING', 'PICKED', 'PACKED', 'SHIPPED', 'DELIVERED'] as ShipmentStatus[]).map((status, index) => {
-                  const StatusStepIcon = statusIcons[status];
-                  const isCompleted = ['PICKED', 'PACKED', 'SHIPPED', 'DELIVERED'].includes(shipment.status) 
-                    && index <= ['PENDING', 'PICKED', 'PACKED', 'SHIPPED', 'DELIVERED'].indexOf(shipment.status);
-                  const isCurrent = shipment.status === status;
-                  
-                  return (
-                    <div key={status} className="flex items-center space-x-3">
-                      <div className={`
-                        flex items-center justify-center w-8 h-8 rounded-full border-2
-                        ${isCurrent 
-                          ? 'bg-blue-100 border-blue-500 text-blue-600' 
-                          : isCompleted 
-                            ? 'bg-green-100 border-green-500 text-green-600'
-                            : 'bg-gray-100 border-gray-300 text-gray-400'
-                        }
-                      `}>
-                        <StatusStepIcon className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1">
-                        <p className={`text-sm font-medium ${
-                          isCurrent ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-400'
-                        }`}>
-                          {statusLabels[status]}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Shipment Stats */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Shipment Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Created:</span>
-                <span>{formatDate(shipment.created_at)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Last Updated:</span>
-                <span>{formatDate(shipment.updated_at)}</span>
-              </div>
-              <div className="pt-2">
-                <DeliveryStatus
-                  status={shipment.status}
-                  isDelayed={shipment.is_delayed}
-                  estimatedDelivery={shipment.estimated_delivery}
-                  actualDelivery={shipment.actual_delivery}
-                  trackingNumber={shipment.tracking_number}
-                />
-              </div>
-              {shipment.delivery_days && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Delivery Time:</span>
-                  <span>{shipment.delivery_days} days</span>
-                </div>
-              )}
-              
-            </CardContent>
-          </Card>
+          <Panel icon={MapPin} title="Delivery" delay={0.12}>
+            <div className="space-y-2 text-sm">
+              <p className="font-medium">{s.recipient_name || s.customer_name || '—'}</p>
+              {s.recipient_phone && <p className="flex items-center gap-2 text-muted-foreground"><Phone className="h-3.5 w-3.5" /><a href={`tel:${s.recipient_phone}`} className="hover:text-brand">{s.recipient_phone}</a></p>}
+              <p className="text-muted-foreground">{s.destination_address || 'No address'}</p>
+              <dl className="grid grid-cols-2 gap-2 border-t pt-3 text-xs">
+                <div><dt className="text-muted-foreground">Carrier</dt><dd className="font-medium">{s.carrier || s.driver_name || '—'}</dd></div>
+                <div><dt className="text-muted-foreground">Tracking</dt><dd className="flex items-center gap-1 font-medium">{s.tracking_number || '—'}{s.tracking_number && <button onClick={() => { navigator.clipboard?.writeText(s.tracking_number); toast.success('Copied') }} aria-label="Copy tracking number"><Copy className="h-3 w-3" /></button>}</dd></div>
+                <div><dt className="text-muted-foreground">Shipped</dt><dd className="font-medium">{s.shipping_date ? formatDateTime(s.shipping_date) : '—'}</dd></div>
+                <div><dt className="text-muted-foreground">{s.actual_delivery ? 'Delivered' : 'ETA'}</dt><dd className="font-medium">{formatDateTime(s.actual_delivery ?? s.estimated_delivery)}</dd></div>
+              </dl>
+              {!['DELIVERED', 'CANCELLED', 'RETURNED'].includes(s.status) ? (
+                <div className="border-t pt-3"><VehicleAssign value={s.vehicle_id} onChange={async (vehicle_id) => {
+                  try { setS(await distributionService.updateShipment(id, { vehicle_id })); toast.success(vehicle_id ? 'Vehicle assigned' : 'Vehicle removed') }
+                  catch (err) { toast.error(err instanceof Error ? err.message : 'Couldn’t assign it.') }
+                }} /></div>
+              ) : s.vehicle_registration && <p className="border-t pt-3 text-xs text-muted-foreground">Vehicle <span className="font-medium text-foreground">{s.vehicle_registration}</span></p>}
+            </div>
+          </Panel>
+          <Panel title="Linked" delay={0.18}>
+            <ul className="space-y-2 text-sm">
+              <li className="flex items-center gap-2"><Warehouse className="h-4 w-4 text-brand" />From {s.warehouse_name}</li>
+              {s.order_id && <li><Link href={`/distribution/orders/${s.order_id}`} className="flex items-center gap-2 hover:text-brand"><ClipboardList className="h-4 w-4 text-brand" />Order {s.order_number}</Link></li>}
+              {s.route_stop && <li><Link href={`/distribution/routes/${s.route_stop.route_id}`} className="flex items-center gap-2 hover:text-brand"><Route className="h-4 w-4 text-brand" />{s.route_stop.route_name} · stop {s.route_stop.stop_number} <StopPill status={s.route_stop.status} /></Link></li>}
+            </ul>
+          </Panel>
+          {s.notes && <Panel title="Notes" delay={0.22}><p className="whitespace-pre-wrap text-sm text-muted-foreground">{s.notes}</p></Panel>}
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Shipment"
-        description="Are you sure you want to delete this shipment? This action cannot be undone."
-        onConfirm={handleDelete}
-        variant="destructive"
-      />
+      <Dialog open={shipOpen} onOpenChange={(v) => !busy && setShipOpen(v)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Ship {s.shipment_number}</DialogTitle><DialogDescription>The items are taken out of {s.warehouse_name}’s stock now.</DialogDescription></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5"><Label htmlFor="sh-carrier">Carrier or driver</Label><Input id="sh-carrier" value={ship.carrier} onChange={(e) => setShip({ ...ship, carrier: e.target.value })} placeholder="e.g. G4S, own van" /></div>
+            <div className="space-y-1.5"><Label htmlFor="sh-track">Tracking number <span className="font-normal text-muted-foreground">(optional)</span></Label><Input id="sh-track" value={ship.tracking} onChange={(e) => setShip({ ...ship, tracking: e.target.value })} /></div>
+            <div className="space-y-1.5"><Label htmlFor="sh-eta">Expected delivery</Label><Input id="sh-eta" type="datetime-local" value={ship.eta} onChange={(e) => setShip({ ...ship, eta: e.target.value })} /></div>
+            <Button disabled={busy} className="w-full bg-brand text-brand-foreground hover:bg-brand/90" onClick={() => act('ship', { carrier: ship.carrier, tracking_number: ship.tracking, estimated_delivery: ship.eta ? new Date(ship.eta).toISOString() : '' })}>
+              {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Truck className="mr-2 h-4 w-4" />}Ship now</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!reasonFor} onOpenChange={(v) => !busy && !v && setReasonFor(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>{reasonFor === 'cancel' ? 'Cancel shipment' : 'Record a return'}</DialogTitle>
+            <DialogDescription>{reasonFor === 'cancel' ? 'It hasn’t left yet, so no stock changes. The order can be shipped again.' : `The items go back into ${s.warehouse_name}’s stock.`}</DialogDescription></DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5"><Label htmlFor="sh-reason">Reason <span className="font-normal text-muted-foreground">(optional)</span></Label><Textarea id="sh-reason" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={reasonFor === 'return' ? 'e.g. Damaged on arrival' : ''} /></div>
+            <Button disabled={busy} variant={reasonFor === 'cancel' ? 'destructive' : 'default'} className="w-full" onClick={() => act(reasonFor === 'cancel' ? 'cancel' : 'return', { reason })}>{busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{reasonFor === 'cancel' ? 'Cancel shipment' : 'Record return'}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <ConfirmDialog open={confirmDelete} onOpenChange={setConfirmDelete} title="Delete this shipment?" description="It will be removed for good." confirmText="Delete" variant="destructive" loading={busy}
+        onConfirm={async () => { try { await distributionService.deleteShipment(id); toast.success('Shipment deleted'); router.push('/distribution/shipments') } catch (err) { toast.error(err instanceof Error ? err.message : 'Couldn’t delete.') } }} />
     </div>
-  );
+  )
 }

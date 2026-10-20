@@ -22,6 +22,8 @@ interface NavbarProps {
 
 const LABELS: Record<string, string> = {
   'inventory-items': 'Stock',
+  ops: 'Operations',
+  driver: 'Driver app',
   steps: 'Work queue',
   users: 'Team',
   general: 'Profile',

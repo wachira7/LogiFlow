@@ -1,96 +1,56 @@
-// frontend/src/app/platform-admin/analytics/page.tsx
+// src/app/platform-admin/analytics/page.tsx
 'use client'
 
-import { useEffect } from 'react'
-import Link from 'next/link'
-//import { PrivateRoute } from '@/components/auth/AuthGuard'
-import { usePlatformAdmin } from '@/hooks/usePlatformAdmin'
-import { PlatformAnalyticsComponent } from '@/components/platform-admin/PlatformAnalytics'
-import { SubscriptionOverview } from '@/components/platform-admin/SubscriptionOverview'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { ArrowLeft, TrendingUp, AlertCircle, RefreshCw } from 'lucide-react'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
+import { useEffect, useState } from 'react'
+import { BarChart3, Building2, Repeat, Wallet } from 'lucide-react'
+import { adminService, type AdminOverview } from '@/services/adminService'
+import { ErrorBanner, PageHeader, Panel, StatCard, StatGrid, StatGridSkeleton } from '@/components/app/kit'
+import { BarList, TrendChart } from '@/components/analytics/Charts'
+import { Skeleton } from '@/components/ui/skeleton'
+import { formatTotals } from '@/components/billing/shared'
+import { formatMoney } from '@/lib/format'
 
-function AnalyticsPageContent() {
-  const {
-    analytics,
-    isLoadingAnalytics,
-    analyticsError,
-    fetchAnalytics,
-  } = usePlatformAdmin()
-
+export default function PlatformAnalyticsPage() {
+  const [d, setD] = useState<AdminOverview | null>(null)
+  const [error, setError] = useState<string | null>(null)
   useEffect(() => {
-    fetchAnalytics()
-  }, [fetchAnalytics])
+    adminService.overview().then(setD).catch((err) => setError(err instanceof Error ? err.message : 'Couldn’t load analytics.'))
+  }, [])
 
-  if (analyticsError) {
-    return (
-      <div className="container mx-auto py-6">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{analyticsError}</AlertDescription>
-        </Alert>
-      </div>
-    )
-  }
-
-  if (isLoadingAnalytics && !analytics) {
-    return (
-      <div className="container mx-auto py-6">
-        <Card>
-          <CardContent className="p-12">
-            <LoadingSpinner size="lg" text="Loading analytics..." />
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  const months = d?.monthly ?? []
+  const dates = months.map((m) => `${m.month}-01`)
+  const currencies = [...new Set(months.flatMap((m) => Object.keys(m.revenue)))]
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/platform-admin">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold flex items-center space-x-3">
-              <TrendingUp className="w-8 h-8" />
-              <span>Platform Analytics</span>
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Comprehensive insights and metrics for your SaaS platform
-            </p>
-          </div>
+    <div className="space-y-6">
+      <PageHeader icon={BarChart3} title="Platform analytics" description="Revenue and growth across every company. Each currency is shown on its own." />
+      {error && <ErrorBanner title="Couldn’t load analytics" message={error} />}
+      {!d ? <StatGridSkeleton /> : (
+        <StatGrid>
+          <StatCard label="Monthly recurring (USD)" value={d.mrr_usd} icon={Repeat} tone="success" format={(n) => formatMoney(n, 'USD', { maximumFractionDigits: 0 })} hint={`${d.paying_subscriptions} paying subscriptions`} />
+          <StatCard label="Revenue, 30 days" value={1} icon={Wallet} tone="brand" format={() => formatTotals(d.revenue_30d)} />
+          <StatCard label="Revenue, all time" value={1} icon={Wallet} tone="info" format={() => formatTotals(d.revenue_total)} />
+          <StatCard label="New companies, 30 days" value={d.new_companies_30d} icon={Building2} tone="warning" hint={`${d.churned_30d} subscriptions ended`} />
+        </StatGrid>
+      )}
+      {!d ? <Skeleton className="h-72 rounded-xl" /> : currencies.length === 0 ? (
+        <Panel title="Revenue by month"><p className="py-8 text-center text-sm text-muted-foreground">No completed payments yet.</p></Panel>
+      ) : currencies.map((cur, i) => (
+        <Panel key={cur} title={`Revenue by month · ${cur}`} delay={0.05 + i * 0.05}>
+          <TrendChart dates={dates} format={(n) => formatMoney(n, cur, { maximumFractionDigits: 0 })}
+            series={[{ key: `rev-${cur}`, label: cur, color: i % 2 ? 'var(--info)' : 'var(--brand)', values: months.map((m) => m.revenue[cur] ?? 0) }]} />
+        </Panel>
+      ))}
+      {d && (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Panel title="New companies by month" delay={0.15}>
+            <TrendChart height={220} dates={dates} series={[{ key: 'signups', label: 'New companies', color: 'var(--info)', values: months.map((m) => m.signups) }]} />
+          </Panel>
+          <Panel title="Live subscriptions by plan" delay={0.2}>
+            <BarList items={d.plan_breakdown.map((p) => ({ label: p.plan, sub: p.cycle.toLowerCase(), value: p.count }))} empty="No live subscriptions." />
+          </Panel>
         </div>
-        <Button onClick={fetchAnalytics} variant="outline" size="sm" disabled={isLoadingAnalytics}>
-          <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingAnalytics ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </div>
-
-      {/* Platform Analytics */}
-      <PlatformAnalyticsComponent 
-        analytics={analytics}
-        isLoading={isLoadingAnalytics}
-      />
-
-      {/* Subscription Overview */}
-      <SubscriptionOverview
-        analytics={analytics}
-        isLoading={isLoadingAnalytics}
-      />
+      )}
     </div>
   )
-}
-
-export default function AnalyticsPage() {
-  return <AnalyticsPageContent />
 }
