@@ -1,87 +1,98 @@
-// /app/inventory/categories/[id]/page.tsx
+// src/app/(app)/inventory/categories/[id]/page.tsx
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRecordById } from '@/hooks/useRecordById'
-import { inventoryService } from '@/services/inventoryService'
+import { useParams, useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { Edit, FolderTree, Package, Plus, Trash2 } from 'lucide-react'
+import { stockService, type StockCategory, type StockProduct } from '@/services/stockService'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Edit, FolderTree } from 'lucide-react'
+import { Skeleton } from '@/components/ui/skeleton'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { ErrorBanner, PageHeader, Panel, StatusPill } from '@/components/app/kit'
+import { AppStagger, AppStaggerItem, MotionRow } from '@/components/app/motion'
+import { StockPill } from '@/components/inventory/status'
+import { formatCount, formatMoney } from '@/lib/format'
 
 export default function CategoryDetailPage() {
-  const params = useParams()
-  const categoryId = params?.id as string
-  const { record: category, isLoading } = useRecordById(categoryId, (id) => inventoryService.getCategory(id))
+  const { id } = useParams<{ id: string }>()
+  const router = useRouter()
+  const [cat, setCat] = useState<StockCategory | null>(null)
+  const [subs, setSubs] = useState<StockCategory[]>([])
+  const [products, setProducts] = useState<StockProduct[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [confirm, setConfirm] = useState(false)
+  const [busy, setBusy] = useState(false)
 
-  if (isLoading) {
-    return <div className="flex items-center justify-center h-64"><LoadingSpinner /></div>
+  const load = useCallback(async () => {
+    try {
+      const [c, s, p] = await Promise.all([stockService.category(id), stockService.categories({ parent: id }), stockService.products({ category: id })])
+      setCat(c); setSubs(s); setProducts(p.results); setError(null)
+    } catch (err) { setError(err instanceof Error ? err.message : 'Couldn’t load this category.') }
+  }, [id])
+  useEffect(() => { load() }, [load])
+
+  const remove = async () => {
+    setBusy(true)
+    try { await stockService.deleteCategory(id); toast.success('Category deleted'); router.push('/inventory/categories') }
+    catch (err) { toast.error(err instanceof Error ? err.message : 'Couldn’t delete it.'); setConfirm(false) }
+    finally { setBusy(false) }
   }
 
-  if (!category) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
-        <FolderTree className="h-12 w-12 text-muted-foreground" />
-        <div className="text-center">
-          <h2 className="text-xl font-semibold">Category not found</h2>
-        </div>
-        <Link href="/inventory/categories"><Button>Back to Categories</Button></Link>
-      </div>
-    )
-  }
+  const back = cat?.parent_id ? { href: `/inventory/categories/${cat.parent_id}`, label: cat.parent_name ?? 'Parent' } : { href: '/inventory/categories', label: 'Categories' }
+  if (error && !cat) return <div className="space-y-6"><PageHeader icon={FolderTree} title="Category" back={back} /><ErrorBanner message={error} onRetry={load} /></div>
+  if (!cat) return <div className="space-y-6"><Skeleton className="h-16 w-72" /><Skeleton className="h-64 rounded-xl" /></div>
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/inventory/categories">
-            <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold">{category.name}</h1>
-            <p className="text-muted-foreground">Category Details</p>
-          </div>
-        </div>
-        <Link href={`/inventory/categories/${category.id}/edit`}>
-          <Button><Edit className="mr-2 h-4 w-4" />Edit Category</Button>
-        </Link>
-      </div>
+      <PageHeader icon={FolderTree} back={back} title={cat.name}
+        description={<span className="flex flex-wrap items-center gap-2">{!cat.is_active && <StatusPill tone="neutral">Inactive</StatusPill>}<span>{cat.description || cat.full_path}</span></span>}
+        actions={<>
+          <Button variant="outline" onClick={() => router.push(`/inventory/categories/${id}/edit`)}><Edit className="mr-2 h-4 w-4" />Edit</Button>
+          <Button variant="outline" className="text-danger hover:text-danger" onClick={() => setConfirm(true)} aria-label="Delete category"><Trash2 className="h-4 w-4" /></Button>
+        </>} />
 
-      <Card>
-        <CardHeader><CardTitle>Category Information</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Name</label>
-              <p className="mt-1 font-medium">{category.name}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Status</label>
-              <div className="mt-1">
-                <Badge variant={category.is_active ? "default" : "secondary"}>
-                  {category.is_active ? 'Active' : 'Inactive'}
-                </Badge>
-              </div>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Parent Category</label>
-              <p className="mt-1">{category.parent?.name || 'None'}</p>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Product Count</label>
-              <p className="mt-1">{category.products_count || 0}</p>
-            </div>
-          </div>
-          {category.description && (
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Description</label>
-              <p className="mt-1">{category.description}</p>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Panel className="lg:col-span-2" icon={Package} title={`Products (${cat.products_count})`} bodyClassName="p-0" delay={0.05}
+          action={<Button size="sm" variant="outline" onClick={() => router.push('/inventory/products/new')}><Plus className="mr-1 h-3.5 w-3.5" />Product</Button>}>
+          {!products ? <div className="p-5"><Skeleton className="h-32" /></div> : products.length === 0 ? (
+            <p className="px-5 py-10 text-center text-sm text-muted-foreground">No products in this category yet.</p>
+          ) : (
+            <div className="relative overflow-x-auto">
+              <table className="w-full text-sm">
+                <tbody className="divide-y">
+                  {products.map((p, i) => (
+                    <MotionRow key={p.id} index={i} className="cursor-pointer hover:bg-muted/40" onClick={() => router.push(`/inventory/products/${p.id}`)}>
+                      <td className="px-4 py-3 sm:px-5"><p className="font-medium">{p.name}</p><p className="font-mono text-xs text-muted-foreground">{p.sku}</p></td>
+                      <td className="px-3 py-3 text-right tabular-nums">{formatCount(p.total_stock)} <span className="text-xs text-muted-foreground">{p.unit_of_measure}</span></td>
+                      <td className="hidden px-3 py-3 sm:table-cell"><StockPill quantity={p.total_stock} reorderPoint={p.reorder_point} max={p.max_stock_level} /></td>
+                      <td className="px-4 py-3 text-right font-medium tabular-nums sm:px-5">{formatMoney(p.unit_price)}</td>
+                    </MotionRow>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </Panel>
+        <Panel icon={FolderTree} title="Subcategories" delay={0.1}
+          action={<Button size="sm" variant="ghost" className="text-brand" onClick={() => router.push(`/inventory/categories/new?parent_id=${id}`)}><Plus className="mr-1 h-3.5 w-3.5" />Add</Button>}>
+          {subs.length === 0 ? <p className="text-sm text-muted-foreground">None. Add one to split this category further.</p> : (
+            <AppStagger className="space-y-2">
+              {subs.map((s) => (
+                <AppStaggerItem key={s.id}>
+                  <Link href={`/inventory/categories/${s.id}`} className="card-lift flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm">
+                    <span className="font-medium">{s.name}</span><span className="text-xs text-muted-foreground">{s.products_count} products</span>
+                  </Link>
+                </AppStaggerItem>
+              ))}
+            </AppStagger>
+          )}
+        </Panel>
+      </div>
+
+      <ConfirmDialog open={confirm} onOpenChange={setConfirm} loading={busy} variant="destructive" title={`Delete ${cat.name}?`}
+        description={cat.products_count ? `Its ${cat.products_count} products stay, but become uncategorised. Categories with subcategories can’t be deleted.` : "Categories with subcategories can’t be deleted. Move them first."} confirmText="Delete" cancelText="Keep it" onConfirm={remove} />
     </div>
   )
 }

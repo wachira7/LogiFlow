@@ -1,275 +1,60 @@
-//src/app/inventory/warehouses/page.tsx
+// src/app/(app)/inventory/warehouses/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useWarehouses } from '@/hooks/useInventory'
+import { useRouter } from 'next/navigation'
+import { Building2, MapPin, Plus, UserRound } from 'lucide-react'
+import { stockService, type StockWarehouse } from '@/services/stockService'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, MapPin, User, Building, Package } from 'lucide-react'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Progress } from '@/components/ui/progress'
+import { ErrorBanner, FilterChips, PageHeader, StatusPill, TableSkeleton } from '@/components/app/kit'
+import { AppStagger, AppStaggerItem, FadeIn } from '@/components/app/motion'
+import { UtilizationRing } from '@/components/inventory/UtilizationRing'
+import { formatCount, formatMoney } from '@/lib/format'
+
+const FILTERS = [['active', 'Active'], ['all', 'All'], ['inactive', 'Inactive']] as const
 
 export default function WarehousesPage() {
-  const [searchQuery, setSearchQuery] = useState('')
+  const router = useRouter()
+  const [rows, setRows] = useState<StockWarehouse[] | null>(null)
+  const [filter, setFilter] = useState<'active' | 'all' | 'inactive'>('active')
+  const [error, setError] = useState<string | null>(null)
 
-  const { warehouses, isLoading, deleteWarehouse } = useWarehouses()
-
-  const filteredWarehouses = warehouses.filter((warehouse) => {
-    if (!warehouse || !warehouse.address) {
-      return false;
-    }
-    return (
-      warehouse.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      warehouse.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      warehouse.address.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  });
-
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this warehouse? This action cannot be undone.')) {
-      try {
-        await deleteWarehouse(id)
-      } catch (error) {
-        console.error('Delete failed:', error)
-      }
-    }
-  }
-
-  const totalProducts = warehouses.reduce((sum, w) => sum + (w.total_products || 0), 0)
-  const withCapacity = warehouses.filter((w) => w.utilization_percentage != null)
-  const averageUtilization = withCapacity.length > 0
-    ? withCapacity.reduce((sum, w) => sum + Number(w.utilization_percentage), 0) / withCapacity.length
-    : null
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <LoadingSpinner />
-      </div>
-    )
-  }
+  useEffect(() => { stockService.warehouses().then(setRows).catch((err) => setError(err instanceof Error ? err.message : 'Couldn’t load warehouses.')) }, [])
+  const shown = (rows ?? []).filter((w) => filter === 'all' || (filter === 'active') === w.is_active)
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Warehouses</h1>
-          <p className="text-muted-foreground">
-            Manage your warehouse locations and inventory distribution
-          </p>
-        </div>
-        <Link href="/inventory/warehouses/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Warehouse
-          </Button>
-        </Link>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Warehouses</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{warehouses.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Warehouses</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {warehouses.filter(w => w.is_active).length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalProducts}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Utilization</CardTitle>
-            <Progress value={averageUtilization} className="h-2" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{averageUtilization == null ? '—' : `${averageUtilization.toFixed(1)}%`}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search warehouses..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Warehouses Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Warehouses List</CardTitle>
-          <CardDescription>
-            Manage your warehouse locations and their inventory
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredWarehouses.length === 0 ? (
-            <EmptyState
-              title="No warehouses found"
-              description="Add warehouses to manage your inventory locations"
-              action={
-                <Link href="/inventory/warehouses/new">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Warehouse
-                  </Button>
-                </Link>
-              }
-              icon={<Building className="h-12 w-12 text-muted-foreground/50" />}
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Warehouse</TableHead>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Manager</TableHead>
-                  <TableHead>Products</TableHead>
-                  <TableHead>Utilization</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredWarehouses.map((warehouse) => (
-                  <TableRow key={warehouse.id}>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{warehouse.name}</div>
-                        {warehouse.description && (
-                          <div className="text-sm text-muted-foreground">
-                            {warehouse.description}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">
-                      {warehouse.code}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="text-sm">{warehouse.address}</div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {warehouse.manager_name ? (
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <div className="text-sm font-medium">{warehouse.manager_name}</div>
-                            {warehouse.manager_email && (
-                              <div className="text-xs text-muted-foreground">
-                                {warehouse.manager_email}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {warehouse.total_products || 0}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Progress 
-                          value={warehouse.utilization_percentage || 0} 
-                          className="h-2 w-16" 
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          {warehouse.utilization_percentage == null ? '—' : `${Number(warehouse.utilization_percentage).toFixed(1)}%`}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={warehouse.is_active ? "default" : "secondary"}>
-                        {warehouse.is_active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/inventory/warehouses/${warehouse.id}`}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Details
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/inventory/warehouses/${warehouse.id}/edit`}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => handleDelete(warehouse.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      <PageHeader icon={Building2} title="Warehouses" description="Where your stock is kept, and how full each place is."
+        actions={<Button onClick={() => router.push('/inventory/warehouses/new')} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90"><Plus className="mr-2 h-4 w-4" />New warehouse</Button>} />
+      {rows && rows.some((w) => !w.is_active) && <FadeIn delay={0.05}><FilterChips id="warehouses" options={FILTERS} value={filter} onChange={setFilter} /></FadeIn>}
+      {error && <ErrorBanner title="Couldn’t load warehouses" message={error} />}
+      {!rows ? <TableSkeleton rows={3} cols={3} /> : rows.length === 0 ? (
+        <EmptyState icon={<Building2 />} title="No warehouses yet" description="Add the places you keep stock. Each product can be stocked in several."
+          action={<Button onClick={() => router.push('/inventory/warehouses/new')} className="bg-brand text-brand-foreground hover:bg-brand/90"><Plus className="mr-2 h-4 w-4" />New warehouse</Button>} />
+      ) : (
+        <AppStagger className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {shown.map((w) => (
+            <AppStaggerItem key={w.id}>
+              <Link href={`/inventory/warehouses/${w.id}`} className={`card-lift flex h-full flex-col gap-4 rounded-xl border bg-card p-5 ${w.is_active ? '' : 'opacity-60'}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2"><p className="truncate font-semibold">{w.name}</p>{w.code && <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">{w.code}</span>}</div>
+                    <p className="mt-1 flex items-center gap-1.5 truncate text-sm text-muted-foreground"><MapPin className="h-3.5 w-3.5 shrink-0" />{[w.city, w.country].filter(Boolean).join(', ') || w.address || 'No address'}</p>
+                  </div>
+                  {w.is_active ? <UtilizationRing value={w.utilization_percentage} /> : <StatusPill tone="neutral">Inactive</StatusPill>}
+                </div>
+                <div className="mt-auto grid grid-cols-2 gap-3 border-t pt-4 text-sm">
+                  <div><p className="text-xs text-muted-foreground">Stock value</p><p className="font-semibold tabular-nums">{formatMoney(w.total_stock_value, undefined, { maximumFractionDigits: 0 })}</p></div>
+                  <div><p className="text-xs text-muted-foreground">Products</p><p className="font-semibold tabular-nums">{formatCount(w.total_products)}</p></div>
+                </div>
+                <p className="flex items-center gap-1.5 text-xs text-muted-foreground"><UserRound className="h-3.5 w-3.5" />{w.manager_name || 'No manager assigned'}</p>
+              </Link>
+            </AppStaggerItem>
+          ))}
+        </AppStagger>
+      )}
     </div>
   )
 }

@@ -291,6 +291,26 @@ class InventoryItemCreateSerializer(CompanyScopedMixin, serializers.Serializer):
         attrs['product'], attrs['warehouse'] = product, warehouse
         return attrs
 
+class StockReceiptSerializer(CompanyScopedMixin, serializers.Serializer):
+    """Goods received into a warehouse."""
+    product_id = serializers.UUIDField()
+    warehouse_id = serializers.UUIDField()
+    quantity = serializers.IntegerField(min_value=1, error_messages={'min_value': 'Receive at least one unit.'})
+    reference = serializers.CharField(max_length=100, required=False, allow_blank=True, default='')
+    location = serializers.CharField(max_length=100, required=False, allow_blank=True, default='')
+    notes = serializers.CharField(required=False, allow_blank=True, default='')
+
+    def validate(self, attrs):
+        product = Product.objects.filter(id=attrs['product_id'], company=self.company).first()
+        warehouse = Warehouse.objects.filter(id=attrs['warehouse_id'], company=self.company).first()
+        if product is None or warehouse is None:
+            raise serializers.ValidationError('Product or warehouse not found.')
+        if not warehouse.is_active:
+            raise serializers.ValidationError(f'{warehouse.name} is inactive. Reactivate it to receive stock.')
+        attrs['product'], attrs['warehouse'] = product, warehouse
+        return attrs
+
+
 class InventoryTransactionSerializer(serializers.ModelSerializer):
     """Serializer for InventoryTransaction model."""
     id = serializers.UUIDField(read_only=True)
