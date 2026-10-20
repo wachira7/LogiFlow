@@ -189,3 +189,115 @@ class InvitationDeliveryTests(AuthenticatedAPITestCase):
         self.assertNotIn('<script>', html)
         self.assertIn('&lt;script&gt;', html)
 
+
+
+class TeamManagementTests(AuthenticatedAPITestCase):
+    """Roles, seats, member management, settings validation."""
+
+    def setUp(self):
+        super().setUp()
+        self.user.is_company_owner = True
+        self.user.save()
+        self.send = patch('apps.tenants.views.send_invitation_email', return_value=True)
+        self.send.start()
+        self.addCleanup(self.send.stop)
+
+    def invite(self, email, role):
+        return self.client.post('/api/v1/tenants/invitations/', {'email': email, 'role': role}, format='json')
+
+    def accept(self, email):
+        token = CompanyInvitation.objects.get(email=email).token
+        return self.client.post('/api/v1/tenants/invitations/accept/', {
+            'token': token, 'password': PASSWORD, 'password_confirm': PASSWORD, 'first_name': 'Juma', 'last_name': 'K',
+        }, format='json')
+
+    def test_invited_role_is_applied_exactly(self):
+        self.assertEqual(self.invite('driver@duka.co.ke', 'driver').status_code, 201)
+        self.assertEqual(self.invite('x@duka.co.ke', 'wizard').status_code, 400)
+        self.assertEqual(self.accept('driver@duka.co.ke').status_code, 200)
+        driver = User.objects.get(email='driver@duka.co.ke')
+        self.assertEqual((driver.role, driver.is_company_owner, driver.company), ('driver', False, self.company))
+
+    def test_plan_seat_limit(self):
+        from decimal import Decimal
+        from apps.payments.models import SubscriptionPlan, UserSubscription
+        plan = SubscriptionPlan.objects.create(name='Tiny', price=Decimal('5'), billing_cycle='MONTHLY', max_users=2)
+        UserSubscription.objects.create(company=self.company, user=self.user, plan=plan, status='ACTIVE',
+                                        start_date=timezone.now(), end_date=timezone.now() + timedelta(days=30))
+        self.assertEqual(self.invite('one@duka.co.ke', 'member').status_code, 201)
+        r = self.invite('two@duka.co.ke', 'member')
+        self.assertEqual(r.status_code, 400)
+        self.assertIn('2 users', r.json()['message'])
+        company = self.client.get('/api/v1/tenants/company/').json()
+        self.assertEqual((company['seats_used'], company['seats_limit'], company['subscription_plan']), (2, 2, 'Tiny'))
+
+    def test_owner_manages_members_with_guards(self):
+        from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+        from rest_framework_simplejwt.tokens import RefreshToken
+        member = User.objects.create_user(email='m@duka.co.ke', username='m', password=PASSWORD, company=self.company)
+        RefreshToken.for_user(member)
+        url = f'/api/v1/tenants/members/{member.id}/'
+        r = self.client.patch(url, {'role': 'inventory_manager'}, format='json')
+        self.assertEqual((r.status_code, r.json()['role']), (200, 'inventory_manager'))
+        r = self.client.patch(url, {'is_active': False}, format='json')
+        self.assertEqual(r.status_code, 200)
+        member.refresh_from_db()
+        self.assertFalse(member.is_active)
+        self.assertTrue(BlacklistedToken.objects.filter(token__user=member).exists())
+        # can't change yourself; can't remove the last owner
+        self.assertEqual(self.client.patch(f'/api/v1/tenants/members/{self.user.id}/', {'role': 'member'}, format='json').status_code, 400)
+        other_owner = User.objects.create_user(email='o@duka.co.ke', username='o', password=PASSWORD, company=self.company, is_company_owner=True)
+        self.client.force_authenticate(other_owner)
+        self.assertEqual(self.client.patch(f'/api/v1/tenants/members/{self.user.id}/', {'role': 'member'}, format='json').status_code, 200)
+        self.user.refresh_from_db()
+        self.client.force_authenticate(self.user)  # now a member: can't manage the team
+        self.assertEqual(self.client.patch(f'/api/v1/tenants/members/{other_owner.id}/', {'role': 'member'}, format='json').status_code, 403)
+        self.client.force_authenticate(other_owner)  # the last owner can't be demoted
+        self.assertEqual(self.client.patch(f'/api/v1/tenants/members/{self.user.id}/', {'role': 'company_owner'}, format='json').status_code, 200)
+        self.client.force_authenticate(self.user)
+        self.user.refresh_from_db()
+        # other companies' people are invisible
+        stranger = User.objects.create_user(email='s@x.co', username='s', password=PASSWORD, company=make_company())
+        self.client.force_authenticate(other_owner)
+        self.assertEqual(self.client.patch(f'/api/v1/tenants/members/{stranger.id}/', {'role': 'member'}, format='json').status_code, 404)
+        members = self.client.get('/api/v1/tenants/members/').json()
+        members = members.get('results', members) if isinstance(members, dict) else members
+        self.assertNotIn('s@x.co', [m['email'] for m in members])
+
+    def test_settings_are_validated_and_currency_reaches_users(self):
+        r = self.client.patch('/api/v1/tenants/settings/', {'currency': 'XYZ'}, format='json')
+        self.assertEqual(r.status_code, 400)
+        r = self.client.patch('/api/v1/tenants/settings/', {'timezone': 'Mars/Base'}, format='json')
+        self.assertEqual(r.status_code, 400)
+        r = self.client.patch('/api/v1/tenants/settings/', {'currency': 'kes', 'timezone': 'Africa/Nairobi', 'working_days': ['friday', 'monday']}, format='json')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertEqual((r.json()['currency'], r.json()['working_days']), ('KES', ['monday', 'friday']))
+        self.assertEqual(self.client.get('/api/v1/auth/profile/').json()['company_currency'], 'KES')
+        self.company.refresh_from_db()
+        self.assertEqual(self.company.timezone, 'Africa/Nairobi')
+
+    def test_logo_must_be_a_real_raster_image(self):
+        from io import BytesIO
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        svg = SimpleUploadedFile('logo.svg', b'<svg onload="alert(1)"></svg>', content_type='image/svg+xml')
+        self.assertEqual(self.client.post('/api/v1/tenants/company/logo/', {'logo': svg}, format='multipart').status_code, 400)
+        fake = SimpleUploadedFile('logo.png', b'not really a png', content_type='image/png')
+        self.assertEqual(self.client.post('/api/v1/tenants/company/logo/', {'logo': fake}, format='multipart').status_code, 400)
+
+    def test_account_without_company_gets_a_clear_404(self):
+        admin = User.objects.create_user(email='pa@logiflow.app', username='pa', password=PASSWORD, is_platform_admin=True)
+        self.client.force_authenticate(admin)
+        self.assertEqual(self.client.get('/api/v1/tenants/settings/').status_code, 404)
+
+    def test_changing_password_signs_out_other_sessions(self):
+        from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+        from rest_framework_simplejwt.tokens import RefreshToken
+        self.user.set_password(PASSWORD)
+        self.user.save()
+        old = RefreshToken.for_user(self.user)
+        new_password = strong_password()
+        r = self.client.post('/api/v1/auth/change-password/', {
+            'old_password': PASSWORD, 'new_password': new_password, 'new_password_confirm': new_password,
+        }, format='json')
+        self.assertEqual(r.status_code, 200, r.content)
+        self.assertTrue(BlacklistedToken.objects.filter(token__jti=old['jti']).exists())

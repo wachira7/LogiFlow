@@ -3,8 +3,8 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .password_reset import ForgotPasswordView, ResetPasswordView
 from .views import (
-    RegisterView, LoginView, logout_view, ProfileView,
-    ChangePasswordView, InviteUserView, CompanyUsersView,
+    RegisterView, LoginView, logout_view, logout_all_view, ProfileView,
+    ChangePasswordView, CompanyUsersView,
     dashboard_overview, upload_avatar, NotificationPreferencesView,
     get_platform_notifications
 )
@@ -14,6 +14,7 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', logout_view, name='logout'),
+    path('logout-all/', logout_all_view, name='logout_all'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
     path('reset-password/', ResetPasswordView.as_view(), name='reset_password'),
@@ -25,7 +26,6 @@ urlpatterns = [
     
     
     # Company User Management
-    path('invite/', InviteUserView.as_view(), name='invite_user'),
     path('company-users/', CompanyUsersView.as_view(), name='company_users'),
 
      # Dashboard

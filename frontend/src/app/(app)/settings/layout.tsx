@@ -1,93 +1,40 @@
-// app/settings/layout.tsx
+// src/app/(app)/settings/layout.tsx
 'use client'
 
-import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import { usePathname } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { Bell, Lock, Settings, User } from 'lucide-react'
 import { PageHeader } from '@/components/app/kit'
-import { Card } from '@/components/ui/card'
-import { Settings, User, Shield, Bell, Plug } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-const settingsNavigation = [
-  {
-    name: 'General',
-    href: '/settings/general',
-    icon: User,
-    description: 'Profile and preferences',
-  },
-  {
-    name: 'Security',
-    href: '/settings/security',
-    icon: Shield,
-    description: 'Password and authentication',
-  },
-  {
-    name: 'Notifications',
-    href: '/settings/notifications',
-    icon: Bell,
-    description: 'Email and push notifications',
-  },
-  {
-    name: 'Integrations',
-    href: '/settings/integrations',
-    icon: Plug,
-    description: 'Third-party connections',
-  },
+const NAV = [
+  { name: 'Profile', href: '/settings/general', icon: User, hint: 'Your name, photo and phone' },
+  { name: 'Security', href: '/settings/security', icon: Lock, hint: 'Password and sign-ins' },
+  { name: 'Notifications', href: '/settings/notifications', icon: Bell, hint: 'What we email you about' },
 ]
 
-export default function SettingsLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-
   return (
-    <>
-      <div className="space-y-6">
-        <PageHeader icon={Settings} title="Settings" description="Manage your account settings and preferences" />
-
-        {/* Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar Navigation */}
-          <aside className="lg:col-span-1">
-            <Card className="p-2">
-              <nav className="space-y-1">
-                {settingsNavigation.map((item) => {
-                  const isActive = pathname === item.href
-                  const Icon = item.icon
-
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={cn(
-                        'flex items-start space-x-3 rounded-lg px-3 py-2 transition-colors',
-                        isActive
-                          ? 'bg-brand-soft text-brand'
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                      )}
-                    >
-                      <Icon className="w-5 h-5 mt-0.5 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {item.description}
-                        </p>
-                      </div>
-                    </Link>
-                  )
-                })}
-              </nav>
-            </Card>
-          </aside>
-
-          {/* Main Content */}
-          <main className="lg:col-span-3">
-            {children}
-          </main>
-        </div>
+    <div className="space-y-6">
+      <PageHeader icon={Settings} title="Settings" description="Your personal account. Company-wide settings live under Company." />
+      <div className="grid gap-6 lg:grid-cols-[15rem_1fr]">
+        <nav className="-mx-4 flex gap-1 overflow-x-auto px-4 lg:mx-0 lg:flex-col lg:px-0" aria-label="Settings sections">
+          {NAV.map((item) => {
+            const active = pathname === item.href
+            return (
+              <Link key={item.href} href={item.href} aria-current={active ? 'page' : undefined}
+                className={cn('relative flex shrink-0 items-start gap-3 rounded-xl px-3 py-2.5 transition-colors', active ? 'text-brand' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}>
+                {active && <motion.span layoutId="settings-nav" className="absolute inset-0 -z-10 rounded-xl bg-brand-soft" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+                <item.icon className="mt-0.5 h-4 w-4 shrink-0" />
+                <span><span className="block text-sm font-medium">{item.name}</span><span className="hidden text-xs opacity-80 lg:block">{item.hint}</span></span>
+              </Link>
+            )
+          })}
+        </nav>
+        <div className="min-w-0 space-y-6">{children}</div>
       </div>
-    </>
+    </div>
   )
 }
