@@ -1,396 +1,135 @@
+// src/app/(app)/distribution/orders/[id]/page.tsx
+'use client'
 
-// src/app/distribution/orders/[id]/page.tsx
-'use client';
+import { use, useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { ArrowRight, CheckCircle2, ClipboardList, Edit, Loader2, Mail, MapPin, Package, Phone, Play, Trash2, Truck, XCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import { distributionService } from '@/services/distributionService'
+import { useWarehouses } from '@/hooks/useInventory'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog'
+import { ErrorBanner, PageHeader, Panel } from '@/components/app/kit'
+import { OrderPill, ShipmentPill } from '@/components/distribution/status'
+import { formatCount, formatDay, formatMoney, timeAgo } from '@/lib/format'
+import type { OrderDetail } from '@/types/distribution.types'
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useDistribution } from '@/hooks/useDistribution';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowLeft, Edit2, Package, Truck, X, Trash2, Calendar, Mail, Phone, MapPin } from 'lucide-react';
-import type { OrderStatus } from '@/types/distribution.types';
-import { formatCurrency, formatDate } from '@/utils/dateUtils';
-import { WarehouseSelectDialog } from '@/components/distribution/WarehouseSelectDialog';
+const STEPS = ['NEW', 'PROCESSING', 'SHIPPED', 'DELIVERED'] as const
 
-const statusColors: Record<OrderStatus, string> = {
-  NEW: 'bg-blue-100 text-blue-800',
-  PROCESSING: 'bg-yellow-100 text-yellow-800',
-  SHIPPED: 'bg-purple-100 text-purple-800',
-  DELIVERED: 'bg-green-100 text-green-800',
-  CANCELLED: 'bg-red-100 text-red-800',
-};
+export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const router = useRouter()
+  const { warehouses = [] } = useWarehouses()
+  const [o, setO] = useState<OrderDetail | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [pick, setPick] = useState(false)
+  const [warehouse, setWarehouse] = useState('')
+  const [confirm, setConfirm] = useState<'cancel' | 'delete' | null>(null)
 
-const statusLabels: Record<OrderStatus, string> = {
-  NEW: 'New',
-  PROCESSING: 'Processing',
-  SHIPPED: 'Shipped',
-  DELIVERED: 'Delivered',
-  CANCELLED: 'Cancelled',
-};
+  const load = useCallback(() => distributionService.order(id).then(setO).catch((err) => setError(err instanceof Error ? err.message : 'Not found')), [id])
+  useEffect(() => { load() }, [load])
 
-export default function OrderDetailsPage() {
-  const params = useParams();
-  const router = useRouter();
-  const orderId = params.id as string;
-  
-  const {
-    selectedOrder,
-    fetchOrder,
-    deleteOrder,
-    processOrder,
-    shipOrder,
-    cancelOrder,
-    loading,
-  } = useDistribution();
-
-  const [actionLoading, setActionLoading] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showWarehouseDialog, setShowWarehouseDialog] = useState(false);
-
-  useEffect(() => {
-    if (orderId) {
-      fetchOrder(orderId);
-    }
-  }, [orderId, fetchOrder]);
-
-  const handleBack = () => {
-    router.push('/distribution/orders');
-  };
-
-  const handleEdit = () => {
-    router.push(`/distribution/orders/${orderId}/edit`);
-  };
-
-  const handleProcess = async () => {
-    setActionLoading(true);
-    try {
-      await processOrder(orderId);
-      await fetchOrder(orderId);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleShip = async (warehouseId: string) => {
-    setActionLoading(true);
-    try {
-      await shipOrder(orderId, { warehouse_id: warehouseId });
-      await fetchOrder(orderId);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-  const handleCancel = async () => {
-    setActionLoading(true);
-    try {
-      await cancelOrder(orderId);
-      await fetchOrder(orderId);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await deleteOrder(orderId);
-      router.push('/distribution/orders');
-    } finally {
-      setShowDeleteDialog(false);
-    }
-  };
-
-  if (loading || !selectedOrder) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="flex items-center justify-center py-8">
-            <LoadingSpinner size="lg" />
-          </CardContent>
-        </Card>
-      </div>
-    );
+  const run = async (fn: () => Promise<unknown>, done: string, after?: (r: unknown) => void) => {
+    setBusy(true)
+    try { const r = await fn(); toast.success(done); if (after) after(r); else await load() } catch (err) { toast.error(err instanceof Error ? err.message : 'That didn’t work.') } finally { setBusy(false); setConfirm(null) }
   }
 
-  const order = selectedOrder;
-  const canEdit = order.status !== 'CANCELLED' && order.status !== 'DELIVERED';
-  const canProcess = order.status === 'NEW';
-  const canShip = order.status === 'PROCESSING' && order.can_be_shipped;
-  const canCancel = order.status === 'NEW' || order.status === 'PROCESSING';
-  const canDelete = order.status === 'NEW';
+  if (error) return <div className="space-y-6"><PageHeader title="Order" back={{ href: '/distribution/orders', label: 'Orders' }} /><ErrorBanner title="Couldn’t load this order" message={error} /></div>
+  if (!o) return <div className="space-y-6"><Skeleton className="h-16 w-72" /><Skeleton className="h-24 rounded-xl" /><Skeleton className="h-72 rounded-xl" /></div>
 
+  const live = o.shipments.find((s) => !['CANCELLED', 'RETURNED'].includes(s.status))
+  const step = STEPS.indexOf(o.status as typeof STEPS[number])
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Order {order.order_number}</h1>
-            <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-1" />
-                {formatDate(order.created_at)}
-              </div>
-              <Badge className={statusColors[order.status]}>
-                {statusLabels[order.status]}
-              </Badge>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6">
+      <PageHeader icon={ClipboardList} back={{ href: '/distribution/orders', label: 'Orders' }} title={o.order_number}
+        description={<span className="flex flex-wrap items-center gap-2"><OrderPill status={o.status} /><span>{o.customer_name} · created {timeAgo(o.created_at)}</span></span>}
+        actions={<>
+          {['NEW', 'PROCESSING'].includes(o.status) && !live && <Button variant="outline" size="sm" onClick={() => router.push(`/distribution/orders/${id}/edit`)}><Edit className="mr-2 h-4 w-4" />Edit</Button>}
+          {['NEW', 'CANCELLED'].includes(o.status) && !live && <Button variant="outline" size="sm" className="text-danger hover:text-danger" onClick={() => setConfirm('delete')}><Trash2 className="mr-2 h-4 w-4" />Delete</Button>}
+          {['NEW', 'PROCESSING'].includes(o.status) && <Button variant="outline" size="sm" onClick={() => setConfirm('cancel')}><XCircle className="mr-2 h-4 w-4" />Cancel</Button>}
+          {o.status === 'NEW' && <Button size="sm" disabled={busy} onClick={() => run(() => distributionService.processOrder(id), 'Order is being processed')} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90"><Play className="mr-2 h-4 w-4" />Start processing</Button>}
+          {o.status === 'PROCESSING' && !live && <Button size="sm" onClick={() => { setWarehouse(warehouses[0]?.id ?? ''); setPick(true) }} className="btn-shine bg-brand text-brand-foreground hover:bg-brand/90"><Truck className="mr-2 h-4 w-4" />Create shipment</Button>}
+          {live && <Button size="sm" variant="outline" onClick={() => router.push(`/distribution/shipments/${live.id}`)}><Truck className="mr-2 h-4 w-4" />Open shipment</Button>}
+        </>} />
 
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-2">
-          {canEdit && (
-            <Button variant="outline" onClick={handleEdit} disabled={actionLoading}>
-              <Edit2 className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-          )}
+      {o.status !== 'CANCELLED' && (
+        <Panel delay={0.05}>
+          <ol className="grid grid-cols-4 gap-2 text-center text-xs sm:text-sm">
+            {STEPS.map((s, i) => (
+              <li key={s} className="space-y-1.5">
+                <span className={`block h-1.5 rounded-full transition-colors duration-700 ${i <= step ? 'bg-brand' : 'bg-muted'}`} />
+                <span className={i <= step ? 'font-medium' : 'text-muted-foreground'}>{['Received', 'Processing', 'Shipped', 'Delivered'][i]}</span>
+              </li>
+            ))}
+          </ol>
+          {o.status === 'PROCESSING' && live && <p className="mt-3 text-center text-xs text-muted-foreground">Shipment {live.shipment_number} is being prepared; the order counts as shipped once it leaves the warehouse.</p>}
+        </Panel>
+      )}
 
-          {canProcess && (
-            <Button onClick={handleProcess} disabled={actionLoading}>
-              {actionLoading ? (
-                <LoadingSpinner size="sm" className="mr-2" />
-              ) : (
-                <Package className="h-4 w-4 mr-2" />
-              )}
-              Process Order
-            </Button>
-          )}
-
-          {canShip && (
-            <Button onClick={() => setShowWarehouseDialog(true)} disabled={actionLoading}>
-              {actionLoading ? (
-                <LoadingSpinner size="sm" className="mr-2" />
-              ) : (
-                <Truck className="h-4 w-4 mr-2" />
-              )}
-              Ship Order
-            </Button>
-          )}
-
-          {canCancel && (
-            <Button 
-              variant="destructive" 
-              onClick={handleCancel} 
-              disabled={actionLoading}
-            >
-              {actionLoading ? (
-                <LoadingSpinner size="sm" className="mr-2" />
-              ) : (
-                <X className="h-4 w-4 mr-2" />
-              )}
-              Cancel Order
-            </Button>
-          )}
-
-          {canDelete && (
-            <Button 
-              variant="outline" 
-              onClick={() => setShowDeleteDialog(true)}
-              disabled={actionLoading}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Order Details */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Customer Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <h4 className="font-medium">{order.customer_name}</h4>
-                  <div className="flex items-center text-sm text-muted-foreground mt-1">
-                    <Mail className="h-4 w-4 mr-2" />
-                    {order.customer_email}
-                  </div>
-                  {order.customer_phone && (
-                    <div className="flex items-center text-sm text-muted-foreground mt-1">
-                      <Phone className="h-4 w-4 mr-2" />
-                      {order.customer_phone}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                <div>
-                  <h5 className="font-medium mb-2 flex items-center">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Shipping Address
-                  </h5>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {order.shipping_address}
-                  </p>
-                </div>
-
-                {order.billing_address && (
-                  <div>
-                    <h5 className="font-medium mb-2 flex items-center">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      Billing Address
-                    </h5>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {order.billing_address}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {order.notes && (
-                <div className="pt-4 border-t">
-                  <h5 className="font-medium mb-2">Notes</h5>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                    {order.notes}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Order Items */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Items</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead>SKU</TableHead>
-                      <TableHead className="text-right">Qty</TableHead>
-                      <TableHead className="text-right">Unit Price</TableHead>
-                      <TableHead className="text-right">Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {order.order_items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">
-                          {item.product_name}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {item.product_sku}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {item.quantity}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(item.unit_price)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {formatCurrency(item.total_price)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Order Summary */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Panel className="lg:col-span-2" icon={Package} title={`Products (${o.item_count})`} bodyClassName="p-0" delay={0.1}>
+          <ul className="divide-y">
+            {o.order_items.map((i) => (
+              <li key={i.id} className="flex items-center justify-between gap-3 px-5 py-3 text-sm">
+                <span className="min-w-0"><span className="block truncate font-medium">{i.product_name}</span><span className="text-xs text-muted-foreground">{i.product_sku} · {formatCount(i.quantity)} × {formatMoney(i.unit_price)}</span></span>
+                <span className="font-medium tabular-nums">{formatMoney(i.total_price)}</span>
+              </li>
+            ))}
+          </ul>
+          <dl className="space-y-1.5 border-t bg-muted/30 px-5 py-3 text-sm">
+            <div className="flex justify-between text-muted-foreground"><dt>Products</dt><dd className="tabular-nums">{formatMoney(o.order_items.reduce((s, i) => s + Number(i.total_price), 0))}</dd></div>
+            {Number(o.tax_amount) > 0 && <div className="flex justify-between text-muted-foreground"><dt>Tax</dt><dd className="tabular-nums">{formatMoney(o.tax_amount)}</dd></div>}
+            {Number(o.shipping_amount) > 0 && <div className="flex justify-between text-muted-foreground"><dt>Delivery</dt><dd className="tabular-nums">{formatMoney(o.shipping_amount)}</dd></div>}
+            {Number(o.discount_amount) > 0 && <div className="flex justify-between text-muted-foreground"><dt>Discount</dt><dd className="tabular-nums">−{formatMoney(o.discount_amount)}</dd></div>}
+            <div className="flex justify-between pt-1 text-base font-semibold"><dt>Total</dt><dd className="tabular-nums">{formatMoney(o.total_amount)}</dd></div>
+          </dl>
+        </Panel>
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span>Items ({order.item_count}):</span>
-                <span>{formatCurrency(order.subtotal)}</span>
-              </div>
-
-              {order.tax_amount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span>Tax:</span>
-                  <span>{formatCurrency(order.tax_amount)}</span>
-                </div>
-              )}
-
-              {order.shipping_amount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span>Shipping:</span>
-                  <span>{formatCurrency(order.shipping_amount)}</span>
-                </div>
-              )}
-
-              {order.discount_amount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span>Discount:</span>
-                  <span>-{formatCurrency(order.discount_amount)}</span>
-                </div>
-              )}
-
-              <div className="flex justify-between font-bold text-lg pt-3 border-t">
-                <span>Total:</span>
-                <span>{formatCurrency(order.total_amount)}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Order Metadata */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Created:</span>
-                <span>{formatDate(order.created_at)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Last Updated:</span>
-                <span>{formatDate(order.updated_at)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Status:</span>
-                <Badge className={statusColors[order.status]}>
-                  {statusLabels[order.status]}
-                </Badge>
-              </div>
-              {order.can_be_shipped && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ready to Ship:</span>
-                  <span className="text-green-600">Yes</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <Panel title="Customer" delay={0.15}>
+            <div className="space-y-2 text-sm">
+              <p className="font-medium">{o.customer_name}</p>
+              <p className="flex items-center gap-2 text-muted-foreground"><Mail className="h-3.5 w-3.5" /><a href={`mailto:${o.customer_email}`} className="hover:text-brand">{o.customer_email}</a></p>
+              {o.customer_phone && <p className="flex items-center gap-2 text-muted-foreground"><Phone className="h-3.5 w-3.5" /><a href={`tel:${o.customer_phone}`} className="hover:text-brand">{o.customer_phone}</a></p>}
+              <p className="flex items-start gap-2 text-muted-foreground"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />{o.shipping_address}</p>
+            </div>
+          </Panel>
+          <Panel icon={Truck} title="Shipments" bodyClassName="p-0" delay={0.2}>
+            {o.shipments.length === 0 ? <p className="px-5 py-6 text-sm text-muted-foreground">{o.status === 'NEW' ? 'Start processing, then create the shipment.' : 'No shipment yet.'}</p> : (
+              <ul className="divide-y">{o.shipments.map((s) => (
+                <li key={s.id}><Link href={`/distribution/shipments/${s.id}`} className="flex items-center justify-between gap-2 px-5 py-3 text-sm hover:bg-muted/40">
+                  <span><span className="font-medium">{s.shipment_number}</span><span className="block text-xs text-muted-foreground">From {s.warehouse_name}{s.actual_delivery ? ` · delivered ${formatDay(s.actual_delivery)}` : ''}</span></span>
+                  <span className="flex items-center gap-1.5"><ShipmentPill status={s.status} /><ArrowRight className="h-3.5 w-3.5 text-muted-foreground" /></span>
+                </Link></li>
+              ))}</ul>
+            )}
+          </Panel>
+          {o.notes && <Panel title="Notes" delay={0.25}><p className="whitespace-pre-wrap text-sm text-muted-foreground">{o.notes}</p></Panel>}
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        title="Delete Order"
-        description="Are you sure you want to delete this order? This action cannot be undone."
-        onConfirm={handleDelete}
-      />
-      <WarehouseSelectDialog
-        open={showWarehouseDialog}
-        onOpenChange={setShowWarehouseDialog}
-        onConfirm={handleShip}
-      />
+      <Dialog open={pick} onOpenChange={(v) => !busy && setPick(v)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>Create the shipment</DialogTitle><DialogDescription>Choose where it ships from. Stock is taken from that warehouse when the shipment leaves.</DialogDescription></DialogHeader>
+          <div className="space-y-1.5"><Label htmlFor="ship-wh">Warehouse</Label>
+            <Select value={warehouse} onValueChange={setWarehouse}><SelectTrigger id="ship-wh" className="w-full"><SelectValue placeholder="Choose a warehouse" /></SelectTrigger>
+              <SelectContent>{warehouses.map((w) => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}</SelectContent></Select></div>
+          <Button disabled={!warehouse || busy} className="w-full bg-brand text-brand-foreground hover:bg-brand/90"
+            onClick={() => run(() => distributionService.createShipmentForOrder(id, warehouse), 'Shipment created', (r) => router.push(`/distribution/shipments/${(r as { shipment_id: string }).shipment_id}`))}>
+            {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}Create shipment
+          </Button>
+        </DialogContent>
+      </Dialog>
+      <ConfirmDialog open={!!confirm} onOpenChange={(v) => !v && setConfirm(null)} loading={busy} variant="destructive"
+        title={confirm === 'delete' ? 'Delete this order?' : 'Cancel this order?'}
+        description={confirm === 'delete' ? 'It will be removed for good.' : 'Any shipment still in the warehouse is cancelled too. Nothing has left stock yet.'}
+        confirmText={confirm === 'delete' ? 'Delete' : 'Cancel order'} cancelText="Keep it"
+        onConfirm={async () => { if (confirm === 'delete') await run(() => distributionService.deleteOrder(id), 'Order deleted', () => router.push('/distribution/orders')); else await run(() => distributionService.cancelOrder(id), 'Order cancelled') }} />
     </div>
-  );
+  )
 }

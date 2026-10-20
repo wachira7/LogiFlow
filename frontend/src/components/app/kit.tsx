@@ -5,6 +5,7 @@
 import Link from 'next/link'
 import type { LucideIcon } from 'lucide-react'
 import { ArrowLeft, ArrowUpRight } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AnimatedNumber, AppStagger, AppStaggerItem, FadeIn } from './motion'
@@ -236,5 +237,27 @@ export function ErrorBanner({ title = 'Something went wrong', message, onRetry }
         )}
       </div>
     </FadeIn>
+  )
+}
+
+/** Segmented filter chips with an animated highlight; scrolls sideways on small screens. */
+export function FilterChips<T extends string>({ options, value, onChange, id }: {
+  options: readonly (readonly [T, string])[]
+  value: T
+  onChange: (v: T) => void
+  id: string
+}) {
+  return (
+    <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      <div className="inline-flex gap-1 rounded-xl border bg-card p-1 shadow-sm" role="tablist">
+        {options.map(([key, label]) => (
+          <button key={key} role="tab" aria-selected={value === key} onClick={() => onChange(key)}
+            className={cn('relative whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-colors', value === key ? 'text-brand' : 'text-muted-foreground hover:text-foreground')}>
+            {value === key && <motion.span layoutId={`chips-${id}`} className="absolute inset-0 rounded-lg bg-brand-soft" transition={{ type: 'spring', stiffness: 420, damping: 34 }} />}
+            <span className="relative">{label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }

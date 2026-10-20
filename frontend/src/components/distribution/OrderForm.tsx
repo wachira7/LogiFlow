@@ -1,678 +1,156 @@
 // src/components/distribution/OrderForm.tsx
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useDistribution } from '@/hooks/useDistribution';
-import { useInventoryItems } from '@/hooks/useInventory';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { Plus, Trash2, ArrowLeft, Calculator } from 'lucide-react';
-import type { CreateCustomerOrderData, CustomerOrderDetail } from '@/types/distribution.types';
-import type { InventoryItem } from '@/types/inventory.types';
+'use client'
 
-// ============================================================================
-// VALIDATION SCHEMAS
-// ============================================================================
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ClipboardList, Loader2, MapPin, Package, Plus, Trash2, User } from 'lucide-react'
+import { distributionService } from '@/services/distributionService'
+import { inventoryService } from '@/services/inventoryService'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ErrorBanner, PageHeader, Panel } from '@/components/app/kit'
+import { FadeIn } from '@/components/app/motion'
+import { formatMoney, toNumber } from '@/lib/format'
+import { cn } from '@/lib/utils'
+import type { OrderDetail } from '@/types/distribution.types'
+import type { Product } from '@/types/inventory.types'
 
-const orderItemSchema = z.object({
-  product_id: z.string().min(1, 'Product is required'),
-  quantity: z.number().min(1, 'Quantity must be at least 1'),
-  unit_price: z.number().min(0, 'Price must be positive'),
-});
+type Line = { key: string; product: string; qty: string; price: string }
+const key = () => crypto.randomUUID()
 
-const orderFormSchema = z.object({
-  order_number: z.string().min(1, 'Order number is required'),
-  customer_name: z.string().min(1, 'Customer name is required'),
-  customer_email: z.string().email('Invalid email address'),
-  customer_phone: z.string(),
-  shipping_address: z.string().min(1, 'Shipping address is required'),
-  billing_address: z.string(),
-  tax_amount: z.number().min(0, 'Tax amount must be positive'),
-  shipping_amount: z.number().min(0, 'Shipping amount must be positive'),
-  discount_amount: z.number().min(0, 'Discount amount must be positive'),
-  notes: z.string(),
-  order_items: z.array(orderItemSchema).min(1, 'At least one item is required'),
-});
+export function OrderForm({ orderId }: { orderId?: string }) {
+  const router = useRouter()
+  const editing = !!orderId
+  const [products, setProducts] = useState<Product[]>([])
+  const [order, setOrder] = useState<OrderDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [f, setF] = useState({ order_number: '', customer_name: '', customer_email: '', customer_phone: '', shipping_address: '', billing_address: '', tax: '', shipping: '', discount: '', notes: '' })
+  const [lines, setLines] = useState<Line[]>([{ key: key(), product: '', qty: '1', price: '' }])
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [saving, setSaving] = useState(false)
 
-type OrderFormData = z.infer<typeof orderFormSchema>;
-
-// ============================================================================
-// INTERFACES
-// ============================================================================
-
-interface OrderFormProps {
-  orderId?: string;
-  onSuccess?: (order: CustomerOrderDetail) => void;
-  onCancel?: () => void;
-}
-
-// Helper type for inventory item with flexible structure
-
-
-
-// ============================================================================
-// MAIN COMPONENT
-// ============================================================================
-
-export const OrderForm: React.FC<OrderFormProps> = ({ 
-  orderId, 
-  onSuccess, 
-  onCancel 
-}) => {
-  const router = useRouter();
-  const { 
-    selectedOrder, 
-    fetchOrder, 
-    createOrder, 
-    updateOrder, 
-    loading 
-  } = useDistribution();
-  
-  const { inventoryItems, loadInventoryItems } = useInventoryItems();
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const isEditing = !!orderId;
-
-  // ============================================================================
-  // FORM CONFIGURATION
-  // ============================================================================
-
-  const form = useForm<OrderFormData>({
-    resolver: zodResolver(orderFormSchema),
-    defaultValues: {
-      order_number: '',
-      customer_name: '',
-      customer_email: '',
-      customer_phone: '',
-      shipping_address: '',
-      billing_address: '',
-      tax_amount: 0,
-      shipping_amount: 0,
-      discount_amount: 0,
-      notes: '',
-      order_items: [
-        {
-          product_id: '',
-          quantity: 1,
-          unit_price: 0,
-        }
-      ],
-    },
-  });
-
-  // Type-safe control reference
-  const control = form.control;
-
-  const { fields, append, remove } = useFieldArray({
-    control: control,
-    name: 'order_items',
-  });
-
-  // ============================================================================
-  // EFFECTS
-  // ============================================================================
-
-  // Load data on mount
   useEffect(() => {
-    loadInventoryItems();
-    if (isEditing && orderId) {
-      fetchOrder(orderId);
+    Promise.all([
+      inventoryService.getProducts({ is_active: true }, 1, 100).then((r) => setProducts(r.data ?? [])),
+      orderId ? distributionService.order(orderId).then((o) => {
+        setOrder(o)
+        setF({ order_number: o.order_number, customer_name: o.customer_name, customer_email: o.customer_email, customer_phone: o.customer_phone, shipping_address: o.shipping_address,
+          billing_address: o.billing_address, tax: String(toNumber(o.tax_amount) || ''), shipping: String(toNumber(o.shipping_amount) || ''), discount: String(toNumber(o.discount_amount) || ''), notes: o.notes })
+        setLines(o.order_items.map((i) => ({ key: key(), product: i.product_id, qty: String(i.quantity), price: String(toNumber(i.unit_price)) })))
+      }) : Promise.resolve(),
+    ]).finally(() => setLoading(false))
+  }, [orderId])
+
+  const byId = useMemo(() => new Map(products.map((p) => [p.id, p])), [products])
+  const subtotal = lines.reduce((s, l) => s + (Number(l.qty) || 0) * (l.price === '' ? toNumber(byId.get(l.product)?.unit_price) : Number(l.price)), 0)
+  const total = subtotal + (Number(f.tax) || 0) + (Number(f.shipping) || 0) - (Number(f.discount) || 0)
+  const set = (k: keyof typeof f, v: string) => { setF((x) => ({ ...x, [k]: v })); setErrors((e) => ({ ...e, [k]: '', submit: '' })) }
+  const setLine = (k: string, field: keyof Line, v: string) => setLines((ls) => ls.map((l) => (l.key === k ? { ...l, [field]: v, ...(field === 'product' ? { price: '' } : {}) } : l)))
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const next: Record<string, string> = {}
+    if (!f.customer_name.trim()) next.customer_name = 'Who is the order for?'
+    if (!/^\S+@\S+\.\S+$/.test(f.customer_email)) next.customer_email = 'Enter a valid email'
+    if (!f.shipping_address.trim()) next.shipping_address = 'Where should it go?'
+    const used = lines.filter((l) => l.product)
+    if (!used.length) next.items = 'Add at least one product'
+    if (new Set(used.map((l) => l.product)).size !== used.length) next.items = 'Each product once; combine the quantities'
+    if (used.some((l) => !(Number(l.qty) >= 1))) next.items = 'Quantities must be at least 1'
+    if (total < 0) next.discount = 'The discount is larger than the order'
+    setErrors(next)
+    if (Object.keys(next).length) return
+    setSaving(true)
+    const payload = {
+      ...(f.order_number.trim() ? { order_number: f.order_number.trim() } : {}),
+      customer_name: f.customer_name.trim(), customer_email: f.customer_email.trim(), customer_phone: f.customer_phone.trim(),
+      shipping_address: f.shipping_address.trim(), billing_address: f.billing_address.trim(), notes: f.notes,
+      tax_amount: f.tax || '0', shipping_amount: f.shipping || '0', discount_amount: f.discount || '0',
+      order_items: used.map((l) => ({ product_id: l.product, quantity: Number(l.qty), ...(l.price !== '' ? { unit_price: l.price } : {}) })),
     }
-  }, [isEditing, orderId, fetchOrder, loadInventoryItems]);
-
-  // Populate form when editing
-  useEffect(() => {
-    if (isEditing && selectedOrder && selectedOrder.id === orderId) {
-      form.reset({
-        order_number: selectedOrder.order_number,
-        customer_name: selectedOrder.customer_name,
-        customer_email: selectedOrder.customer_email,
-        customer_phone: selectedOrder.customer_phone || '',
-        shipping_address: selectedOrder.shipping_address,
-        billing_address: selectedOrder.billing_address || '',
-        tax_amount: selectedOrder.tax_amount ?? 0,
-        shipping_amount: selectedOrder.shipping_amount ?? 0,
-        discount_amount: selectedOrder.discount_amount ?? 0,
-        notes: selectedOrder.notes || '',
-        order_items: selectedOrder.order_items.map(item => ({
-          product_id: item.product_id,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-        })),
-      });
-    }
-  }, [isEditing, selectedOrder, orderId, form]);
-
-  // ============================================================================
-  // CALCULATIONS
-  // ============================================================================
-
-  const calculateTotals = useCallback(() => {
-    const items = form.watch('order_items') || [];
-    const taxAmount = Number(form.watch('tax_amount')) || 0;
-    const shippingAmount = Number(form.watch('shipping_amount')) || 0;
-    const discountAmount = Number(form.watch('discount_amount')) || 0;
-
-    const subtotal = items.reduce((sum, item) => 
-      sum + (Number(item.quantity) * Number(item.unit_price)), 0
-    );
-
-    const totalAmount = subtotal + taxAmount + shippingAmount - discountAmount;
-
-    return {
-      subtotal,
-      totalAmount: Math.max(0, totalAmount),
-    };
-  }, [form]);
-
-  const { subtotal, totalAmount } = calculateTotals();
-
-  // ============================================================================
-  // HELPER FUNCTIONS
-  // ============================================================================
-
-  const getItemName = (item: InventoryItem): string => item.product_name;
-  const getItemPrice = (item: InventoryItem): number => item.product_unit_price;
-  // ============================================================================
-  // EVENT HANDLERS
-  // ============================================================================
-
-  const handleProductChange = useCallback((index: number, productId: string) => {
-    const item = inventoryItems.find((inv: InventoryItem) => inv.product_id === productId);
-    if (item) {
-      form.setValue(`order_items.${index}.product_id`, productId);
-      form.setValue(`order_items.${index}.unit_price`, getItemPrice(item));
-    }
-  }, [inventoryItems, form]);
-
-  const handleAddItem = () => {
-    append({ product_id: '', quantity: 1, unit_price: 0 });
-  };
-
-  const handleRemoveItem = (index: number) => {
-    if (fields.length > 1) {
-      remove(index);
-    }
-  };
-
-  const onSubmit = async (data: OrderFormData) => {
-    setIsSubmitting(true);
     try {
-      const orderData: CreateCustomerOrderData = {
-        ...data,
-        total_amount: totalAmount,
-        order_items: data.order_items,
-      };
-
-      let result;
-      if (isEditing && orderId) {
-        result = await updateOrder(orderId, orderData);
-      } else {
-        result = await createOrder(orderData);
-      }
-
-      if (result) {
-        onSuccess?.(result);
-        if (!onSuccess) {
-          router.push('/distribution/orders');
-        }
-      }
-    } catch (error) {
-      console.error('Failed to save order:', error);
-    } finally {
-      setIsSubmitting(false);
+      const saved = editing ? await distributionService.updateOrder(orderId!, payload) : await distributionService.createOrder(payload)
+      router.push(`/distribution/orders/${saved.id}`)
+    } catch (err) {
+      setErrors({ submit: err instanceof Error ? err.message : 'Couldn’t save the order.' })
+      setSaving(false)
     }
-  };
-
-  const handleCancel = () => {
-    if (onCancel) {
-      onCancel();
-    } else {
-      router.push('/distribution/orders');
-    }
-  };
-
-  // ============================================================================
-  // LOADING STATE
-  // ============================================================================
-
-  if (loading && isEditing) {
-    return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-8">
-          <LoadingSpinner size="lg" />
-        </CardContent>
-      </Card>
-    );
   }
 
-  // ============================================================================
-  // RENDER
-  // ============================================================================
+  const back = editing ? { href: `/distribution/orders/${orderId}`, label: 'Back to order' } : { href: '/distribution/orders', label: 'Orders' }
+  if (loading) return <div className="space-y-6"><Skeleton className="h-16 w-72" /><div className="grid gap-6 lg:grid-cols-3"><Skeleton className="h-96 rounded-xl lg:col-span-2" /><Skeleton className="h-72 rounded-xl" /></div></div>
+  if (editing && order && !['NEW', 'PROCESSING'].includes(order.status)) {
+    return <div className="space-y-6"><PageHeader icon={ClipboardList} title={`Edit ${order.order_number}`} back={back} /><ErrorBanner title="This order can’t be edited" message="It has already started shipping." /></div>
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" onClick={handleCancel}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h2 className="text-2xl font-bold">
-              {isEditing ? 'Edit Order' : 'Create New Order'}
-            </h2>
-            <p className="text-muted-foreground">
-              {isEditing ? 'Update order details' : 'Fill in the order information'}
-            </p>
-          </div>
+      <PageHeader icon={ClipboardList} back={back} title={editing ? `Edit ${f.order_number}` : 'New order'} description="The total is worked out from the products, tax, delivery and discount." />
+      <form onSubmit={submit} noValidate className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <Panel icon={User} title="Customer" delay={0.05}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="o-name">Customer or business</Label><Input id="o-name" value={f.customer_name} onChange={(e) => set('customer_name', e.target.value)} className={cn(errors.customer_name && 'border-danger')} />{errors.customer_name && <p className="text-xs text-danger">{errors.customer_name}</p>}</div>
+              <div className="space-y-1.5"><Label htmlFor="o-email">Email</Label><Input id="o-email" type="email" value={f.customer_email} onChange={(e) => set('customer_email', e.target.value)} className={cn(errors.customer_email && 'border-danger')} />{errors.customer_email && <p className="text-xs text-danger">{errors.customer_email}</p>}</div>
+              <div className="space-y-1.5"><Label htmlFor="o-phone">Phone</Label><Input id="o-phone" inputMode="tel" value={f.customer_phone} onChange={(e) => set('customer_phone', e.target.value)} placeholder="+254 7…" /></div>
+              <div className="space-y-1.5 sm:col-span-2"><Label htmlFor="o-ship"><MapPin className="mr-1 inline h-3.5 w-3.5" />Deliver to</Label><Textarea id="o-ship" rows={2} value={f.shipping_address} onChange={(e) => set('shipping_address', e.target.value)} placeholder="Building, street, town" className={cn(errors.shipping_address && 'border-danger')} />{errors.shipping_address && <p className="text-xs text-danger">{errors.shipping_address}</p>}</div>
+            </div>
+          </Panel>
+          <Panel icon={Package} title="Products" delay={0.1} action={<Button type="button" size="sm" variant="outline" onClick={() => setLines((l) => [...l, { key: key(), product: '', qty: '1', price: '' }])}><Plus className="mr-1.5 h-4 w-4" />Add product</Button>}>
+            {errors.items && <p role="alert" className="mb-3 rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">{errors.items}</p>}
+            <ul className="space-y-3">
+              <AnimatePresence initial={false}>
+                {lines.map((l) => {
+                  const p = byId.get(l.product)
+                  const unit = l.price === '' ? toNumber(p?.unit_price) : Number(l.price)
+                  return (
+                    <motion.li key={l.key} layout initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: 24, transition: { duration: 0.2 } }} className="grid gap-3 rounded-xl border bg-muted/20 p-3 sm:grid-cols-12">
+                      <div className="space-y-1.5 sm:col-span-6"><Label htmlFor={`p-${l.key}`} className="text-xs">Product</Label>
+                        <Select value={l.product} onValueChange={(v) => setLine(l.key, 'product', v)}>
+                          <SelectTrigger id={`p-${l.key}`} className="w-full bg-card"><SelectValue placeholder="Choose a product" /></SelectTrigger>
+                          <SelectContent>{products.map((pr) => <SelectItem key={pr.id} value={pr.id} disabled={lines.some((x) => x.key !== l.key && x.product === pr.id)}>{pr.name} · {pr.sku}</SelectItem>)}</SelectContent>
+                        </Select></div>
+                      <div className="space-y-1.5 sm:col-span-2"><Label htmlFor={`q-${l.key}`} className="text-xs">Qty</Label><Input id={`q-${l.key}`} type="number" min={1} value={l.qty} onChange={(e) => setLine(l.key, 'qty', e.target.value)} className="bg-card" /></div>
+                      <div className="space-y-1.5 sm:col-span-3"><Label htmlFor={`u-${l.key}`} className="text-xs">Unit price</Label><Input id={`u-${l.key}`} type="number" min={0} step="0.01" value={l.price} placeholder={p ? String(toNumber(p.unit_price)) : ''} onChange={(e) => setLine(l.key, 'price', e.target.value)} className="bg-card" />
+                        {p && <p className="text-xs text-muted-foreground">Line: {formatMoney((Number(l.qty) || 0) * unit)}</p>}</div>
+                      <div className="flex items-end justify-end sm:col-span-1"><Button type="button" size="icon" variant="ghost" className="text-muted-foreground hover:text-danger" onClick={() => setLines((ls) => ls.filter((x) => x.key !== l.key))} aria-label="Remove product"><Trash2 className="h-4 w-4" /></Button></div>
+                    </motion.li>
+                  )
+                })}
+              </AnimatePresence>
+            </ul>
+          </Panel>
         </div>
-      </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Order Information */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Basic Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={control}
-                    name="order_number"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Order Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="ORD-001" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Notes</FormLabel>
-                        <FormControl>
-                          <Textarea 
-                            placeholder="Additional order notes..." 
-                            rows={3}
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Customer Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Customer Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={control}
-                      name="customer_name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Customer Name</FormLabel>
-                          <FormControl>
-                            <Input placeholder="John Doe" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={control}
-                      name="customer_email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="email" 
-                              placeholder="john@example.com" 
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={control}
-                    name="customer_phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+1 (555) 123-4567" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={control}
-                      name="shipping_address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Shipping Address</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="123 Main St, City, State 12345" 
-                              rows={3}
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={control}
-                      name="billing_address"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Billing Address (Optional)</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Same as shipping address" 
-                              rows={3}
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Order Items */}
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Order Items</CardTitle>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddItem}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Item
-                  </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {fields.map((field, index) => (
-                    <div key={field.id} className="grid grid-cols-12 gap-4 items-start">
-                      <div className="col-span-5">
-                        <FormField
-                          control={control}
-                          name={`order_items.${index}.product_id`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Product</FormLabel>
-                              <Select
-                                onValueChange={(value) => handleProductChange(index, value)}
-                                value={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select product" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  {inventoryItems.map((item: InventoryItem) => (
-                                    <SelectItem key={item.product_id} value={item.product_id}>
-                                      {getItemName(item)} - ${getItemPrice(item).toFixed(2)}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="col-span-2">
-                        <FormField
-                          control={control}
-                          name={`order_items.${index}.quantity`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Qty</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  {...field}
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="col-span-3">
-                        <FormField
-                          control={control}
-                          name={`order_items.${index}.unit_price`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Unit Price</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  {...field}
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="col-span-1">
-                        <FormLabel className="sr-only">Remove</FormLabel>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveItem(index)}
-                          disabled={fields.length === 1}
-                          className="mt-8"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-
-                      <div className="col-span-1 mt-8 text-right font-medium">
-                        ${((Number(form.watch(`order_items.${index}.quantity`)) || 0) * 
-                           (Number(form.watch(`order_items.${index}.unit_price`)) || 0)).toFixed(2)}
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+        <div className="space-y-6">
+          <Panel title="Details" delay={0.15}>
+            <div className="space-y-4">
+              <div className="space-y-1.5"><Label htmlFor="o-num">Order number <span className="font-normal text-muted-foreground">(optional)</span></Label><Input id="o-num" value={f.order_number} onChange={(e) => set('order_number', e.target.value)} placeholder="Numbered automatically" /></div>
+              <div className="space-y-1.5"><Label htmlFor="o-bill">Billing address <span className="font-normal text-muted-foreground">(if different)</span></Label><Textarea id="o-bill" rows={2} value={f.billing_address} onChange={(e) => set('billing_address', e.target.value)} /></div>
+              <div className="space-y-1.5"><Label htmlFor="o-notes">Notes</Label><Textarea id="o-notes" rows={2} value={f.notes} onChange={(e) => set('notes', e.target.value)} /></div>
             </div>
-
-            {/* Right Column - Order Summary */}
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Calculator className="h-5 w-5 mr-2" />
-                    Order Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Additional Charges */}
-                  <Controller
-                    name="tax_amount"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                      <FormItem>
-                        <FormLabel>Tax Amount</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
-                            {...field}
-                            value={field.value ?? 0}
-                            onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        {fieldState.error && (
-                          <FormMessage>{fieldState.error.message}</FormMessage>
-                        )}
-                      </FormItem>
-                    )}
-                  />
-
-                  <Controller
-                    name="shipping_amount"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                      <FormItem>
-                        <FormLabel>Shipping Amount</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
-                            {...field}
-                            value={field.value ?? 0}
-                            onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        {fieldState.error && (
-                          <FormMessage>{fieldState.error.message}</FormMessage>
-                        )}
-                      </FormItem>
-                    )}
-                  />
-
-                  <Controller
-                    name="discount_amount"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                      <FormItem>
-                        <FormLabel>Discount Amount</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
-                            {...field}
-                            value={field.value ?? 0}
-                            onChange={(e) => field.onChange(Number(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        {fieldState.error && (
-                          <FormMessage>{fieldState.error.message}</FormMessage>
-                        )}
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Totals */}
-                  <div className="space-y-2 pt-4 border-t">
-                    <div className="flex justify-between text-sm">
-                      <span>Subtotal:</span>
-                      <span>${subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Tax:</span>
-                      <span>${(Number(form.watch('tax_amount')) || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Shipping:</span>
-                      <span>${(Number(form.watch('shipping_amount')) || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Discount:</span>
-                      <span>-${(Number(form.watch('discount_amount')) || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                      <span>Total:</span>
-                      <span>${totalAmount.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Form Actions */}
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="space-y-3">
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <LoadingSpinner size="sm" className="mr-2" />
-                          {isEditing ? 'Updating...' : 'Creating...'}
-                        </>
-                      ) : (
-                        isEditing ? 'Update Order' : 'Create Order'
-                      )}
-                    </Button>
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full"
-                      onClick={handleCancel}
-                      disabled={isSubmitting}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </form>
-      </Form>
+          </Panel>
+          <FadeIn delay={0.2} className="sticky top-20 space-y-3 rounded-xl border bg-card p-5 shadow-sm">
+            <p className="text-sm font-semibold">Total</p>
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between"><dt className="text-muted-foreground">Products</dt><dd className="tabular-nums">{formatMoney(subtotal)}</dd></div>
+              {([['tax', 'Tax'], ['shipping', 'Delivery'], ['discount', 'Discount']] as const).map(([k, label]) => (
+                <div key={k} className="flex items-center justify-between gap-3"><dt><Label htmlFor={`o-${k}`} className="font-normal text-muted-foreground">{label}</Label></dt>
+                  <dd><Input id={`o-${k}`} type="number" min={0} step="0.01" value={f[k]} onChange={(e) => set(k, e.target.value)} className={cn('h-8 w-28 text-right', errors[k] && 'border-danger')} placeholder="0" /></dd></div>
+              ))}
+              <div className="flex justify-between border-t pt-2 text-base font-semibold"><dt>Total</dt><dd className="tabular-nums">{formatMoney(total)}</dd></div>
+            </dl>
+            {errors.discount && <p className="text-xs text-danger">{errors.discount}</p>}
+            {errors.submit && <p role="alert" className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-sm text-danger">{errors.submit}</p>}
+            <Button type="submit" disabled={saving} className="btn-shine w-full bg-brand text-brand-foreground hover:bg-brand/90">{saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{editing ? 'Save changes' : 'Create order'}</Button>
+            <Button type="button" variant="ghost" className="w-full" onClick={() => router.push(back.href)}>Cancel</Button>
+          </FadeIn>
+        </div>
+      </form>
     </div>
-  );
-};
+  )
+}

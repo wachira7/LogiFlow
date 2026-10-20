@@ -9,7 +9,7 @@ from rest_framework import filters
 from django.utils import timezone
 from .models import CustomerOrder, OrderItem, Shipment, ShipmentItem, DeliveryRoute, RouteStop
 from .serializers import (
-    CustomerOrderListSerializer, CustomerOrderDetailSerializer, CreateCustomerOrderSerializer,
+    CustomerOrderListSerializer, CustomerOrderDetailSerializer, CreateCustomerOrderSerializer, UpdateCustomerOrderSerializer,
     ShipmentListSerializer, ShipmentDetailSerializer, DeliveryRouteListSerializer,
     DeliveryRouteDetailSerializer, RouteStopSerializer
 )
@@ -17,7 +17,13 @@ from utils.mixins import TenantViewSetMixin, BulkActionMixin
 from utils.permissions import IsCompanyMember, IsSameCompany
 from .utils import geocode_address, mark_shipment_delivered
 from .events import record_event, record_status_change
+from . import services
+from .services import ShipmentError
 import time
+
+
+def error(message, status_code=status.HTTP_400_BAD_REQUEST, **extra):
+    return Response({'error': message, 'message': message, **extra}, status=status_code)
 
 class CustomerOrderViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
     """ViewSet for CustomerOrder management."""
@@ -31,14 +37,35 @@ class CustomerOrderViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
     def get_queryset(self):
         return CustomerOrder.objects.filter(
             company=self.request.user.company
-        ).prefetch_related('order_items__product')
+        ).prefetch_related('order_items__product', 'shipments')
 
     def get_serializer_class(self):
         if self.action == 'create':
             return CreateCustomerOrderSerializer
-        elif self.action == 'retrieve':
+        if self.action in ('update', 'partial_update'):
+            return UpdateCustomerOrderSerializer
+        if self.action == 'retrieve':
             return CustomerOrderDetailSerializer
         return CustomerOrderListSerializer
+
+    def _detail(self, order):
+        return CustomerOrderDetailSerializer(self.get_queryset().get(pk=order.pk), context={'request': self.request}).data
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        order = serializer.save()
+        return Response(self._detail(order), status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        super().update(request, *args, **kwargs)
+        return Response(self._detail(self.get_object()))
+
+    def destroy(self, request, *args, **kwargs):
+        order = self.get_object()
+        if order.status not in ('NEW', 'CANCELLED') or order.shipments.exclude(status='CANCELLED').exists():
+            return error('Only new or cancelled orders without shipments can be deleted.')
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, methods=['post'])
     def process_order(self, request, pk=None):
@@ -60,78 +87,46 @@ class CustomerOrderViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
 
     @action(detail=True, methods=['post'])
     def ship_order(self, request, pk=None):
-        """Create shipment for an order."""
+        """Create the shipment for a processing order (stock leaves the warehouse when it ships)."""
+        from apps.inventory.models import Warehouse
         order = self.get_object()
-        
-        if order.status not in ['PROCESSING']:
-            return Response({
-                'error': 'Order must be in PROCESSING status to ship'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        warehouse_id = request.data.get('warehouse_id')
-        if not warehouse_id:
-            return Response({
-                'error': 'Warehouse ID is required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        try:
-            from apps.inventory.models import Warehouse
-            warehouse = Warehouse.objects.get(id=warehouse_id, company=self.request.user.company)
-        except Warehouse.DoesNotExist:
-            return Response({
-                'error': 'Warehouse not found'
-            }, status=status.HTTP_404_NOT_FOUND)
-        
+        if order.status != 'PROCESSING':
+            return error('Start processing the order before creating its shipment.')
+        if order.shipments.exclude(status__in=('CANCELLED', 'RETURNED')).exists():
+            return error('This order already has a shipment.')
+        if not order.order_items.exists():
+            return error('Add products to the order first.')
+        warehouse = Warehouse.objects.filter(id=request.data.get('warehouse_id'), company=request.user.company).first()
+        if warehouse is None:
+            return error('Choose the warehouse it ships from.', status.HTTP_404_NOT_FOUND if request.data.get('warehouse_id') else status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():
-            # Create shipment
             shipment = Shipment.objects.create(
-                company=order.company,
-                shipment_number=f"SH-{order.order_number}",
-                order=order,
-                warehouse=warehouse,
-                status='PENDING'
+                company=order.company, order=order, warehouse=warehouse, status='PENDING',
+                shipment_number=services.next_number(Shipment, 'shipment_number', order.company, 'SH'),
+                destination_address=order.shipping_address, recipient_name=order.customer_name,
+                recipient_phone=order.customer_phone,
             )
-            
-            record_event(shipment, 'CREATED', actor=request.user,
-                         message=f'Created from order {order.order_number}',
+            record_event(shipment, 'CREATED', actor=request.user, message=f'Created from order {order.order_number}',
                          data={'order_number': order.order_number})
-
-            # Create shipment items from order items
-            for order_item in order.order_items.all():
-                ShipmentItem.objects.create(
-                    shipment=shipment,
-                    order_item=order_item,
-                    product=order_item.product,
-                    quantity=order_item.quantity
-                )
-            
-            # Update order status
-            order.status = 'SHIPPED'
-            order.save()
-        
-        return Response({
-            'message': 'Shipment created successfully',
-            'shipment_id': str(shipment.id),
-            'shipment_number': shipment.shipment_number
-        })
+            for item in order.order_items.all():
+                ShipmentItem.objects.create(shipment=shipment, order_item=item, product=item.product, quantity=item.quantity)
+        return Response({'message': 'Shipment created; ship it when it leaves the warehouse',
+                         'shipment_id': str(shipment.id), 'shipment_number': shipment.shipment_number})
 
     @action(detail=True, methods=['post'])
     def cancel_order(self, request, pk=None):
-        """Cancel a customer order."""
+        """Cancel an order that hasn't shipped; shipments still in the warehouse are cancelled too."""
         order = self.get_object()
-        
-        if order.status in ['SHIPPED', 'DELIVERED']:
-            return Response({
-                'error': 'Cannot cancel shipped or delivered orders'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        order.status = 'CANCELLED'
-        order.save()
-        
-        return Response({
-            'message': 'Order cancelled successfully',
-            'status': order.status
-        })
+        if order.status not in ('NEW', 'PROCESSING'):
+            return error('Shipped or delivered orders can’t be cancelled; record a return on the shipment instead.')
+        if order.shipments.exclude(status__in=('PENDING', 'PICKED', 'PACKED', 'CANCELLED')).exists():
+            return error('Part of this order has already left the warehouse.')
+        with transaction.atomic():
+            for shipment in order.shipments.filter(status__in=services.PRE_SHIP):
+                services.cancel(shipment, request.user, 'order cancelled')
+            order.status = 'CANCELLED'
+            order.save(update_fields=['status', 'updated_at'])
+        return Response({'message': 'Order cancelled', 'status': order.status})
 
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
@@ -190,8 +185,23 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
         return ShipmentListSerializer
 
     def perform_create(self, serializer):
-        super().perform_create(serializer)
+        company = self.request.user.company
+        number = (serializer.validated_data.get('shipment_number') or '').strip() or services.next_number(Shipment, 'shipment_number', company, 'SH')
+        serializer.save(company=company, shipment_number=number)
         record_event(serializer.instance, 'CREATED', actor=self.request.user, message='Shipment created')
+
+    def destroy(self, request, *args, **kwargs):
+        if self.get_object().status not in ('PENDING', 'CANCELLED'):
+            return error('Only pending or cancelled shipments can be deleted.')
+        return super().destroy(request, *args, **kwargs)
+
+    def _run(self, fn, message, **kwargs):
+        try:
+            shipment = fn(self.get_object(), self.request.user, **kwargs)
+        except ShipmentError as exc:
+            return error(str(exc), **exc.details)
+        return Response({'message': message, 'status': shipment.status, 'tracking_number': shipment.tracking_number,
+                         'delivery_time': shipment.actual_delivery, 'shipment': ShipmentDetailSerializer(shipment, context={'request': self.request}).data})
 
     def perform_update(self, serializer):
         before = serializer.instance
@@ -207,97 +217,29 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
 
     @action(detail=True, methods=['post'])
     def pick_shipment(self, request, pk=None):
-        """Mark shipment as picked."""
-        shipment = self.get_object()
-        
-        if shipment.status != 'PENDING':
-            return Response({
-                'error': 'Shipment must be in PENDING status to pick'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        previous_status = shipment.status
-        shipment.status = 'PICKED'
-        shipment.save()
-        record_status_change(shipment, previous_status, actor=request.user)
-        
-        return Response({
-            'message': 'Shipment marked as picked',
-            'status': shipment.status
-        })
+        return self._run(lambda s, u: services.advance(s, 'PICKED', u), 'Shipment picked')
 
     @action(detail=True, methods=['post'])
     def pack_shipment(self, request, pk=None):
-        """Mark shipment as packed."""
-        shipment = self.get_object()
-        
-        if shipment.status != 'PICKED':
-            return Response({
-                'error': 'Shipment must be picked before packing'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        previous_status = shipment.status
-        shipment.status = 'PACKED'
-        shipment.save()
-        record_status_change(shipment, previous_status, actor=request.user)
-        
-        return Response({
-            'message': 'Shipment marked as packed',
-            'status': shipment.status
-        })
+        return self._run(lambda s, u: services.advance(s, 'PACKED', u), 'Shipment packed')
 
     @action(detail=True, methods=['post'])
     def ship_shipment(self, request, pk=None):
-        """Mark shipment as shipped."""
-        shipment = self.get_object()
-        
-        if shipment.status != 'PACKED':
-            return Response({
-                'error': 'Shipment must be packed before shipping'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Update shipment details
-        tracking_number = request.data.get('tracking_number')
-        carrier = request.data.get('carrier')
-        estimated_delivery = request.data.get('estimated_delivery')
-        
-        previous_status = shipment.status
-        shipment.status = 'SHIPPED'
-        shipment.shipping_date = timezone.now()
-        
-        if tracking_number:
-            shipment.tracking_number = tracking_number
-        if carrier:
-            shipment.carrier = carrier
-        if estimated_delivery:
-            shipment.estimated_delivery = estimated_delivery
-        
-        shipment.save()
-        record_status_change(shipment, previous_status, actor=request.user,
-                             data={'carrier': shipment.carrier, 'tracking_number': shipment.tracking_number})
-        
-        return Response({
-            'message': 'Shipment shipped successfully',
-            'status': shipment.status,
-            'tracking_number': shipment.tracking_number
-        })
+        """Items leave the warehouse (stock is taken) and the shipment is on its way."""
+        return self._run(services.ship, 'Shipment is on its way', tracking_number=request.data.get('tracking_number', ''),
+                         carrier=request.data.get('carrier', ''), estimated_delivery=request.data.get('estimated_delivery') or None)
 
     @action(detail=True, methods=['post'])
     def deliver_shipment(self, request, pk=None):
-        """Mark shipment as delivered."""
-        shipment = self.get_object()
-        
-        if shipment.status != 'SHIPPED':
-            return Response({
-                'error': 'Shipment must be shipped before delivery'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        mark_shipment_delivered(shipment, timezone.now(), actor=request.user)
-        
-        return Response({
-            'message': 'Shipment delivered successfully',
-            'status': shipment.status,
-            'delivery_time': shipment.actual_delivery
-        })
+        return self._run(services.deliver, 'Shipment delivered')
+
+    @action(detail=True, methods=['post'])
+    def cancel_shipment(self, request, pk=None):
+        return self._run(services.cancel, 'Shipment cancelled', reason=request.data.get('reason', ''))
+
+    @action(detail=True, methods=['post'])
+    def return_shipment(self, request, pk=None):
+        return self._run(services.return_shipment, 'Return recorded; stock is back in the warehouse', reason=request.data.get('reason', ''))
 
     @action(detail=False, methods=['get'], url_path='track')
     def track(self, request):
@@ -313,7 +255,7 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
         if not shipment:
             return Response({'error': 'Shipment not found'}, status=404)
         
-        serializer = ShipmentDetailSerializer(shipment)
+        serializer = ShipmentDetailSerializer(shipment, context={'request': request})
         return Response(serializer.data)
 
     @action(detail=False, methods=['get'])
@@ -348,6 +290,8 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
             )
             avg_delivery_days = total_days / delivered.count()
         
+        with_eta = delivered.filter(estimated_delivery__isnull=False)
+        on_time = with_eta.filter(actual_delivery__lte=models.F('estimated_delivery')).count()
         return Response({
             'pending_shipments': pending_shipments,
             'picked_shipments': picked_shipments,
@@ -357,10 +301,8 @@ class ShipmentViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet
             'delayed_shipments': delayed_shipments,
             'average_delivery_days': round(avg_delivery_days, 1),
             'total_shipments': pending_shipments + picked_shipments + packed_shipments + shipped_shipments + delivered_shipments,
-            'on_time_percentage': round(
-                ((shipped_shipments + delivered_shipments - delayed_shipments) / 
-                max(shipped_shipments + delivered_shipments, 1)) * 100, 1
-            ),
+            # Delivered by the estimated time, among deliveries that had one
+            'on_time_percentage': round(on_time / with_eta.count() * 100, 1) if with_eta.exists() else None,
         })
 
 class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelViewSet):
@@ -413,10 +355,11 @@ class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
             }, status=status.HTTP_400_BAD_REQUEST)
         
         # Check if all stops are completed
-        incomplete_stops = route.route_stops.exclude(status='COMPLETED')
+        incomplete_stops = route.route_stops.exclude(status__in=('COMPLETED', 'FAILED'))
         if incomplete_stops.exists():
             return Response({
-                'error': f'Cannot complete route. {incomplete_stops.count()} stops are incomplete.',
+                'error': f'Finish or mark failed the remaining {incomplete_stops.count()} stop(s) first.',
+                'message': f'Finish or mark failed the remaining {incomplete_stops.count()} stop(s) first.',
                 'incomplete_stops': [
                     f"Stop {stop.stop_number}: {stop.shipment.shipment_number}"
                     for stop in incomplete_stops
@@ -433,6 +376,21 @@ class DeliveryRouteViewSet(TenantViewSetMixin, BulkActionMixin, viewsets.ModelVi
             'end_time': route.end_time,
             'duration_hours': route.duration_hours
         })
+
+    @action(detail=True, methods=['post'])
+    def cancel_route(self, request, pk=None):
+        route = self.get_object()
+        if route.status not in ('PLANNED', 'IN_PROGRESS'):
+            return error('Only planned or running routes can be cancelled.')
+        route.status = 'CANCELLED'
+        route.end_time = timezone.now() if route.start_time else None
+        route.save()
+        return Response({'message': 'Route cancelled', 'status': route.status})
+
+    def destroy(self, request, *args, **kwargs):
+        if self.get_object().status not in ('PLANNED', 'CANCELLED'):
+            return error('Only planned or cancelled routes can be deleted.')
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, methods=['post'])
     def add_stop(self, request, pk=None):
@@ -485,6 +443,12 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
             'error': 'Create stops with POST /api/v1/distribution/routes/{route_id}/add_stop/'
         }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+    def destroy(self, request, *args, **kwargs):
+        stop = self.get_object()
+        if stop.status != 'PENDING' or stop.route.status not in ('PLANNED', 'IN_PROGRESS'):
+            return error('Only stops not yet visited can be removed.')
+        return super().destroy(request, *args, **kwargs)
+
     def perform_update(self, serializer):
         address = serializer.validated_data.get('address')
         if address and address != serializer.instance.address:
@@ -528,16 +492,24 @@ class RouteStopViewSet(TenantViewSetMixin, viewsets.ModelViewSet):
                 'error': 'Must arrive at stop before completing'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        stop.status = 'COMPLETED'
-        stop.departure_time = timezone.now()
-        stop.save()
-        
-        # Mark associated shipment (and its order, if fully delivered) as delivered
-        if stop.shipment:
-            record_event(stop.shipment, 'STOP_COMPLETED', actor=request.user,
-                         message=f'Stop {stop.stop_number} completed', occurred_at=stop.departure_time,
-                         data={'route_id': str(stop.route_id), 'stop_id': str(stop.id)})
-            mark_shipment_delivered(stop.shipment, stop.departure_time, actor=request.user)
+        departed = timezone.now()
+        try:
+            with transaction.atomic():
+                if stop.shipment:
+                    record_event(stop.shipment, 'STOP_COMPLETED', actor=request.user,
+                                 message=f'Stop {stop.stop_number} completed', occurred_at=departed,
+                                 data={'route_id': str(stop.route_id), 'stop_id': str(stop.id)})
+                # Deliver the shipment (shipping it first if it never left the warehouse, so stock moves)
+                if stop.shipment and stop.shipment.status in services.PRE_SHIP:
+                    services.ship(stop.shipment, request.user, allow_unpacked=True)
+                    stop.shipment.refresh_from_db()
+                if stop.shipment and stop.shipment.status == 'SHIPPED':
+                    services.deliver(stop.shipment, request.user, departed)
+                stop.status = 'COMPLETED'
+                stop.departure_time = departed
+                stop.save()
+        except ShipmentError as exc:
+            return error(str(exc), **exc.details)
         
         return Response({
             'message': 'Stop completed successfully',
