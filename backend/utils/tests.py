@@ -35,3 +35,17 @@ class EmailProviderTests(SimpleTestCase):
         with patch.dict('os.environ', {'EMAIL_PROVIDER': 'smtp', 'RESEND_API_KEY': 're_x'}):
             self.assertEqual(email_provider(), 'smtp')
 
+
+
+class SharedRedisPoolTests(SimpleTestCase):
+    def test_one_bounded_pool_per_address(self):
+        from redis import BlockingConnectionPool
+        from utils.redis_pool import SharedBlockingConnectionPool
+
+        a = SharedBlockingConnectionPool.from_url('redis://127.0.0.1:6379/9', max_connections=6, timeout=5)
+        b = SharedBlockingConnectionPool.from_url('redis://127.0.0.1:6379/9', max_connections=6, timeout=5)
+        other = SharedBlockingConnectionPool.from_url('redis://127.0.0.1:6379/10', max_connections=6, timeout=5)
+        self.assertIs(a, b)  # every thread's cache object ends up on the same pool
+        self.assertIsNot(a, other)
+        self.assertIsInstance(a, BlockingConnectionPool)
+        self.assertEqual(a.max_connections, 6)
