@@ -137,7 +137,10 @@ CHANNEL_REDIS_URL = (
     or (f"redis://{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT', '6379')}/2" if os.getenv('REDIS_HOST') else '')
 )
 CHANNEL_LAYERS = {
-    'default': {'BACKEND': 'channels_redis.core.RedisChannelLayer', 'CONFIG': {'hosts': [CHANNEL_REDIS_URL], 'capacity': 500, 'expiry': 30}}
+    'default': {'BACKEND': 'channels_redis.core.RedisChannelLayer', 'CONFIG': {
+        # capped per process so live updates can't exhaust a small Redis plan's connection limit
+        'hosts': [{'address': CHANNEL_REDIS_URL, 'max_connections': int(os.getenv('CHANNEL_MAX_CONNECTIONS', '6'))}],
+        'capacity': 500, 'expiry': 30}}
     if CHANNEL_REDIS_URL else {'BACKEND': 'channels.layers.InMemoryChannelLayer'}
 }
 REALTIME_ENABLED = os.getenv('REALTIME_ENABLED', 'True').lower() == 'true'
@@ -320,11 +323,19 @@ CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', 'False').lower() ==
 CACHE_BACKEND = os.getenv('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache')
 
 if 'redis' in CACHE_BACKEND.lower():
+    # One bounded, blocking pool per process, shared by all threads (utils/redis_pool.py): with a pool per
+    # thread, a burst of 60 requests held 60 cache connections open, past the 30-connection limit of a
+    # small Redis plan. When all are busy, a request waits briefly for one instead of opening another.
+    _cache_pool = {'max_connections': int(os.getenv('CACHE_MAX_CONNECTIONS', '6')), 'timeout': int(os.getenv('CACHE_POOL_TIMEOUT', '5'))}
     CACHES = {
         'default': {
             'BACKEND': CACHE_BACKEND,
             'LOCATION': os.getenv('CACHE_LOCATION', f'redis://{os.getenv("REDIS_HOST", "redis")}:{os.getenv("REDIS_PORT", "6379")}/1'),
-            'OPTIONS': {}
+            'OPTIONS': (
+                {'CONNECTION_POOL_CLASS': 'utils.redis_pool.SharedBlockingConnectionPool', 'CONNECTION_POOL_KWARGS': _cache_pool}
+                if 'django_redis' in CACHE_BACKEND
+                else {'pool_class': 'utils.redis_pool.SharedBlockingConnectionPool', **_cache_pool}  # Django's built-in RedisCache
+            ),
         }
     }
 else:
@@ -541,6 +552,10 @@ CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 
 # Celery Result Backend
 CELERY_RESULT_BACKEND = 'django-db'  # Store results in Django database
+# Keep Celery's share of Redis connections small (the free Redis plan allows 30 in total)
+CELERY_BROKER_POOL_LIMIT = int(os.getenv('CELERY_BROKER_POOL_LIMIT', '2'))
+CELERY_BROKER_TRANSPORT_OPTIONS = {'max_connections': int(os.getenv('CELERY_REDIS_MAX_CONNECTIONS', '4'))}
+CELERY_WORKER_CONCURRENCY = int(os.getenv('CELERY_WORKER_CONCURRENCY', '2'))  # a --concurrency flag overrides this
 CELERY_CACHE_BACKEND = 'django-cache'
 
 # Celery Task Settings
